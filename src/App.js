@@ -9,6 +9,7 @@ function App() {
   const [expanded, setExpanded] = useState({}); // {sectionIdx: bool}
   const [aiPrompt, setAiPrompt] = useState("");
   const [apiKey, setApiKey] = useState("");
+  const [projectId, setProjectId] = useState("");
 
   console.log("App component mounted");
 
@@ -19,6 +20,7 @@ function App() {
     // Debug: Log environment variables
     console.log("Environment variables:", {
       REACT_APP_GPT_KEY: process.env.REACT_APP_GPT_KEY,
+      REACT_APP_PROJECT_ID: process.env.REACT_APP_PROJECT_ID,
       NODE_ENV: process.env.NODE_ENV,
       allEnvVars: process.env
     });
@@ -69,6 +71,10 @@ function App() {
         console.log(`API key loaded - Length: ${keyLength}, First half: ${keyText.substring(0, halfLength)}...`);
       }
       
+      // Get project ID from environment or use default
+      const projectId = process.env.REACT_APP_PROJECT_ID || "proj_1hNKc2pZ058vN4dqwCDO9o9T";
+      console.log("Using project ID:", projectId);
+      
       // Group by cluster_name
       const sectionMap = {};
       questions.forEach(q => {
@@ -86,11 +92,12 @@ function App() {
       setExpanded(Object.fromEntries(sectionArr.map((_, idx) => [idx, false])));
       setAiPrompt(promptText);
       setApiKey(keyText.trim());
+      setProjectId(projectId);
       console.log("State updated with loaded data");
       
       // Test API key with a simple call
       console.log("Testing API key...");
-      fetch("https://api.openai.com/v1/models", {
+      fetch(`https://api.openai.com/v1/projects/${projectId}/models`, {
         headers: {
           "Authorization": `Bearer ${keyText.trim()}`,
         },
@@ -144,7 +151,7 @@ function App() {
     try {
       const systemPrompt = aiPrompt;
       console.log("Making API call to OpenAI...");
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      const response = await fetch(`https://api.openai.com/v1/projects/${projectId}/chat/completions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
