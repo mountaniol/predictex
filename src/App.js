@@ -149,7 +149,23 @@ function App() {
     setLoading((prev) => ({ ...prev, [key]: true }));
     setError("");
     try {
-      const systemPrompt = aiPrompt;
+      // Determine which prompt to use
+      let systemPrompt;
+      if (q.prompt) {
+        // Use custom prompt if provided
+        systemPrompt = q.prompt;
+        console.log("Using custom prompt from JSON");
+      } else if (q.prompt_add) {
+        // Use standard prompt + additional prompt
+        systemPrompt = aiPrompt + " " + q.prompt_add;
+        console.log("Using standard prompt + additional prompt");
+      } else {
+        // Use standard prompt
+        systemPrompt = aiPrompt;
+        console.log("Using standard prompt");
+      }
+      
+      console.log("Final system prompt length:", systemPrompt.length);
       console.log("Making API call to OpenAI...");
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
@@ -353,6 +369,10 @@ function App() {
                           </div>
                           <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 10 }}>
                             <i>Type:</i> {q.question_type}
+                            <br />
+                            <i>Prompt:</i> {q.prompt ? "Custom" : q.prompt_add ? "Standard + Addition" : "Standard"}
+                            {q.prompt && <span style={{ color: "#1a2340" }}> - {q.prompt.substring(0, 100)}...</span>}
+                            {q.prompt_add && <span style={{ color: "#1a2340" }}> - {q.prompt_add.substring(0, 100)}...</span>}
                           </div>
                           {renderInput(q, sectionIdx, questionIdx, key)}
                           <div style={{ marginTop: 8, display: "flex", alignItems: "center" }}>
