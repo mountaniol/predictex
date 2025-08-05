@@ -327,18 +327,26 @@ ${JSON.stringify(jsonData, null, 2)}`;
         console.log(`No existing translated file found: ${translatedFileName}`);
       }
 
-      // If no translated file exists, load original and translate
+      // If no translated file exists, load original and translate in manageable chunks
       if (language !== "en") {
-        console.log(`Translating to ${language}...`);
+        console.log(`Translating to ${language} in chunks...`);
         const originalResponse = await fetch("/questions2.json");
         const originalQuestions = await originalResponse.json();
-        
-        const translatedQuestions = await translateJSON(originalQuestions, language);
-        if (translatedQuestions) {
-          return translatedQuestions;
+        const chunkSize = 20;
+        const allTranslated = [];
+        for (let i = 0; i < originalQuestions.length; i += chunkSize) {
+          const chunk = originalQuestions.slice(i, i + chunkSize);
+          console.log(`Translating questions ${i + 1} to ${Math.min(i + chunkSize, originalQuestions.length)}...`);
+          const translatedChunk = await translateJSON(chunk, language);
+          if (translatedChunk) {
+            allTranslated.push(...translatedChunk);
+          } else {
+            console.error(`Translation failed for chunk starting at index ${i}`);
+            throw new Error(`Failed to translate questions chunk ${i}-${i + chunkSize}`);
+          }
         }
+        return allTranslated;
       }
-      
       // Fallback to original English
       const response = await fetch("/questions2.json");
       return await response.json();
