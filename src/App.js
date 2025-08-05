@@ -248,7 +248,7 @@ function App() {
         "ru": "Russian"
       };
       
-      const prompt = `Translate the following JSON fields to ${languageNames[targetLanguage]}. Only translate the "id", "text", and "cluster" fields. Keep all other fields unchanged. Return only the JSON without any explanation:
+      const prompt = `Translate the following JSON fields to ${languageNames[targetLanguage]}. Only translate the "id", "text", and "cluster" fields. Keep all other fields unchanged. Return only the JSON without any explanation or markdown formatting:
 
 ${JSON.stringify(jsonData, null, 2)}`;
 
@@ -261,7 +261,7 @@ ${JSON.stringify(jsonData, null, 2)}`;
         body: JSON.stringify({
           model: "gpt-4o-mini",
           messages: [
-            { role: "system", content: "You are a JSON translator. Translate only the specified fields and return valid JSON." },
+            { role: "system", content: "You are a JSON translator. Translate only the specified fields and return valid JSON. Do not add any explanations, markdown formatting, or extra text. Return only the JSON object." },
             { role: "user", content: prompt },
           ],
           max_tokens: 4000,
@@ -271,13 +271,26 @@ ${JSON.stringify(jsonData, null, 2)}`;
       const data = await response.json();
       if (data.error) throw new Error(data.error.message);
       
-      const translatedContent = data.choices[0].message.content;
-      const translatedJSON = JSON.parse(translatedContent);
+      let translatedContent = data.choices[0].message.content.trim();
       
-      // Save translated JSON to public folder (this would need a backend in production)
-      // For now, we'll just use it in memory
-      console.log("Translation completed for:", targetLanguage);
-      return translatedJSON;
+      // Clean up the response - remove markdown formatting if present
+      if (translatedContent.startsWith('```json')) {
+        translatedContent = translatedContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (translatedContent.startsWith('```')) {
+        translatedContent = translatedContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      console.log("Raw ChatGPT response:", translatedContent.substring(0, 200) + "...");
+      
+      try {
+        const translatedJSON = JSON.parse(translatedContent);
+        console.log("Translation completed for:", targetLanguage);
+        return translatedJSON;
+      } catch (parseError) {
+        console.error("JSON parse error:", parseError);
+        console.error("Failed to parse:", translatedContent);
+        throw new Error(`JSON parsing failed: ${parseError.message}`);
+      }
       
     } catch (err) {
       console.error("Translation error:", err);
