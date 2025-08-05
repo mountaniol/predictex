@@ -15,7 +15,14 @@ function App() {
     Promise.all([
       fetch("/questions2.json").then((res) => res.json()),
       fetch("/aiprompt.txt").then((res) => res.text()),
-      fetch("/key.txt").then((res) => res.text())
+      // Try to get API key from environment variable first, then fall back to file
+      Promise.resolve().then(() => {
+        if (process.env.REACT_APP_GPT_KEY) {
+          return process.env.REACT_APP_GPT_KEY;
+        } else {
+          return fetch("/key.txt").then((res) => res.text());
+        }
+      })
     ]).then(([questions, promptText, keyText]) => {
       // Group by cluster_name
       const sectionMap = {};
