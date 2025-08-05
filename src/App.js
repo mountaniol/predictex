@@ -10,8 +10,12 @@ function App() {
   const [aiPrompt, setAiPrompt] = useState("");
   const [apiKey, setApiKey] = useState("");
 
+  console.log("App component mounted");
+
   // Load questions, prompt, and API key
   useEffect(() => {
+    console.log("useEffect triggered - loading data");
+    
     // Debug: Log environment variables
     console.log("Environment variables:", {
       REACT_APP_GPT_KEY: process.env.REACT_APP_GPT_KEY,
@@ -20,21 +24,44 @@ function App() {
     });
 
     Promise.all([
-      fetch("/questions2.json").then((res) => res.json()),
-      fetch("/aiprompt.txt").then((res) => res.text()),
+      fetch("/questions2.json").then((res) => {
+        console.log("Loading questions2.json");
+        return res.json();
+      }),
+      fetch("/aiprompt.txt").then((res) => {
+        console.log("Loading aiprompt.txt");
+        return res.text();
+      }),
       // Try to get API key from environment variable first, then fall back to file
       Promise.resolve().then(() => {
         console.log("Checking for REACT_APP_GPT_KEY:", process.env.REACT_APP_GPT_KEY);
         if (process.env.REACT_APP_GPT_KEY) {
           console.log("Using environment variable for API key");
-          return process.env.REACT_APP_GPT_KEY;
+          const key = process.env.REACT_APP_GPT_KEY;
+          const keyLength = key.length;
+          const halfLength = Math.floor(keyLength / 2);
+          console.log(`API key from env - Length: ${keyLength}, First half: ${key.substring(0, halfLength)}...`);
+          return key;
         } else {
           console.log("Environment variable not found, falling back to key.txt file");
-          return fetch("/key.txt").then((res) => res.text());
+          return fetch("/key.txt").then((res) => {
+            console.log("Loading key.txt file");
+            return res.text();
+          });
         }
       })
     ]).then(([questions, promptText, keyText]) => {
+      console.log("All data loaded successfully");
+      console.log("Questions count:", questions.length);
+      console.log("Prompt length:", promptText.length);
       console.log("Loaded API key length:", keyText ? keyText.length : 0);
+      
+      if (keyText) {
+        const keyLength = keyText.length;
+        const halfLength = Math.floor(keyLength / 2);
+        console.log(`API key loaded - Length: ${keyLength}, First half: ${keyText.substring(0, halfLength)}...`);
+      }
+      
       // Group by cluster_name
       const sectionMap = {};
       questions.forEach(q => {
@@ -46,11 +73,13 @@ function App() {
         section,
         questions: questions.sort((a, b) => a.position_in_cluster - b.position_in_cluster)
       }));
+      console.log("Sections created:", sectionArr.length);
       setSections(sectionArr);
       // Set all sections to collapsed by default
       setExpanded(Object.fromEntries(sectionArr.map((_, idx) => [idx, false])));
       setAiPrompt(promptText);
       setApiKey(keyText.trim());
+      console.log("State updated with loaded data");
     }).catch((err) => {
       console.error("Error loading data:", err);
       setError("Failed to load questions, prompt, or API key.");
@@ -65,6 +94,9 @@ function App() {
   };
 
   const evaluateAnswer = async (sectionIdx, questionIdx) => {
+    console.log(`Evaluating answer for section ${sectionIdx}, question ${questionIdx}`);
+    console.log("Current API key length:", apiKey.length);
+    
     const q = sections[sectionIdx].questions[questionIdx];
     const key = qKey(sectionIdx, questionIdx);
     let answer = answers[key];
@@ -77,10 +109,15 @@ function App() {
     } else {
       userPrompt += `Answer: ${answer}`;
     }
+    
+    console.log("User prompt:", userPrompt);
+    console.log("Question type:", q.question_type);
+    
     setLoading((prev) => ({ ...prev, [key]: true }));
     setError("");
     try {
       const systemPrompt = aiPrompt;
+      console.log("Making API call to OpenAI...");
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -97,18 +134,24 @@ function App() {
         }),
       });
       const data = await response.json();
+      console.log("OpenAI response received:", data);
       if (data.error) throw new Error(data.error.message);
       // For yes-no, set score directly
       if (q.question_type === "yes-no") {
-        setScores((prev) => ({ ...prev, [key]: answer === "yes" ? 100 : 0 }));
+        const score = answer === "yes" ? 100 : 0;
+        console.log(`Yes/No question - Setting score to: ${score}`);
+        setScores((prev) => ({ ...prev, [key]: score }));
       } else {
         // Try to extract a number from the response
         const content = data.choices[0].message.content;
+        console.log("OpenAI response content:", content);
         const match = content.match(/\d{1,3}/);
         let score = match ? Math.min(100, Math.max(0, parseInt(match[0], 10))) : null;
+        console.log(`Extracted score: ${score}`);
         setScores((prev) => ({ ...prev, [key]: score }));
       }
     } catch (err) {
+      console.error("Error in evaluateAnswer:", err);
       setError("Error: " + err.message);
     }
     setLoading((prev) => ({ ...prev, [key]: false }));
@@ -192,6 +235,8 @@ function App() {
       );
     }
   };
+
+  console.log("Rendering app with sections:", sections.length);
 
   return (
     <div style={{
