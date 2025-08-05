@@ -279,11 +279,20 @@ ${JSON.stringify(jsonData, null, 2)}`;
       } else if (translatedContent.startsWith('```')) {
         translatedContent = translatedContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
       }
-      
+
+      // Attempt to fix common JSON formatting issues: unquoted keys, single quotes, and trailing commas
+      let cleanedContent = translatedContent
+        // wrap unquoted property names in double quotes
+        .replace(/([{,]\s*)([A-Za-z0-9_]+)\s*:/g, '$1"$2":')
+        // convert single-quoted strings to double-quoted
+        .replace(/'([^']*)'/g, '"$1"')
+        // remove trailing commas before } or ]
+        .replace(/,\s*(\}|])/g, '$1');
+
       console.log("Raw ChatGPT response:", translatedContent.substring(0, 200) + "...");
-      
+
       try {
-        const translatedJSON = JSON.parse(translatedContent);
+        const translatedJSON = JSON.parse(cleanedContent);
         console.log("Translation completed for:", targetLanguage);
         return translatedJSON;
       } catch (parseError) {
