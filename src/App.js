@@ -1,33 +1,64 @@
 import React, { useState, useEffect } from "react";
 
 function App() {
-  const [questions, setQuestions] = useState([]);
-  const [answers, setAnswers] = useState({});
-  const [scores, setScores] = useState({});
-  const [loading, setLoading] = useState({});
+  const [sections, setSections] = useState([]); // [{sectionName, questions: []}]
+  const [answers, setAnswers] = useState({}); // {sectionIdx-questionIdx: answer}
+  const [scores, setScores] = useState({});   // {sectionIdx-questionIdx: score}
+  const [loading, setLoading] = useState({}); // {sectionIdx-questionIdx: bool}
   const [error, setError] = useState("");
+  const [expanded, setExpanded] = useState({}); // {sectionIdx: bool}
+  const [aiPrompt, setAiPrompt] = useState("");
 
   const apiKey = "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"; // <-- Replace with your actual key
 
+  // Load questions and group by section
   useEffect(() => {
-    fetch("/questions.json")
-      .then((res) => res.json())
-      .then(setQuestions)
-      .catch(() => setError("Failed to load questions.json"));
+    Promise.all([
+      fetch("/questions2.json").then((res) => res.json()),
+      fetch("/aiprompt.txt").then((res) => res.text())
+    ]).then(([questions, promptText]) => {
+      // Group by cluster_name
+      const sectionMap = {};
+      questions.forEach(q => {
+        if (!sectionMap[q.cluster_name]) sectionMap[q.cluster_name] = [];
+        sectionMap[q.cluster_name].push(q);
+      });
+      // Convert to array and sort questions in each section
+      const sectionArr = Object.entries(sectionMap).map(([section, questions]) => ({
+        section,
+        questions: questions.sort((a, b) => a.position_in_cluster - b.position_in_cluster)
+      }));
+      setSections(sectionArr);
+      // Set all sections to collapsed by default
+      setExpanded(Object.fromEntries(sectionArr.map((_, idx) => [idx, false])));
+      setAiPrompt(promptText);
+    }).catch(() => setError("Failed to load questions or prompt."));
   }, []);
 
-  const handleAnswerChange = (idx, value) => {
-    setAnswers((prev) => ({ ...prev, [idx]: value }));
+  // Helper to get a unique key for each question
+  const qKey = (sectionIdx, questionIdx) => `${sectionIdx}-${questionIdx}`;
+
+  const handleAnswerChange = (sectionIdx, questionIdx, value) => {
+    setAnswers((prev) => ({ ...prev, [qKey(sectionIdx, questionIdx)]: value }));
   };
 
-  const evaluateAnswer = async (idx) => {
-    const q = questions[idx];
-    const answer = answers[idx] || "";
-    setLoading((prev) => ({ ...prev, [idx]: true }));
+  const evaluateAnswer = async (sectionIdx, questionIdx) => {
+    const q = sections[sectionIdx].questions[questionIdx];
+    const key = qKey(sectionIdx, questionIdx);
+    let answer = answers[key];
+    let userPrompt = `Question: ${q.text}\n`;
+    // Handle answer formatting by type
+    if (q.question_type === "yes-no") {
+      userPrompt += `answer = ${answer}`;
+    } else if (q.question_type === "numeric") {
+      userPrompt += `answer = ${answer}`;
+    } else {
+      userPrompt += `Answer: ${answer}`;
+    }
+    setLoading((prev) => ({ ...prev, [key]: true }));
     setError("");
     try {
-      const systemPrompt = q.prompt + " " + (q.additional_prompt || "");
-      const userPrompt = `Question: ${q.question}\nAnswer: ${answer}`;
+      const systemPrompt = aiPrompt;
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -45,18 +76,104 @@ function App() {
       });
       const data = await response.json();
       if (data.error) throw new Error(data.error.message);
-      const content = data.choices[0].message.content;
-      const match = content.match(/\d{1,3}/);
-      let score = match ? Math.min(100, Math.max(1, parseInt(match[0], 10))) : null;
-      setScores((prev) => ({ ...prev, [idx]: score }));
+      // For yes-no, set score directly
+      if (q.question_type === "yes-no") {
+        setScores((prev) => ({ ...prev, [key]: answer === "yes" ? 100 : 0 }));
+      } else {
+        // Try to extract a number from the response
+        const content = data.choices[0].message.content;
+        const match = content.match(/\d{1,3}/);
+        let score = match ? Math.min(100, Math.max(0, parseInt(match[0], 10))) : null;
+        setScores((prev) => ({ ...prev, [key]: score }));
+      }
     } catch (err) {
       setError("Error: " + err.message);
     }
-    setLoading((prev) => ({ ...prev, [idx]: false }));
+    setLoading((prev) => ({ ...prev, [key]: false }));
   };
 
-  const allAnswered = questions.length > 0 && Object.keys(scores).length === questions.length;
-  const avgScore = questions.length ? (Object.values(scores).reduce((a, b) => a + (b || 0), 0) / questions.length).toFixed(2) : 0;
+  // Count all questions
+  const totalQuestions = sections.reduce((sum, sec) => sum + (sec.questions?.length || 0), 0);
+  const allAnswered = totalQuestions > 0 && Object.keys(scores).length === totalQuestions;
+  const avgScore = totalQuestions ? (Object.values(scores).reduce((a, b) => a + (b || 0), 0) / totalQuestions).toFixed(2) : 0;
+
+  const toggleSection = (idx) => {
+    setExpanded((prev) => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
+  // Render input by question type
+  const renderInput = (q, sectionIdx, questionIdx, key) => {
+    if (q.question_type === "yes-no") {
+      return (
+        <div style={{ marginBottom: 8 }}>
+          <label style={{ marginRight: 16 }}>
+            <input
+              type="radio"
+              name={`yesno-${key}`}
+              value="yes"
+              checked={answers[key] === "yes"}
+              onChange={() => handleAnswerChange(sectionIdx, questionIdx, "yes")}
+              disabled={!!scores[key]}
+            />
+            Yes
+          </label>
+          <label>
+            <input
+              type="radio"
+              name={`yesno-${key}`}
+              value="no"
+              checked={answers[key] === "no"}
+              onChange={() => handleAnswerChange(sectionIdx, questionIdx, "no")}
+              disabled={!!scores[key]}
+            />
+            No
+          </label>
+        </div>
+      );
+    } else if (q.question_type === "numeric") {
+      return (
+        <input
+          type="number"
+          style={{
+            width: 120,
+            borderRadius: 8,
+            border: "1px solid #cfd8dc",
+            padding: 8,
+            fontSize: 15,
+            fontFamily: "inherit",
+            marginBottom: 8,
+            background: "#f6f8fa"
+          }}
+          value={answers[key] || ""}
+          onChange={e => handleAnswerChange(sectionIdx, questionIdx, e.target.value)}
+          disabled={!!scores[key]}
+          placeholder="Enter number"
+        />
+      );
+    } else {
+      // open-ended
+      return (
+        <textarea
+          rows={3}
+          style={{
+            width: "100%",
+            borderRadius: 8,
+            border: "1px solid #cfd8dc",
+            padding: 10,
+            fontSize: 15,
+            fontFamily: "inherit",
+            marginBottom: 8,
+            background: "#f6f8fa",
+            resize: "vertical"
+          }}
+          value={answers[key] || ""}
+          onChange={e => handleAnswerChange(sectionIdx, questionIdx, e.target.value)}
+          disabled={!!scores[key]}
+          placeholder="Type your answer here..."
+        />
+      );
+    }
+  };
 
   return (
     <div style={{
@@ -97,68 +214,81 @@ function App() {
           </div>
         </div>
         {error && <div style={{ color: "#b00020", background: "#fff0f0", border: "1px solid #ffd0d0", borderRadius: 6, padding: 10, marginBottom: 16 }}>{error}</div>}
-        {questions.length > 0 ? (
+        {sections.length > 0 ? (
           <div>
-            {questions.map((q, idx) => (
-              <div key={idx} style={{
-                background: "#fff",
-                borderRadius: 12,
-                boxShadow: "0 2px 12px rgba(30,40,90,0.07)",
-                padding: 24,
-                marginBottom: 28,
-                border: "1px solid #e3e7ef"
-              }}>
-                <div style={{ fontSize: 18, fontWeight: 600, color: "#1a2340", marginBottom: 8 }}>
-                  Q{idx + 1}: {q.question}
-                </div>
-                <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 10 }}>
-                  <i>Prompt:</i> {q.prompt}
-                  <br />
-                  <i>Additional:</i> {q.additional_prompt}
-                </div>
-                <textarea
-                  rows={3}
+            {sections.map((section, sectionIdx) => (
+              <div key={sectionIdx} style={{ marginBottom: 32 }}>
+                <div
                   style={{
-                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    background: "#f0f3fa",
                     borderRadius: 8,
-                    border: "1px solid #cfd8dc",
-                    padding: 10,
-                    fontSize: 15,
-                    fontFamily: "inherit",
-                    marginBottom: 8,
-                    background: "#f6f8fa",
-                    resize: "vertical"
+                    padding: "12px 18px",
+                    fontSize: 20,
+                    fontWeight: 600,
+                    color: "#1a2340",
+                    boxShadow: "0 1px 4px rgba(30,40,90,0.04)",
+                    border: "1px solid #e3e7ef"
                   }}
-                  value={answers[idx] || ""}
-                  onChange={(e) => handleAnswerChange(idx, e.target.value)}
-                  disabled={!!scores[idx]}
-                  placeholder="Type your answer here..."
-                />
-                <div style={{ marginTop: 8, display: "flex", alignItems: "center" }}>
-                  <button
-                    onClick={() => evaluateAnswer(idx)}
-                    disabled={loading[idx] || !answers[idx] || !!scores[idx]}
-                    style={{
-                      background: loading[idx] || !!scores[idx] ? "#e3e7ef" : "#1a2340",
-                      color: loading[idx] || !!scores[idx] ? "#888" : "#fff",
-                      border: "none",
-                      borderRadius: 6,
-                      padding: "8px 22px",
-                      fontSize: 15,
-                      fontWeight: 600,
-                      cursor: loading[idx] || !!scores[idx] ? "not-allowed" : "pointer",
-                      boxShadow: "0 1px 4px rgba(30,40,90,0.06)",
-                      transition: "background 0.2s"
-                    }}
-                  >
-                    {loading[idx] ? "Evaluating..." : scores[idx] ? "Evaluated" : "Submit for Evaluation"}
-                  </button>
-                  {scores[idx] !== undefined && (
-                    <span style={{ marginLeft: 18, fontWeight: "bold", fontSize: 17, color: "#1a2340" }}>
-                      Score: {scores[idx]}
-                    </span>
-                  )}
+                  onClick={() => toggleSection(sectionIdx)}
+                >
+                  <span style={{ marginRight: 12, fontSize: 22 }}>
+                    {expanded[sectionIdx] ? "▼" : "►"}
+                  </span>
+                  {section.section}
                 </div>
+                {expanded[sectionIdx] && (
+                  <div style={{ marginTop: 18 }}>
+                    {section.questions.map((q, questionIdx) => {
+                      const key = qKey(sectionIdx, questionIdx);
+                      return (
+                        <div key={key} style={{
+                          background: "#fff",
+                          borderRadius: 12,
+                          boxShadow: "0 2px 12px rgba(30,40,90,0.07)",
+                          padding: 24,
+                          marginBottom: 28,
+                          border: "1px solid #e3e7ef"
+                        }}>
+                          <div style={{ fontSize: 18, fontWeight: 600, color: "#1a2340", marginBottom: 8 }}>
+                            Q{questionIdx + 1}: {q.text}
+                          </div>
+                          <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 10 }}>
+                            <i>Type:</i> {q.question_type}
+                          </div>
+                          {renderInput(q, sectionIdx, questionIdx, key)}
+                          <div style={{ marginTop: 8, display: "flex", alignItems: "center" }}>
+                            <button
+                              onClick={() => evaluateAnswer(sectionIdx, questionIdx)}
+                              disabled={loading[key] || !answers[key] || !!scores[key]}
+                              style={{
+                                background: loading[key] || !!scores[key] ? "#e3e7ef" : "#1a2340",
+                                color: loading[key] || !!scores[key] ? "#888" : "#fff",
+                                border: "none",
+                                borderRadius: 6,
+                                padding: "8px 22px",
+                                fontSize: 15,
+                                fontWeight: 600,
+                                cursor: loading[key] || !!scores[key] ? "not-allowed" : "pointer",
+                                boxShadow: "0 1px 4px rgba(30,40,90,0.06)",
+                                transition: "background 0.2s"
+                              }}
+                            >
+                              {loading[key] ? "Evaluating..." : scores[key] ? "Evaluated" : "Submit for Evaluation"}
+                            </button>
+                            {scores[key] !== undefined && (
+                              <span style={{ marginLeft: 18, fontWeight: "bold", fontSize: 17, color: "#1a2340" }}>
+                                Score: {scores[key]}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -175,7 +305,7 @@ function App() {
         )}
         <div style={{ marginTop: 40, fontSize: 13, color: "#b0b8c9", textAlign: "center" }}>
           <div>
-            <b>Note:</b> Your API key is only used in your browser. No data is sent to any server except OpenAI.
+            <b>Note:</b> Copyright Predictex AI 2025. All rights reserved. All questions are copyrighted by Predictex AI.
           </div>
         </div>
       </div>
