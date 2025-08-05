@@ -12,18 +12,29 @@ function App() {
 
   // Load questions, prompt, and API key
   useEffect(() => {
+    // Debug: Log environment variables
+    console.log("Environment variables:", {
+      REACT_APP_GPT_KEY: process.env.REACT_APP_GPT_KEY,
+      NODE_ENV: process.env.NODE_ENV,
+      allEnvVars: process.env
+    });
+
     Promise.all([
       fetch("/questions2.json").then((res) => res.json()),
       fetch("/aiprompt.txt").then((res) => res.text()),
       // Try to get API key from environment variable first, then fall back to file
       Promise.resolve().then(() => {
+        console.log("Checking for REACT_APP_GPT_KEY:", process.env.REACT_APP_GPT_KEY);
         if (process.env.REACT_APP_GPT_KEY) {
+          console.log("Using environment variable for API key");
           return process.env.REACT_APP_GPT_KEY;
         } else {
+          console.log("Environment variable not found, falling back to key.txt file");
           return fetch("/key.txt").then((res) => res.text());
         }
       })
     ]).then(([questions, promptText, keyText]) => {
+      console.log("Loaded API key length:", keyText ? keyText.length : 0);
       // Group by cluster_name
       const sectionMap = {};
       questions.forEach(q => {
@@ -40,7 +51,10 @@ function App() {
       setExpanded(Object.fromEntries(sectionArr.map((_, idx) => [idx, false])));
       setAiPrompt(promptText);
       setApiKey(keyText.trim());
-    }).catch(() => setError("Failed to load questions, prompt, or API key."));
+    }).catch((err) => {
+      console.error("Error loading data:", err);
+      setError("Failed to load questions, prompt, or API key.");
+    });
   }, []);
 
   // Helper to get a unique key for each question
