@@ -113,7 +113,6 @@ function App() {
               value="yes"
               checked={answers[key] === "yes"}
               onChange={() => handleAnswerChange(sectionIdx, questionIdx, "yes")}
-              disabled={!!scores[key]}
             />
             Yes
           </label>
@@ -124,7 +123,6 @@ function App() {
               value="no"
               checked={answers[key] === "no"}
               onChange={() => handleAnswerChange(sectionIdx, questionIdx, "no")}
-              disabled={!!scores[key]}
             />
             No
           </label>
@@ -146,7 +144,6 @@ function App() {
           }}
           value={answers[key] || ""}
           onChange={e => handleAnswerChange(sectionIdx, questionIdx, e.target.value)}
-          disabled={!!scores[key]}
           placeholder="Enter number"
         />
       );
@@ -168,7 +165,6 @@ function App() {
           }}
           value={answers[key] || ""}
           onChange={e => handleAnswerChange(sectionIdx, questionIdx, e.target.value)}
-          disabled={!!scores[key]}
           placeholder="Type your answer here..."
         />
       );
@@ -200,7 +196,7 @@ function App() {
             color: "#1a2340",
             fontFamily: "'Segoe UI', 'Roboto', 'Arial', sans-serif"
           }}>
-            Pretictex AI
+            Predictex AI
           </div>
           <div style={{
             fontSize: 20,
@@ -262,21 +258,21 @@ function App() {
                           <div style={{ marginTop: 8, display: "flex", alignItems: "center" }}>
                             <button
                               onClick={() => evaluateAnswer(sectionIdx, questionIdx)}
-                              disabled={loading[key] || !answers[key] || !!scores[key]}
+                              disabled={loading[key] || !answers[key]}
                               style={{
-                                background: loading[key] || !!scores[key] ? "#e3e7ef" : "#1a2340",
-                                color: loading[key] || !!scores[key] ? "#888" : "#fff",
+                                background: loading[key] ? "#e3e7ef" : "#1a2340",
+                                color: loading[key] ? "#888" : "#fff",
                                 border: "none",
                                 borderRadius: 6,
                                 padding: "8px 22px",
                                 fontSize: 15,
                                 fontWeight: 600,
-                                cursor: loading[key] || !!scores[key] ? "not-allowed" : "pointer",
+                                cursor: loading[key] ? "not-allowed" : "pointer",
                                 boxShadow: "0 1px 4px rgba(30,40,90,0.06)",
                                 transition: "background 0.2s"
                               }}
                             >
-                              {loading[key] ? "Evaluating..." : scores[key] ? "Evaluated" : "Submit for Evaluation"}
+                              {loading[key] ? "Evaluating..." : scores[key] ? "Re-evaluate" : "Submit for Evaluation"}
                             </button>
                             {scores[key] !== undefined && (
                               <span style={{ marginLeft: 18, fontWeight: "bold", fontSize: 17, color: "#1a2340" }}>
