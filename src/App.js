@@ -8,15 +8,15 @@ function App() {
   const [error, setError] = useState("");
   const [expanded, setExpanded] = useState({}); // {sectionIdx: bool}
   const [aiPrompt, setAiPrompt] = useState("");
+  const [apiKey, setApiKey] = useState("");
 
-  const apiKey = "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"; // <-- Replace with your actual key
-
-  // Load questions and group by section
+  // Load questions, prompt, and API key
   useEffect(() => {
     Promise.all([
       fetch("/questions2.json").then((res) => res.json()),
-      fetch("/aiprompt.txt").then((res) => res.text())
-    ]).then(([questions, promptText]) => {
+      fetch("/aiprompt.txt").then((res) => res.text()),
+      fetch("/key.txt").then((res) => res.text())
+    ]).then(([questions, promptText, keyText]) => {
       // Group by cluster_name
       const sectionMap = {};
       questions.forEach(q => {
@@ -32,7 +32,8 @@ function App() {
       // Set all sections to collapsed by default
       setExpanded(Object.fromEntries(sectionArr.map((_, idx) => [idx, false])));
       setAiPrompt(promptText);
-    }).catch(() => setError("Failed to load questions or prompt."));
+      setApiKey(keyText.trim());
+    }).catch(() => setError("Failed to load questions, prompt, or API key."));
   }, []);
 
   // Helper to get a unique key for each question
