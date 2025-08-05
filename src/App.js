@@ -289,6 +289,18 @@ ${JSON.stringify(jsonData, null, 2)}`;
         // remove trailing commas before } or ]
         .replace(/,\s*(\}|])/g, '$1');
 
+      // Remove stray newline characters that may break JSON strings
+      cleanedContent = cleanedContent.replace(/[\r\n]+/g, ' ');
+
+      // Ensure even number of double quotes for valid JSON
+      const quoteMatches = cleanedContent.match(/"/g) || [];
+      if (quoteMatches.length % 2 !== 0) {
+        cleanedContent = cleanedContent.trim();
+        if (!cleanedContent.endsWith('"')) {
+          cleanedContent += '"';
+        }
+      }
+
       console.log("Raw ChatGPT response:", translatedContent.substring(0, 200) + "...");
 
       try {
@@ -310,6 +322,38 @@ ${JSON.stringify(jsonData, null, 2)}`;
     }
   };
 
+  // Helper to deep-clone questions and translate only specific fields
+  const translateFields = async (questionsArray, language) => {
+    const cloned = JSON.parse(JSON.stringify(questionsArray));
+    const uniqueValues = [
+      ...new Set(cloned.flatMap(q => [q.text, q.cluster, q.cluster_name]))
+    ];
+    const translatedResults = await translateJSON(uniqueValues, language);
+    const translationMap = uniqueValues.reduce((map, orig, idx) => {
+      map[orig] = translatedResults[idx];
+      return map;
+    }, {});
+    cloned.forEach(q => {
+      if (translationMap[q.text]) q.text = translationMap[q.text];
+      if (translationMap[q.cluster]) q.cluster = translationMap[q.cluster];
+      if (translationMap[q.cluster_name]) q.cluster_name = translationMap[q.cluster_name];
+    });
+    return cloned;
+  };
+
+  // Helper to save JSON data as a file for reuse
+  const saveJSONFile = (data, filename) => {
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
   // Load questions for specific language
   const loadQuestionsForLanguage = async (language) => {
     try {
@@ -327,25 +371,15 @@ ${JSON.stringify(jsonData, null, 2)}`;
         console.log(`No existing translated file found: ${translatedFileName}`);
       }
 
-      // If no translated file exists, load original and translate in manageable chunks
+      // If no translated file exists, load original and translate only fields
       if (language !== "en") {
-        console.log(`Translating to ${language} in chunks...`);
+        console.log(`Translating specific fields to ${language}...`);
         const originalResponse = await fetch("/questions2.json");
         const originalQuestions = await originalResponse.json();
-        const chunkSize = 20;
-        const allTranslated = [];
-        for (let i = 0; i < originalQuestions.length; i += chunkSize) {
-          const chunk = originalQuestions.slice(i, i + chunkSize);
-          console.log(`Translating questions ${i + 1} to ${Math.min(i + chunkSize, originalQuestions.length)}...`);
-          const translatedChunk = await translateJSON(chunk, language);
-          if (translatedChunk) {
-            allTranslated.push(...translatedChunk);
-          } else {
-            console.error(`Translation failed for chunk starting at index ${i}`);
-            throw new Error(`Failed to translate questions chunk ${i}-${i + chunkSize}`);
-          }
-        }
-        return allTranslated;
+        const translatedQuestions = await translateFields(originalQuestions, language);
+        // Save translated JSON file for future use
+        saveJSONFile(translatedQuestions, translatedFileName);
+        return translatedQuestions;
       }
       // Fallback to original English
       const response = await fetch("/questions2.json");
