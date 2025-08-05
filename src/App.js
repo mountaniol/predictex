@@ -97,7 +97,7 @@ function App() {
       
       // Test API key with a simple call
       console.log("Testing API key...");
-      fetch(`https://api.openai.com/v1/projects/${projectId}/models`, {
+      fetch("https://api.openai.com/v1/models", {
         headers: {
           "Authorization": `Bearer ${keyText.trim()}`,
         },
@@ -151,7 +151,7 @@ function App() {
     try {
       const systemPrompt = aiPrompt;
       console.log("Making API call to OpenAI...");
-      const response = await fetch(`https://api.openai.com/v1/projects/${projectId}/chat/completions`, {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
