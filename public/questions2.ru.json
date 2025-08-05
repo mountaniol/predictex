@@ -1,0 +1,2077 @@
+[
+  {
+    "id": "LOCATION",
+    "text": {
+      "id": "Что за страна, штат (если применимо) и город, в котором вы находитесь?",
+      "text": "LOCATION",
+      "cluster": "Информация о местоположении"
+    },
+    "cluster": {
+      "id": "Почему вы хотите продать бизнес?",
+      "text": "A",
+      "cluster": "Стратегические основы"
+    },
+    "cluster_name": {
+      "id": "Сколько времени существует бизнес?",
+      "text": "B",
+      "cluster": "Финансовая и правовая ситуация"
+    },
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 1,
+    "question_type": "open-ended",
+    "tags": [
+      "location"
+    ],
+    "default_weight": 1,
+    "impact_scope": "global",
+    "prompt_add": "Use this location information to provide more accurate and contextually relevant business evaluations. Consider local market conditions, regulations, and business environment specific to this location.",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Added location question for contextual evaluation."
+    }
+  },
+  {
+    "id": "A1",
+    "text": {
+      "id": "Есть ли другие заинтересованные покупатели?",
+      "text": "C",
+      "cluster": "Операционная готовность"
+    },
+    "cluster": {
+      "id": "Как вы себе представляете процесс передачи?",
+      "text": "D",
+      "cluster": "Рынок и клиентская среда"
+    },
+    "cluster_name": {
+      "id": "Хотите ли вы поддержать или проконсультировать во время переходного периода?",
+      "text": "E",
+      "cluster": "Местоположение и инфраструктура"
+    },
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 1,
+    "question_type": "open-ended",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "A2",
+    "text": {
+      "id": "Какова основная ценность, которую бизнес предоставляет своим клиентам?",
+      "text": "F",
+      "cluster": "Переход и поддержка"
+    },
+    "cluster": {
+      "id": "Как вы себе представляете процесс передачи?",
+      "text": "D",
+      "cluster": "Рынок и клиентская среда"
+    },
+    "cluster_name": {
+      "id": "Хотите ли вы поддержать или проконсультировать во время переходного периода?",
+      "text": "E",
+      "cluster": "Местоположение и инфраструктура"
+    },
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 2,
+    "question_type": "open-ended",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "A3",
+    "text": {
+      "id": "Что делает ваше предложение уникальным или трудным для воспроизведения?",
+      "text": "H",
+      "cluster": "Зависимость от владельца и риски выхода"
+    },
+    "cluster": {
+      "id": "Как вы себе представляете процесс передачи?",
+      "text": "D",
+      "cluster": "Рынок и клиентская среда"
+    },
+    "cluster_name": {
+      "id": "Хотите ли вы поддержать или проконсультировать во время переходного периода?",
+      "text": "E",
+      "cluster": "Местоположение и инфраструктура"
+    },
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 3,
+    "question_type": "open-ended",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "A4",
+    "text": "How do you envision the handover process?",
+    "cluster": {
+      "id": "Как вы себе представляете процесс передачи?",
+      "text": "D",
+      "cluster": "Рынок и клиентская среда"
+    },
+    "cluster_name": {
+      "id": "Хотите ли вы поддержать или проконсультировать во время переходного периода?",
+      "text": "E",
+      "cluster": "Местоположение и инфраструктура"
+    },
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 4,
+    "question_type": "open-ended",
+    "tags": [
+      "transition"
+    ],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "A5",
+    "text": "Would you be willing to support or consult during a transition period?",
+    "cluster": {
+      "id": "Как вы себе представляете процесс передачи?",
+      "text": "D",
+      "cluster": "Рынок и клиентская среда"
+    },
+    "cluster_name": {
+      "id": "Хотите ли вы поддержать или проконсультировать во время переходного периода?",
+      "text": "E",
+      "cluster": "Местоположение и инфраструктура"
+    },
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 5,
+    "question_type": "open-ended",
+    "tags": [
+      "transition"
+    ],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "A6",
+    "text": "What is the core value the business provides to its customers?",
+    "cluster": {
+      "id": "Как вы себе представляете процесс передачи?",
+      "text": "D",
+      "cluster": "Рынок и клиентская среда"
+    },
+    "cluster_name": {
+      "id": "Хотите ли вы поддержать или проконсультировать во время переходного периода?",
+      "text": "E",
+      "cluster": "Местоположение и инфраструктура"
+    },
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 6,
+    "question_type": "open-ended",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "A7",
+    "text": "What makes your offering unique or difficult to replicate?",
+    "cluster": {
+      "id": "Как вы себе представляете процесс передачи?",
+      "text": "D",
+      "cluster": "Рынок и клиентская среда"
+    },
+    "cluster_name": {
+      "id": "Хотите ли вы поддержать или проконсультировать во время переходного периода?",
+      "text": "E",
+      "cluster": "Местоположение и инфраструктура"
+    },
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 7,
+    "question_type": "open-ended",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "A8",
+    "text": "What is your average margin per product/service line?",
+    "cluster": {
+      "id": "Как вы себе представляете процесс передачи?",
+      "text": "D",
+      "cluster": "Рынок и клиентская среда"
+    },
+    "cluster_name": {
+      "id": "Хотите ли вы поддержать или проконсультировать во время переходного периода?",
+      "text": "E",
+      "cluster": "Местоположение и инфраструктура"
+    },
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 8,
+    "question_type": "open-ended",
+    "tags": [
+      "pricing"
+    ],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "A9",
+    "text": "What capacity limits or growth constraints does the business face?",
+    "cluster": {
+      "id": "Как вы себе представляете процесс передачи?",
+      "text": "D",
+      "cluster": "Рынок и клиентская среда"
+    },
+    "cluster_name": {
+      "id": "Хотите ли вы поддержать или проконсультировать во время переходного периода?",
+      "text": "E",
+      "cluster": "Местоположение и инфраструктура"
+    },
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 9,
+    "question_type": "open-ended",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "A10",
+    "text": "What factors would limit expansion (e.g., staff, licenses, machines)?",
+    "cluster": {
+      "id": "Как вы себе представляете процесс передачи?",
+      "text": "D",
+      "cluster": "Рынок и клиентская среда"
+    },
+    "cluster_name": {
+      "id": "Хотите ли вы поддержать или проконсультировать во время переходного периода?",
+      "text": "E",
+      "cluster": "Местоположение и инфраструктура"
+    },
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 10,
+    "question_type": "open-ended",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "A11",
+    "text": "Would a trial takeover (e.g., via lease) be an option?",
+    "cluster": {
+      "id": "Как вы себе представляете процесс передачи?",
+      "text": "D",
+      "cluster": "Рынок и клиентская среда"
+    },
+    "cluster_name": {
+      "id": "Хотите ли вы поддержать или проконсультировать во время переходного периода?",
+      "text": "E",
+      "cluster": "Местоположение и инфраструктура"
+    },
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 11,
+    "question_type": "open-ended",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "A12",
+    "text": "Is a reversal or exit clause negotiable in case of failure?",
+    "cluster": {
+      "id": "Как вы себе представляете процесс передачи?",
+      "text": "D",
+      "cluster": "Рынок и клиентская среда"
+    },
+    "cluster_name": {
+      "id": "Хотите ли вы поддержать или проконсультировать во время переходного периода?",
+      "text": "E",
+      "cluster": "Местоположение и инфраструктура"
+    },
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 12,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "global",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "A13",
+    "text": "What safeguards do you suggest for the buyer if the takeover fails?",
+    "cluster": {
+      "id": "Как вы себе представляете процесс передачи?",
+      "text": "D",
+      "cluster": "Рынок и клиентская среда"
+    },
+    "cluster_name": {
+      "id": "Хотите ли вы поддержать или проконсультировать во время переходного периода?",
+      "text": "E",
+      "cluster": "Местоположение и инфраструктура"
+    },
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 13,
+    "question_type": "open-ended",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "global",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "A14",
+    "text": "What aspects of your operations would you say are \"most outdated\" or inefficient?",
+    "cluster": {
+      "id": "Как вы себе представляете процесс передачи?",
+      "text": "D",
+      "cluster": "Рынок и клиентская среда"
+    },
+    "cluster_name": {
+      "id": "Хотите ли вы поддержать или проконсультировать во время переходного периода?",
+      "text": "E",
+      "cluster": "Местоположение и инфраструктура"
+    },
+    "weight_class": "optional",
+    "is_optional": true,
+    "is_lean": true,
+    "position_in_cluster": 14,
+    "question_type": "open-ended",
+    "tags": [
+      "lean"
+    ],
+    "default_weight": 0,
+    "impact_scope": "cluster",
+    "lean_category": "flow",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "B1",
+    "text": "What were the revenues and profits over the past 3 years?",
+    "cluster": "B",
+    "cluster_name": "Financial & Legal Situation",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 1,
+    "question_type": "open-ended",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "B2",
+    "text": "What are the fixed monthly costs (e.g., wages, rent, leasing)?",
+    "cluster": "B",
+    "cluster_name": "Financial & Legal Situation",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 2,
+    "question_type": "open-ended",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "B3",
+    "text": "Are there loans, debts, or leasing contracts in place?",
+    "cluster": "B",
+    "cluster_name": "Financial & Legal Situation",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 3,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "B4",
+    "text": "Are there outstanding receivables or unpaid liabilities?",
+    "cluster": "B",
+    "cluster_name": "Financial & Legal Situation",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 4,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "B5",
+    "text": "How is pricing calculated? Is there market pressure?",
+    "cluster": "B",
+    "cluster_name": "Financial & Legal Situation",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 5,
+    "question_type": "open-ended",
+    "tags": [
+      "pricing"
+    ],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "B6",
+    "text": "Is the accounting transparent (P&L, BWA, balance sheet)?",
+    "cluster": "B",
+    "cluster_name": "Financial & Legal Situation",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 6,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "B7",
+    "text": "Have all tax returns been submitted on time?",
+    "cluster": "B",
+    "cluster_name": "Financial & Legal Situation",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 7,
+    "question_type": "open-ended",
+    "tags": [
+      "tax"
+    ],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "B8",
+    "text": "Were there any recent tax audits or findings?",
+    "cluster": "B",
+    "cluster_name": "Financial & Legal Situation",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 8,
+    "question_type": "open-ended",
+    "tags": [
+      "tax"
+    ],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "B9",
+    "text": "Are there personal guarantees or private collateral?",
+    "cluster": "B",
+    "cluster_name": "Financial & Legal Situation",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 9,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "B10",
+    "text": "Are there any tax or social security arrears?",
+    "cluster": "B",
+    "cluster_name": "Financial & Legal Situation",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 10,
+    "question_type": "yes-no",
+    "tags": [
+      "tax"
+    ],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "B11",
+    "text": "Is the business registry entry up to date and correct?",
+    "cluster": "B",
+    "cluster_name": "Financial & Legal Situation",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 11,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "B12",
+    "text": "What is the legal structure of the business?",
+    "cluster": "B",
+    "cluster_name": "Financial & Legal Situation",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 12,
+    "question_type": "open-ended",
+    "tags": [
+      "legal"
+    ],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "B13",
+    "text": "Who holds ownership or shares? Are there silent partners?",
+    "cluster": "B",
+    "cluster_name": "Financial & Legal Situation",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 13,
+    "question_type": "open-ended",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "B14",
+    "text": "Are there intellectual property rights (e.g., patents, trademarks)?",
+    "cluster": "B",
+    "cluster_name": "Financial & Legal Situation",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 14,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "B15",
+    "text": "Are there transferable licenses or certifications?",
+    "cluster": "B",
+    "cluster_name": "Financial & Legal Situation",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 15,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "B16",
+    "text": "Are there specific industry regulations that apply to the business?",
+    "cluster": "B",
+    "cluster_name": "Financial & Legal Situation",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 16,
+    "question_type": "yes-no",
+    "tags": [
+      "legal"
+    ],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "B17",
+    "text": "Are there any current or past environmental or regulatory violations?",
+    "cluster": "B",
+    "cluster_name": "Financial & Legal Situation",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 17,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C1",
+    "text": "How many employees do you have, and in what roles?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 1,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C2",
+    "text": "Are there key personnel with unique expertise?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 2,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C3",
+    "text": "What is the age distribution of the team?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 3,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C4",
+    "text": "Has employee turnover been high in recent years?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 4,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C5",
+    "text": "Are wages competitive in the regional labor market?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 5,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C6",
+    "text": "What machines or technical equipment does the business use?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 6,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C7",
+    "text": "What is the condition of the equipment?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 7,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C8",
+    "text": "Is the equipment owned, leased, or financed?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 8,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C9",
+    "text": "Are maintenance or service contracts in place?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 9,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C10",
+    "text": "How is the workspace organized in terms of efficiency?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 10,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C11",
+    "text": "Are there documented workflows or reliance on informal knowledge?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 11,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C12",
+    "text": "Do you use digital tools (e.g., ERP, invoicing, time tracking)?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 12,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C13",
+    "text": "How are quotes, orders, and project documents managed?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 13,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C14",
+    "text": "Is customer/project data stored digitally and centrally?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 14,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C15",
+    "text": "How many hours per week does the owner work actively in operations?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 15,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C16",
+    "text": "Which tasks are currently non-delegable (e.g., pricing, sales)?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 16,
+    "question_type": "yes-no",
+    "tags": [
+      "pricing"
+    ],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C17",
+    "text": "What key skills or licenses would a buyer need?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 17,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C18",
+    "text": "Would external or part-time management be feasible?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 18,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C19",
+    "text": "Which functions depend solely on the seller?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 19,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C20",
+    "text": "Is there undocumented knowledge critical to operations?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 20,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C21",
+    "text": "[Optional – Lean/VSM] Can you describe a typical customer journey — from initial inquiry to final delivery?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "optional",
+    "is_optional": true,
+    "is_lean": true,
+    "position_in_cluster": 21,
+    "question_type": "yes-no",
+    "tags": [
+      "lean"
+    ],
+    "default_weight": 0,
+    "impact_scope": "cluster",
+    "lean_category": "workflow",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C22",
+    "text": "[Optional – Lean/VSM] Are there recurring delays, bottlenecks, or capacity constraints?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "optional",
+    "is_optional": true,
+    "is_lean": true,
+    "position_in_cluster": 22,
+    "question_type": "yes-no",
+    "tags": [
+      "lean"
+    ],
+    "default_weight": 0,
+    "impact_scope": "cluster",
+    "lean_category": "waste",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C23",
+    "text": "[Optional – Lean/VSM] How are tasks prioritized and scheduled?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "optional",
+    "is_optional": true,
+    "is_lean": true,
+    "position_in_cluster": 23,
+    "question_type": "yes-no",
+    "tags": [
+      "lean"
+    ],
+    "default_weight": 0,
+    "impact_scope": "cluster",
+    "lean_category": "automation",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C24",
+    "text": "[Optional – Lean/VSM] Do employees follow standardized procedures?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "optional",
+    "is_optional": true,
+    "is_lean": true,
+    "position_in_cluster": 24,
+    "question_type": "yes-no",
+    "tags": [
+      "lean"
+    ],
+    "default_weight": 0,
+    "impact_scope": "cluster",
+    "lean_category": "standardization",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C25",
+    "text": "[Optional – Lean/VSM] How often do you reflect on processes to identify improvement potential?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "optional",
+    "is_optional": true,
+    "is_lean": true,
+    "position_in_cluster": 25,
+    "question_type": "yes-no",
+    "tags": [
+      "lean"
+    ],
+    "default_weight": 0,
+    "impact_scope": "cluster",
+    "lean_category": "flow",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "C26",
+    "text": "[Optional – Lean/VSM] Are there any visual tools or dashboards used to track ongoing work?",
+    "cluster": "C",
+    "cluster_name": "Operational Readiness",
+    "weight_class": "optional",
+    "is_optional": true,
+    "is_lean": true,
+    "position_in_cluster": 26,
+    "question_type": "yes-no",
+    "tags": [
+      "lean"
+    ],
+    "default_weight": 0,
+    "impact_scope": "cluster",
+    "lean_category": "visual_management",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "D1",
+    "text": "Who are your typical customers (private, business, public)?",
+    "cluster": "D",
+    "cluster_name": "Market & Customer Environment",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 1,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "D2",
+    "text": "Do you have regular or repeat customers?",
+    "cluster": "D",
+    "cluster_name": "Market & Customer Environment",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 2,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "D3",
+    "text": "How are new customers acquired?",
+    "cluster": "D",
+    "cluster_name": "Market & Customer Environment",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 3,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "D4",
+    "text": "What is the current and projected order situation?",
+    "cluster": "D",
+    "cluster_name": "Market & Customer Environment",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 4,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "D5",
+    "text": "What is the company's reputation locally and online?",
+    "cluster": "D",
+    "cluster_name": "Market & Customer Environment",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 5,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "D6",
+    "text": "How strong is your brand (logo, design, recognition)?",
+    "cluster": "D",
+    "cluster_name": "Market & Customer Environment",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 6,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "D7",
+    "text": "What online presence exists (website, social media, domain ownership)?",
+    "cluster": "D",
+    "cluster_name": "Market & Customer Environment",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 7,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "D8",
+    "text": "Is the brand name protected or registered?",
+    "cluster": "D",
+    "cluster_name": "Market & Customer Environment",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 8,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "D9",
+    "text": "Who are your key suppliers and how stable are those relationships?",
+    "cluster": "D",
+    "cluster_name": "Market & Customer Environment",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 9,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "D10",
+    "text": "Are prices fixed or variable? Are there contracts in place?",
+    "cluster": "D",
+    "cluster_name": "Market & Customer Environment",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 10,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "D11",
+    "text": "Are alternative suppliers available?",
+    "cluster": "D",
+    "cluster_name": "Market & Customer Environment",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 11,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "D12",
+    "text": "Are there known risks (legal, economic, operational)?",
+    "cluster": "D",
+    "cluster_name": "Market & Customer Environment",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 12,
+    "question_type": "yes-no",
+    "tags": [
+      "legal"
+    ],
+    "default_weight": 1,
+    "impact_scope": "global",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "D13",
+    "text": "Is the business dependent on specific customers or suppliers?",
+    "cluster": "D",
+    "cluster_name": "Market & Customer Environment",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 13,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "D14",
+    "text": "What opportunities exist for expansion or innovation?",
+    "cluster": "D",
+    "cluster_name": "Market & Customer Environment",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 14,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "D15",
+    "text": "Are there negative reviews, court cases, or internal conflicts?",
+    "cluster": "D",
+    "cluster_name": "Market & Customer Environment",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 15,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "D16",
+    "text": "[Optional – Lean/VSM] How quickly can you deliver after receiving a customer order?",
+    "cluster": "D",
+    "cluster_name": "Market & Customer Environment",
+    "weight_class": "optional",
+    "is_optional": true,
+    "is_lean": true,
+    "position_in_cluster": 16,
+    "question_type": "yes-no",
+    "tags": [
+      "lean"
+    ],
+    "default_weight": 0,
+    "impact_scope": "cluster",
+    "lean_category": "standardization",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "D17",
+    "text": "[Optional – Lean/VSM] What are typical complaints or friction points from customers?",
+    "cluster": "D",
+    "cluster_name": "Market & Customer Environment",
+    "weight_class": "optional",
+    "is_optional": true,
+    "is_lean": false,
+    "position_in_cluster": 17,
+    "question_type": "yes-no",
+    "tags": [
+      "lean"
+    ],
+    "default_weight": 0,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "E1",
+    "text": "Is the location rented or owned?",
+    "cluster": "E",
+    "cluster_name": "Location & Infrastructure",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 1,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "E2",
+    "text": "How long is the lease valid? Is renewal possible?",
+    "cluster": "E",
+    "cluster_name": "Location & Infrastructure",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 2,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "E3",
+    "text": "Are there relevant contracts with landlords, suppliers, or partners?",
+    "cluster": "E",
+    "cluster_name": "Location & Infrastructure",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 3,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "E4",
+    "text": "Are there any building codes, noise limits, or environmental restrictions?",
+    "cluster": "E",
+    "cluster_name": "Location & Infrastructure",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 4,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "E5",
+    "text": "Are there planned city projects or construction nearby?",
+    "cluster": "E",
+    "cluster_name": "Location & Infrastructure",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 5,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "E6",
+    "text": "How accessible is the location (foot traffic, visibility, roads)?",
+    "cluster": "E",
+    "cluster_name": "Location & Infrastructure",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 6,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "E7",
+    "text": "Are there parking options for customers and deliveries?",
+    "cluster": "E",
+    "cluster_name": "Location & Infrastructure",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 7,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "E8",
+    "text": "Are signage and exterior branding allowed or restricted?",
+    "cluster": "E",
+    "cluster_name": "Location & Infrastructure",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 8,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "F1",
+    "text": "What needs to be handed over (contacts, systems, passwords)?",
+    "cluster": "F",
+    "cluster_name": "Transition & Support",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 1,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "F2",
+    "text": "Is there undocumented or informal knowledge that must be transferred?",
+    "cluster": "F",
+    "cluster_name": "Transition & Support",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 2,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "F3",
+    "text": "Would you support customer introductions or transitions personally?",
+    "cluster": "F",
+    "cluster_name": "Transition & Support",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 3,
+    "question_type": "yes-no",
+    "tags": [
+      "transition"
+    ],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "F4",
+    "text": "What insurance policies are in place?",
+    "cluster": "F",
+    "cluster_name": "Transition & Support",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 4,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "F5",
+    "text": "Have they been reviewed recently?",
+    "cluster": "F",
+    "cluster_name": "Transition & Support",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 5,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "F6",
+    "text": "Have there been claims or issues with insurers in the past?",
+    "cluster": "F",
+    "cluster_name": "Transition & Support",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 6,
+    "question_type": "yes-no",
+    "tags": [],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "H1",
+    "text": "Is the current owner involved in day-to-day operations?",
+    "cluster": "H",
+    "cluster_name": "Owner Dependency & Exit Risks",
+    "weight_class": "high-impact",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 1,
+    "question_type": "yes-no",
+    "tags": [
+      "dependency",
+      "owner"
+    ],
+    "default_weight": 2,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "H2",
+    "text": "What key tasks are exclusively handled by the owner (e.g., sales, pricing, customer care)?",
+    "cluster": "H",
+    "cluster_name": "Owner Dependency & Exit Risks",
+    "weight_class": "mission-critical",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 2,
+    "question_type": "open-ended",
+    "tags": [
+      "owner",
+      "workflow"
+    ],
+    "default_weight": 3,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "H3",
+    "text": "Is there documentation or delegation of the owner's knowledge and routines?",
+    "cluster": "H",
+    "cluster_name": "Owner Dependency & Exit Risks",
+    "weight_class": "high-impact",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 3,
+    "question_type": "yes-no",
+    "tags": [
+      "delegation",
+      "transition"
+    ],
+    "default_weight": 2,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "H4",
+    "text": "How many hours per week does the owner actively work in the business?",
+    "cluster": "H",
+    "cluster_name": "Owner Dependency & Exit Risks",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 4,
+    "question_type": "numeric",
+    "tags": [
+      "owner",
+      "workload"
+    ],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "H5",
+    "text": "Are there any succession plans or second-tier management already in place?",
+    "cluster": "H",
+    "cluster_name": "Owner Dependency & Exit Risks",
+    "weight_class": "high-impact",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 5,
+    "question_type": "yes-no",
+    "tags": [
+      "risk",
+      "succession"
+    ],
+    "default_weight": 2,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "H6",
+    "text": "Could the business operate for 2+ months without the owner?",
+    "cluster": "H",
+    "cluster_name": "Owner Dependency & Exit Risks",
+    "weight_class": "mission-critical",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 6,
+    "question_type": "yes-no",
+    "tags": [
+      "dependency",
+      "risk"
+    ],
+    "default_weight": 3,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "H7",
+    "text": "How long would a full transition realistically take (in months)?",
+    "cluster": "H",
+    "cluster_name": "Owner Dependency & Exit Risks",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 7,
+    "question_type": "numeric",
+    "tags": [
+      "transition"
+    ],
+    "default_weight": 1,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "H8",
+    "text": "Are customer relationships owner-bound (personal trust, private networks)?",
+    "cluster": "H",
+    "cluster_name": "Owner Dependency & Exit Risks",
+    "weight_class": "high-impact",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 8,
+    "question_type": "yes-no",
+    "tags": [
+      "owner"
+    ],
+    "default_weight": 2,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  },
+  {
+    "id": "H9",
+    "text": "What reputation or credibility would be lost if the owner exits?",
+    "cluster": "H",
+    "cluster_name": "Owner Dependency & Exit Risks",
+    "weight_class": "optional",
+    "is_optional": true,
+    "is_lean": false,
+    "position_in_cluster": 9,
+    "question_type": "open-ended",
+    "tags": [
+      "soft_factors"
+    ],
+    "default_weight": 0,
+    "impact_scope": "cluster",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
+    }
+  }
+]
