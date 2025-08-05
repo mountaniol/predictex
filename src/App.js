@@ -165,7 +165,16 @@ function App() {
         console.log("Using standard prompt");
       }
       
+      // Add location context to all prompts
+      const locationAnswer = getLocationAnswer();
+      let locationContext = "";
+      if (locationAnswer && sectionIdx > 0) { // Skip location context for the location question itself
+        locationContext = `Location context: ${locationAnswer}. `;
+      }
+      systemPrompt = locationContext + systemPrompt;
+      
       console.log("Final system prompt length:", systemPrompt.length);
+      console.log("Location context added:", locationContext);
       console.log("Making API call to OpenAI...");
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
@@ -213,6 +222,16 @@ function App() {
 
   const toggleSection = (idx) => {
     setExpanded((prev) => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
+  // Get location answer from the first question
+  const getLocationAnswer = () => {
+    // Find the location question answer (first question in the first section)
+    if (sections.length > 0 && sections[0].questions.length > 0) {
+      const locationKey = qKey(0, 0); // First question in first section
+      return answers[locationKey] || "";
+    }
+    return "";
   };
 
   // Render input by question type

@@ -1,5 +1,25 @@
 [
   {
+    "id": "LOCATION",
+    "text": "What country, state (if relevant), and city are you located in?",
+    "cluster": "LOCATION",
+    "cluster_name": "Location Information",
+    "weight_class": "standard",
+    "is_optional": false,
+    "is_lean": false,
+    "position_in_cluster": 1,
+    "question_type": "open-ended",
+    "tags": ["location"],
+    "default_weight": 1.0,
+    "impact_scope": "global",
+    "prompt_add": "Use this location information to provide more accurate and contextually relevant business evaluations. Consider local market conditions, regulations, and business environment specific to this location.",
+    "metadata_version": {
+      "version": "1.2",
+      "date": "2025-07-08T19:13:19.274601Z",
+      "trace_log": "Added location question for contextual evaluation."
+    }
+  },
+  {
     "id": "A1",
     "text": "Why do you want to sell the business?",
     "cluster": "A",
@@ -1201,7 +1221,7 @@
   },
   {
     "id": "D5",
-    "text": "What is the company’s reputation locally and online?",
+    "text": "What is the company's reputation locally and online?",
     "cluster": "D",
     "cluster_name": "Market & Customer Environment",
     "weight_class": "standard",
@@ -1767,7 +1787,7 @@
   },
   {
     "id": "H3",
-    "text": "Is there documentation or delegation of the owner’s knowledge and routines?",
+    "text": "Is there documentation or delegation of the owner's knowledge and routines?",
     "cluster": "H",
     "cluster_name": "Owner Dependency & Exit Risks",
     "weight_class": "high-impact",
