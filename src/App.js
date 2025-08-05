@@ -44,12 +44,16 @@ function App() {
           console.log(`API key details - Start: "${key.substring(0, 10)}", End: "${key.substring(keyLength - 10)}"`);
           console.log(`API key contains spaces: ${key.includes(' ')}`);
           console.log(`API key contains newlines: ${key.includes('\n')}`);
+          console.log("SOURCE: Environment Variable");
           return key;
         } else {
           console.log("Environment variable not found, falling back to key.txt file");
           return fetch("/key.txt").then((res) => {
             console.log("Loading key.txt file");
             return res.text();
+          }).then(keyText => {
+            console.log("SOURCE: key.txt file");
+            return keyText;
           });
         }
       })
