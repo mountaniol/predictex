@@ -341,9 +341,33 @@ ${JSON.stringify(jsonData, null, 2)}`;
     return cloned;
   };
 
-  // Helper to save JSON data as a file for reuse
-  const saveJSONFile = (data, filename) => {
+  // Helper to save JSON data as a file for reuse (uses File System Access API if available)
+  // Note: File System Access API works in supported browsers (e.g., Chromium-based). Falls back to download otherwise.
+  const saveJSONFile = async (data, filename) => {
     const jsonStr = JSON.stringify(data, null, 2);
+    // Use File System Access API if supported
+    if (window.showSaveFilePicker) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [
+            {
+              description: 'JSON Files',
+              accept: { 'application/json': ['.json'] },
+            },
+          ],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(jsonStr);
+        await writable.close();
+        console.log(`Saved '${filename}' using File System Access API.`);
+        return;
+      } catch (err) {
+        console.error('File System Access API save failed:', err);
+        // fallback to download
+      }
+    }
+    // Fallback to download
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -352,6 +376,7 @@ ${JSON.stringify(jsonData, null, 2)}`;
     document.body.appendChild(a);
     a.click();
     a.remove();
+    console.log(`Downloaded fallback for '${filename}'.`);
   };
 
   // Load questions for specific language
