@@ -41,6 +41,9 @@ function App() {
           const keyLength = key.length;
           const halfLength = Math.floor(keyLength / 2);
           console.log(`API key from env - Length: ${keyLength}, First half: ${key.substring(0, halfLength)}...`);
+          console.log(`API key details - Start: "${key.substring(0, 10)}", End: "${key.substring(keyLength - 10)}"`);
+          console.log(`API key contains spaces: ${key.includes(' ')}`);
+          console.log(`API key contains newlines: ${key.includes('\n')}`);
           return key;
         } else {
           console.log("Environment variable not found, falling back to key.txt file");
@@ -80,6 +83,25 @@ function App() {
       setAiPrompt(promptText);
       setApiKey(keyText.trim());
       console.log("State updated with loaded data");
+      
+      // Test API key with a simple call
+      console.log("Testing API key...");
+      fetch("https://api.openai.com/v1/models", {
+        headers: {
+          "Authorization": `Bearer ${keyText.trim()}`,
+        },
+      })
+      .then(testResponse => {
+        console.log("API test response status:", testResponse.status);
+        if (testResponse.ok) {
+          console.log("API key is valid!");
+        } else {
+          console.log("API key test failed:", testResponse.status, testResponse.statusText);
+        }
+      })
+      .catch(err => {
+        console.error("API test error:", err);
+      });
     }).catch((err) => {
       console.error("Error loading data:", err);
       setError("Failed to load questions, prompt, or API key.");
@@ -125,7 +147,7 @@ function App() {
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "gpt-3.5-turbo",
+          model: "gpt-4o-mini",
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },
