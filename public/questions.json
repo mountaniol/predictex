@@ -1,0 +1,12 @@
+[
+  {
+    "question": "What is the capital of France?",
+    "prompt": "Evaluate the answer to the question: 'What is the capital of France?' and score it from 1 to 100.",
+    "additional_prompt": "Be strict about geographical accuracy."
+  },
+  {
+    "question": "Explain the theory of relativity.",
+    "prompt": "Evaluate the answer to the question: 'Explain the theory of relativity.' and score it from 1 to 100.",
+    "additional_prompt": "Focus on clarity and scientific correctness."
+  }
+]
