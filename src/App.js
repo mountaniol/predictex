@@ -10,6 +10,14 @@ function App() {
   const [aiPrompt, setAiPrompt] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [projectId, setProjectId] = useState("");
+  const [currentLanguage, setCurrentLanguage] = useState("en");
+  const [translating, setTranslating] = useState(false);
+
+  const languages = [
+    { code: "en", name: "English" },
+    { code: "de", name: "Deutsch" },
+    { code: "ru", name: "Русский" }
+  ];
 
   console.log("App component mounted");
 
@@ -26,14 +34,8 @@ function App() {
     });
 
     Promise.all([
-      fetch("/questions2.json").then((res) => {
-        console.log("Loading questions2.json");
-        return res.json();
-      }),
-      fetch("/aiprompt.txt").then((res) => {
-        console.log("Loading aiprompt.txt");
-        return res.text();
-      }),
+      loadQuestionsForLanguage(currentLanguage),
+      fetch("/aiprompt.txt").then((res) => res.text()),
       // Try to get API key from environment variable first, then fall back to file
       Promise.resolve().then(() => {
         console.log("Checking for REACT_APP_GPT_KEY:", process.env.REACT_APP_GPT_KEY);
@@ -117,7 +119,7 @@ function App() {
       console.error("Error loading data:", err);
       setError("Failed to load questions, prompt, or API key.");
     });
-  }, []);
+  }, [currentLanguage]);
 
   // Helper to get a unique key for each question
   const qKey = (sectionIdx, questionIdx) => `${sectionIdx}-${questionIdx}`;
@@ -234,6 +236,126 @@ function App() {
     return "";
   };
 
+  // Translate JSON using ChatGPT
+  const translateJSON = async (jsonData, targetLanguage) => {
+    setTranslating(true);
+    setError("");
+    
+    try {
+      const languageNames = {
+        "en": "English",
+        "de": "German", 
+        "ru": "Russian"
+      };
+      
+      const prompt = `Translate the following JSON fields to ${languageNames[targetLanguage]}. Only translate the "id", "text", and "cluster" fields. Keep all other fields unchanged. Return only the JSON without any explanation:
+
+${JSON.stringify(jsonData, null, 2)}`;
+
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: "You are a JSON translator. Translate only the specified fields and return valid JSON." },
+            { role: "user", content: prompt },
+          ],
+          max_tokens: 4000,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error.message);
+      
+      const translatedContent = data.choices[0].message.content;
+      const translatedJSON = JSON.parse(translatedContent);
+      
+      // Save translated JSON to public folder (this would need a backend in production)
+      // For now, we'll just use it in memory
+      console.log("Translation completed for:", targetLanguage);
+      return translatedJSON;
+      
+    } catch (err) {
+      console.error("Translation error:", err);
+      setError("Translation failed: " + err.message);
+      return null;
+    } finally {
+      setTranslating(false);
+    }
+  };
+
+  // Load questions for specific language
+  const loadQuestionsForLanguage = async (language) => {
+    try {
+      // First try to load existing translated file
+      const translatedFileName = language === "en" ? "questions2.json" : `questions2.${language}.json`;
+      
+      try {
+        const response = await fetch(`/${translatedFileName}`);
+        if (response.ok) {
+          console.log(`Loading existing translated file: ${translatedFileName}`);
+          const questions = await response.json();
+          return questions;
+        }
+      } catch (err) {
+        console.log(`No existing translated file found: ${translatedFileName}`);
+      }
+
+      // If no translated file exists, load original and translate
+      if (language !== "en") {
+        console.log(`Translating to ${language}...`);
+        const originalResponse = await fetch("/questions2.json");
+        const originalQuestions = await originalResponse.json();
+        
+        const translatedQuestions = await translateJSON(originalQuestions, language);
+        if (translatedQuestions) {
+          return translatedQuestions;
+        }
+      }
+      
+      // Fallback to original English
+      const response = await fetch("/questions2.json");
+      return await response.json();
+      
+    } catch (err) {
+      console.error("Error loading questions:", err);
+      setError("Failed to load questions");
+      return [];
+    }
+  };
+
+  // Handle language change
+  const handleLanguageChange = async (newLanguage) => {
+    if (newLanguage === currentLanguage) return;
+    
+    setCurrentLanguage(newLanguage);
+    setSections([]);
+    setAnswers({});
+    setScores({});
+    setExpanded({});
+    
+    const questions = await loadQuestionsForLanguage(newLanguage);
+    if (questions.length > 0) {
+      // Group by cluster_name
+      const sectionMap = {};
+      questions.forEach(q => {
+        if (!sectionMap[q.cluster_name]) sectionMap[q.cluster_name] = [];
+        sectionMap[q.cluster_name].push(q);
+      });
+      // Convert to array and sort questions in each section
+      const sectionArr = Object.entries(sectionMap).map(([section, questions]) => ({
+        section,
+        questions: questions.sort((a, b) => a.position_in_cluster - b.position_in_cluster)
+      }));
+      setSections(sectionArr);
+      setExpanded(Object.fromEntries(sectionArr.map((_, idx) => [idx, false])));
+    }
+  };
+
   // Render input by question type
   const renderInput = (q, sectionIdx, questionIdx, key) => {
     if (q.question_type === "yes-no") {
@@ -314,6 +436,45 @@ function App() {
       padding: 0,
       margin: 0
     }}>
+      {/* Language Selector */}
+      <div style={{
+        position: "fixed",
+        top: 16,
+        left: 16,
+        zIndex: 1000,
+        background: "#fff",
+        borderRadius: 8,
+        padding: "8px 12px",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        border: "1px solid #e3e7ef"
+      }}>
+        <select
+          value={currentLanguage}
+          onChange={(e) => handleLanguageChange(e.target.value)}
+          disabled={translating}
+          style={{
+            border: "none",
+            background: "transparent",
+            fontSize: 14,
+            fontWeight: 600,
+            color: "#1a2340",
+            cursor: "pointer",
+            outline: "none"
+          }}
+        >
+          {languages.map(lang => (
+            <option key={lang.code} value={lang.code}>
+              {lang.name}
+            </option>
+          ))}
+        </select>
+        {translating && (
+          <span style={{ marginLeft: 8, fontSize: 12, color: "#666" }}>
+            Translating...
+          </span>
+        )}
+      </div>
+
       <div style={{
         maxWidth: 700,
         margin: "0 auto",
