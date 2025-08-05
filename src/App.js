@@ -619,7 +619,7 @@ ${JSON.stringify(jsonData, null, 2)}`;
             ))}
           </div>
         ) : (
-          <div style={{ textAlign: "center", color: "#888", fontSize: 18, marginTop: 40 }}>Loading questions...</div>
+          <div style={{ textAlign: "center", color: "#888", fontSize: 18, marginTop: 40 }}>Translate and loading questions, please wait, it can take a couple of minutes...</div>
         )}
         {allAnswered && (
           <div style={{ borderTop: "2px solid #e3e7ef", marginTop: 32, paddingTop: 24, textAlign: "center" }}>
