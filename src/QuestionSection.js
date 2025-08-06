@@ -39,6 +39,11 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
    * applies any post-calculations, and updates component state accordingly.
    */
   const evaluateAnswer = async (si, qi) => {
+    console.log(`[evaluateAnswer] called for section ${si}, question ${qi}`);
+    console.log('[evaluateAnswer] context object:', context);
+    console.log('[evaluateAnswer] global calculations:', calculations);
+    console.log('[evaluateAnswer] total sections:', sections.length);
+    if (sections[si]) console.log(`[evaluateAnswer] questions in section ${si}:`, sections[si].questions.map(q => q.id));
     setLoading(prev => ({ ...prev, [qKey(si, qi)]: true }));
     setError('');
     // Start evaluation: show loading spinner and clear previous error message
@@ -46,6 +51,8 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
       // Fetch question object and user-provided answer from state
       const q = sections[si].questions[qi];
       const ans = answers[qKey(si, qi)];
+      console.log('[evaluateAnswer] question object:', q);
+      console.log('[evaluateAnswer] user answer:', ans);
       // Dependency guard: ensure all prerequisite questions have been answered
       setDepWarning('');
       console.log('[deps] calculations array:', calculations);
