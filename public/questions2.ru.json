@@ -1,4 +1,11 @@
-[
+{
+  "settings": {
+    "labels": {
+      "yes": "Да",
+      "no": "Нет"
+    }
+  },
+  "questions": [
   {
     "id": "LOCATION",
     "text": "В какой стране, штате (если применимо) и городе вы находитесь?",
@@ -1938,4 +1945,5 @@
       "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
     }
   }
-]
+  ]
+}

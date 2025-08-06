@@ -1,4 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { AppContext } from './App';
+
+// consistent style for all action buttons
+const buttonBaseStyle = {
+  background: '#000000',   // solid black
+  color: '#ffffff',
+  padding: '8px 20px',     // slimmer vertical padding
+  border: 'none',
+  borderRadius: 6,
+  fontWeight: 600,
+  fontSize: 15,
+  lineHeight: '20px',
+  cursor: 'pointer',
+  transition: 'opacity 0.2s ease',
+};
+
+const defaultLabels = { yes: 'Yes', no: 'No' };
 
 const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
   const [answers, setAnswers] = useState({});
@@ -6,6 +23,10 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
   const [loading, setLoading] = useState({});
   const [error, setError] = useState('');
   const [expanded, setExpanded] = useState({});
+
+  // labels come from AppContext; fall back to defaults
+  const { labels: ctxLabels } = useContext(AppContext) || {};
+  const activeLabels = ctxLabels && ctxLabels.yes ? ctxLabels : defaultLabels;
 
   const qKey = (si, qi) => `${si}-${qi}`;
 
@@ -132,11 +153,20 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
                     q={q}
                     value={answers[key] || ''}
                     onChange={v => handleAnswerChange(si, qi, v)}
+                    labels={activeLabels}
                   />
                   <button
                     disabled={loading[key] || !answers[key]}
                     onClick={() => evaluateAnswer(si, qi)}
-                    style={{ marginTop: 8 }}
+                    style={{
+                      ...buttonBaseStyle,
+                      display: 'block',
+                      margin: '16px auto 0',
+                      width: 'fit-content',
+                      background: '#000000', // force black even when disabled
+                      cursor: loading[key] || !answers[key] ? 'default' : 'pointer',
+                      opacity: loading[key] || !answers[key] ? 1 : 1, // no grey-out
+                    }}
                   >
                     {loading[key]
                       ? 'Evaluating...'
@@ -164,8 +194,10 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
   );
 };
 
-const AnswerInput = ({ q, value, onChange }) => {
+const AnswerInput = ({ q, value, onChange, labels }) => {
   if (q.question_type === 'yes-no') {
+    const yesLabel = labels && labels.yes ? labels.yes : 'Yes';
+    const noLabel  = labels && labels.no  ? labels.no  : 'No';
     return (
       <div>
         <label>
@@ -174,7 +206,7 @@ const AnswerInput = ({ q, value, onChange }) => {
             checked={value === 'yes'}
             onChange={() => onChange('yes')}
           />{' '}
-          Yes
+          {yesLabel}
         </label>
         <label style={{ marginLeft: 8 }}>
           <input
@@ -182,7 +214,7 @@ const AnswerInput = ({ q, value, onChange }) => {
             checked={value === 'no'}
             onChange={() => onChange('no')}
           />{' '}
-          No
+          {noLabel}
         </label>
       </div>
     );
@@ -198,6 +230,7 @@ const AnswerInput = ({ q, value, onChange }) => {
   return (
     <textarea
       rows={3}
+      style={{ width: '100%', marginTop: 8 }}
       value={value}
       onChange={e => onChange(e.target.value)}
     />

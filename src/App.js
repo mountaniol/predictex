@@ -5,40 +5,53 @@ import QuestionSection from "./QuestionSection";
 import Header from "./Header";
 import Footer from "./Footer";
 
+export const AppContext = React.createContext(null);
+
 function App() {
   const [currentLanguage, setCurrentLanguage] = useState("en");
-  const { sections, aiPrompt, apiKey, loading, error } = useLoadQuestions(currentLanguage);
+  const { sections, aiPrompt, apiKey, loading, error, labels } = useLoadQuestions(currentLanguage);
 
   // Helper to get a unique key for each question
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#f8f9fb",
-      fontFamily: "'Segoe UI', 'Roboto', 'Arial', sans-serif",
-      padding: 0,
-      margin: 0
+    <AppContext.Provider value={{
+      sections,
+      aiPrompt,
+      apiKey,
+      labels,
+      loading,
+      error,
+      currentLanguage
     }}>
-      <LanguageSelector
-        currentLanguage={currentLanguage}
-        onChange={setCurrentLanguage}
-        translating={loading}
-      />
       <div style={{
-        maxWidth: 700,
-        margin: "0 auto",
-        padding: "32px 16px 0 16px"
+        minHeight: "100vh",
+        background: "#f8f9fb",
+        fontFamily: "'Segoe UI', 'Roboto', 'Arial', sans-serif",
+        padding: 0,
+        margin: 0
       }}>
-        <Header />
-        <QuestionSection
-          sections={sections}
-          aiPrompt={aiPrompt}
-          apiKey={apiKey}
-          loading={loading}
-          error={error}
+        <LanguageSelector
+          currentLanguage={currentLanguage}
+          onChange={setCurrentLanguage}
+          translating={loading}
         />
-        <Footer />
+        <div style={{
+          maxWidth: 700,
+          margin: "0 auto",
+          padding: "32px 16px 0 16px"
+        }}>
+          <Header />
+          <QuestionSection
+            sections={sections}
+            aiPrompt={aiPrompt}
+            apiKey={apiKey}
+            loading={loading}
+            error={error}
+            labels={labels}
+          />
+          <Footer />
+        </div>
       </div>
-    </div>
+    </AppContext.Provider>
   );
 }
 

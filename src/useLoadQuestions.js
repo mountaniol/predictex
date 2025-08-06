@@ -1,4 +1,19 @@
+
 import { useState, useEffect } from 'react';
+
+// Reusable JSON loader: returns { questions, settings }
+const loadJson = async (filename) => {
+  const res = await fetch(`/${filename}`);
+  if (!res.ok) {
+    throw new Error(`File ${filename} not found (HTTP ${res.status})`);
+  }
+  const data = await res.json();
+
+  const settings = Array.isArray(data) ? {} : (data.settings || {});
+  const questions = Array.isArray(data) ? data : (data.questions || []);
+
+  return { questions, settings };
+};
 
 const useLoadQuestions = (language) => {
   const [sections, setSections] = useState([]);
@@ -6,6 +21,7 @@ const useLoadQuestions = (language) => {
   const [apiKey, setApiKey] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [labels, setLabels] = useState({ yes: 'Yes', no: 'No' });
 
   useEffect(() => {
     const load = async () => {
@@ -16,14 +32,16 @@ const useLoadQuestions = (language) => {
         const fileName = language === 'en'
           ? 'questions2.json'
           : `questions2.${language}.json`;
-        let questions;
-        const res = await fetch(`/${fileName}`);
-        if (res.ok) {
-          questions = await res.json();
-        } else {
-          // 2) Fallback to original JSON if no translation file is found
-          questions = await fetch('/questions2.json').then(r => r.json());
+        let questions = [];
+        let settings  = {};
+        try {
+          ({ questions, settings } = await loadJson(fileName));
+        } catch (err) {
+          console.warn(err.message + ' – falling back to default file');
+          ({ questions, settings } = await loadJson('questions2.json'));
         }
+        // Initialize labels (and other future settings)
+        setLabels(settings.labels || { yes: 'Yes', no: 'No' });
 
         // Group by cluster_name
         const map = {};
@@ -57,7 +75,7 @@ const useLoadQuestions = (language) => {
     load();
   }, [language]);
 
-  return { sections, aiPrompt, apiKey, loading, error };
+  return { sections, aiPrompt, apiKey, loading, error, labels };
 };
 
 export default useLoadQuestions;
