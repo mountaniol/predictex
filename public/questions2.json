@@ -1943,5 +1943,9 @@
       "trace_log": "Normalized all tags with controlled vocabulary; added lean_category for Lean-tagged questions; manually corrected 5 ambiguous Lean entries; removed invalid Lean tag from D17; embedded full versioning metadata."
     }
   }
+  ],
+  "calculations": [
+    "A10 = A10 + (A3 / 2)",
+    "B10 = B10 * ((A2 + B8) / 3)"
   ]
 }

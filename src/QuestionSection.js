@@ -17,15 +17,65 @@ const buttonBaseStyle = {
 
 const defaultLabels = { yes: 'Yes', no: 'No' };
 
+const applyCalculations = (base, calcArr) => {
+  const res = { ...base };
+  const idRegex = /\b([A-Z][0-9]+)\b/g; // matches A3, B10 etc.
+
+  calcArr.forEach(line => {
+    if (!line || typeof line !== 'string') return;
+
+    console.debug('[calc] parsing:', line);
+
+    const parts = line.split('=');
+    if (parts.length !== 2) {
+      console.warn('[calc] invalid expression (no "="):', line);
+      return;
+    }
+
+    const target = parts[0].trim();
+    let expr = parts[1].trim();
+
+    // ------- collect referenced IDs --------------------------------------
+    const referenced = [];
+    expr.replace(idRegex, (_, id) => {
+      referenced.push(id);
+      return _;
+    });
+
+    // check that every referenced ID already exists in res
+    const unknown = referenced.filter(id => res[id] === undefined);
+    if (unknown.length) {
+      console.warn('[calc] unknown question IDs', unknown, 'in', line, '- rule ignored');
+      return; // skip applying this rule
+    }
+
+    // replace IDs with current numeric values
+    expr = expr.replace(idRegex, (_, id) => `(res['${id}'])`);
+
+    try {
+      // eslint-disable-next-line no-new-func
+      const val = Function('res', `return ${expr};`)(res);
+      if (!Number.isFinite(val)) throw new Error('NaN result');
+      res[target] = val;
+      console.debug(`[calc] ${target} =>`, val);
+    } catch (e) {
+      console.error('[calc] evaluation error for', line, e);
+    }
+  });
+
+  return res;
+};
+
 const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
   const [answers, setAnswers] = useState({});
   const [scores, setScores] = useState({});
   const [loading, setLoading] = useState({});
   const [error, setError] = useState('');
   const [expanded, setExpanded] = useState({});
+  const [depWarning, setDepWarning] = useState('');
 
   // labels come from AppContext; fall back to defaults
-  const { labels: ctxLabels } = useContext(AppContext) || {};
+  const { labels: ctxLabels, calculations = [] } = useContext(AppContext) || {};
   const activeLabels = ctxLabels && ctxLabels.yes ? ctxLabels : defaultLabels;
 
   const qKey = (si, qi) => `${si}-${qi}`;
@@ -66,12 +116,18 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
       if (loc && si > 0) {
         systemPrompt = `Location context: ${loc}. ${systemPrompt}`;
       }
-
+      // Sanitize API key by removing whitespace and newlines
+      const sanitizedApiKey = apiKey.replace(/\s+/g, '').trim();
+      if (!sanitizedApiKey) {
+        setError('Invalid API key');
+        setLoading(prev => ({ ...prev, [key]: false }));
+        return;
+      }
       const resp = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
+          'Authorization': `Bearer ${sanitizedApiKey}`,
         },
         body: JSON.stringify({
           model: 'gpt-4o-mini',
@@ -93,7 +149,39 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
         const m = content.match(/\d{1,3}/);
         score = m ? Math.min(100, Math.max(0, parseInt(m[0], 10))) : null;
       }
-      setScores(prev => ({ ...prev, [key]: score }));
+      console.debug('[score] raw score for', q.id, '=', score);
+      setScores(prev => {
+        const base = { ...prev, [key]: score };
+
+        // -------- dependency detection -----------------
+        const missing = [];
+        calculations
+          .filter(line => line.trim().startsWith(q.id))      // rules where current question is target
+          .forEach(line => {
+            const rhs = line.split('=')[1] || '';
+            const idRegex = /\b([A-Z][0-9]+)\b/g;
+            let m;
+            while ((m = idRegex.exec(rhs)) !== null) {
+              const id = m[1];
+              if (base[id] === undefined) missing.push(id);
+            }
+          });
+
+        if (missing.length) {
+          const msg =
+            'Сначала нужно ответить на вопрос(ы): ' +
+            [...new Set(missing)].join(', ');
+          setDepWarning(msg);
+          console.warn('[dep] ' + msg);
+        } else {
+          setDepWarning('');
+        }
+        // -----------------------------------------------
+
+        return calculations.length
+          ? applyCalculations(base, calculations)
+          : base;
+      });
     } catch (e) {
       console.error('Evaluation error:', e);
       setError(e.message);
@@ -117,6 +205,11 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
     <>
       {error && (
         <div style={{ color: 'red', margin: '10px 0' }}>{error}</div>
+      )}
+      {depWarning && (
+        <p style={{ color: 'crimson', fontWeight: 'bold', marginTop: 8 }}>
+          {depWarning}
+        </p>
       )}
       {sections.map((sec, si) => (
         <div key={si} style={{ marginBottom: 32 }}>
