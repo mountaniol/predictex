@@ -1,72 +1,14 @@
 import React, { useState, useContext } from 'react';
 import { AppContext } from './App';
 
-// consistent style for all action buttons
-const buttonBaseStyle = {
-  background: '#000000',   // solid black
-  color: '#ffffff',
-  padding: '8px 20px',     // slimmer vertical padding
-  border: 'none',
-  borderRadius: 6,
-  fontWeight: 600,
-  fontSize: 15,
-  lineHeight: '20px',
-  cursor: 'pointer',
-  transition: 'opacity 0.2s ease',
-};
+const QuestionSection = ({ sections, aiPrompt, apiKey, calculations: propCalculations }) => {
+  const context = useContext(AppContext) || {};
+  console.log('[context] AppContext value:', context);
+  const { labels: ctxLabels, calculations: contextCalculations = [] } = context;
+  console.log('[context] contextCalculations:', contextCalculations);
+  const calculations = propCalculations || contextCalculations;
+  console.log('[context] effective calculations:', calculations);
 
-const defaultLabels = { yes: 'Yes', no: 'No' };
-
-const applyCalculations = (base, calcArr) => {
-  const res = { ...base };
-  const idRegex = /\b([A-Z][0-9]+)\b/g; // matches A3, B10 etc.
-
-  calcArr.forEach(line => {
-    if (!line || typeof line !== 'string') return;
-
-    console.debug('[calc] parsing:', line);
-
-    const parts = line.split('=');
-    if (parts.length !== 2) {
-      console.warn('[calc] invalid expression (no "="):', line);
-      return;
-    }
-
-    const target = parts[0].trim();
-    let expr = parts[1].trim();
-
-    // ------- collect referenced IDs --------------------------------------
-    const referenced = [];
-    expr.replace(idRegex, (_, id) => {
-      referenced.push(id);
-      return _;
-    });
-
-    // check that every referenced ID already exists in res
-    const unknown = referenced.filter(id => res[id] === undefined);
-    if (unknown.length) {
-      console.warn('[calc] unknown question IDs', unknown, 'in', line, '- rule ignored');
-      return; // skip applying this rule
-    }
-
-    // replace IDs with current numeric values
-    expr = expr.replace(idRegex, (_, id) => `(res['${id}'])`);
-
-    try {
-      // eslint-disable-next-line no-new-func
-      const val = Function('res', `return ${expr};`)(res);
-      if (!Number.isFinite(val)) throw new Error('NaN result');
-      res[target] = val;
-      console.debug(`[calc] ${target} =>`, val);
-    } catch (e) {
-      console.error('[calc] evaluation error for', line, e);
-    }
-  });
-
-  return res;
-};
-
-const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
   const [answers, setAnswers] = useState({});
   const [scores, setScores] = useState({});
   const [loading, setLoading] = useState({});
@@ -75,8 +17,7 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
   const [depWarning, setDepWarning] = useState('');
 
   // labels come from AppContext; fall back to defaults
-  const { labels: ctxLabels, calculations = [] } = useContext(AppContext) || {};
-  const activeLabels = ctxLabels && ctxLabels.yes ? ctxLabels : defaultLabels;
+  const activeLabels = ctxLabels && ctxLabels.yes ? ctxLabels : { yes: 'Yes', no: 'No' };
 
   const qKey = (si, qi) => `${si}-${qi}`;
 
@@ -100,10 +41,11 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
       const ans = answers[key];
       // Dependency check: ensure prerequisite questions are answered
       setDepWarning('');
-      console.debug('[deps] calculations array:', calculations);
+      console.log('[deps] calculations array:', calculations);
+      console.log('[deps] answers state before check:', answers, 'for question ID', q.id);
       if (calculations && calculations.length) {
         const lines = calculations.filter(line => line.trim().startsWith(q.id));
-        console.debug('[deps] filtered lines for', q.id, ':', lines);
+        console.log('[deps] filtered lines for', q.id, ':', lines);
         const deps = new Set();
         const idRegex = /\b([A-Z][0-9]+)\b/g;
         lines.forEach(line => {
@@ -114,7 +56,7 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
             if (depId !== q.id) deps.add(depId);
           }
         });
-        console.debug('[deps] deps set for', q.id, ':', Array.from(deps));
+        console.log('[deps] deps set for', q.id, ':', Array.from(deps));
         const missingDeps = Array.from(deps).filter(depId => {
           // find the answer key for this depId
           let depKey;
@@ -125,7 +67,7 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
           );
           return !answers[depKey];
         });
-        console.debug('[deps] missingDeps for', q.id, ':', missingDeps);
+        console.log('[deps] missingDeps for', q.id, ':', missingDeps);
         if (missingDeps.length) {
           const msg = 'Сначала нужно ответить на вопрос(ы): ' + missingDeps.join(', ');
           setDepWarning(msg);
@@ -320,6 +262,70 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
       )}
     </>
   );
+};
+
+const buttonBaseStyle = {
+  background: '#000000',   // solid black
+  color: '#ffffff',
+  padding: '8px 20px',     // slimmer vertical padding
+  border: 'none',
+  borderRadius: 6,
+  fontWeight: 600,
+  fontSize: 15,
+  lineHeight: '20px',
+  cursor: 'pointer',
+  transition: 'opacity 0.2s ease',
+};
+
+const defaultLabels = { yes: 'Yes', no: 'No' };
+
+const applyCalculations = (base, calcArr) => {
+  const res = { ...base };
+  const idRegex = /\b([A-Z][0-9]+)\b/g; // matches A3, B10 etc.
+
+  calcArr.forEach(line => {
+    if (!line || typeof line !== 'string') return;
+
+    console.debug('[calc] parsing:', line);
+
+    const parts = line.split('=');
+    if (parts.length !== 2) {
+      console.warn('[calc] invalid expression (no "="):', line);
+      return;
+    }
+
+    const target = parts[0].trim();
+    let expr = parts[1].trim();
+
+    // ------- collect referenced IDs --------------------------------------
+    const referenced = [];
+    expr.replace(idRegex, (_, id) => {
+      referenced.push(id);
+      return _;
+    });
+
+    // check that every referenced ID already exists in res
+    const unknown = referenced.filter(id => res[id] === undefined);
+    if (unknown.length) {
+      console.warn('[calc] unknown question IDs', unknown, 'in', line, '- rule ignored');
+      return; // skip applying this rule
+    }
+
+    // replace IDs with current numeric values
+    expr = expr.replace(idRegex, (_, id) => `(res['${id}'])`);
+
+    try {
+      // eslint-disable-next-line no-new-func
+      const val = Function('res', `return ${expr};`)(res);
+      if (!Number.isFinite(val)) throw new Error('NaN result');
+      res[target] = val;
+      console.debug(`[calc] ${target} =>`, val);
+    } catch (e) {
+      console.error('[calc] evaluation error for', line, e);
+    }
+  });
+
+  return res;
 };
 
 const AnswerInput = ({ q, value, onChange, labels }) => {
