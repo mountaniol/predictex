@@ -151,7 +151,7 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
       }
       console.debug('[score] raw score for', q.id, '=', score);
       setScores(prev => {
-        const base = { ...prev, [key]: score };
+        const baseById = { ...prev, [q.id]: score };
 
         // -------- dependency detection -----------------
         const missing = [];
@@ -163,7 +163,7 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
             let m;
             while ((m = idRegex.exec(rhs)) !== null) {
               const id = m[1];
-              if (base[id] === undefined) missing.push(id);
+              if (baseById[id] === undefined) missing.push(id);
             }
           });
 
@@ -179,8 +179,8 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
         // -----------------------------------------------
 
         return calculations.length
-          ? applyCalculations(base, calculations)
-          : base;
+          ? applyCalculations(baseById, calculations)
+          : baseById;
       });
     } catch (e) {
       console.error('Evaluation error:', e);
@@ -240,7 +240,7 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
                   }}
                 >
                   <div>
-                    <strong>Q{qi + 1}:</strong> {q.text}
+                    <strong>{q.id}:</strong> {q.text}
                   </div>
                   <AnswerInput
                     q={q}
@@ -263,13 +263,13 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
                   >
                     {loading[key]
                       ? 'Evaluating...'
-                      : scores[key]
+                      : scores[q.id]
                       ? 'Re-evaluate'
                       : 'Submit'}
                   </button>
-                  {scores[key] !== undefined && (
+                  {scores[q.id] !== undefined && (
                     <span style={{ marginLeft: 16 }}>
-                      Score: {scores[key]}
+                      Score: {scores[q.id]}
                     </span>
                   )}
                 </div>
