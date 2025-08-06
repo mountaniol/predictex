@@ -100,8 +100,10 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
       const ans = answers[key];
       // Dependency check: ensure prerequisite questions are answered
       setDepWarning('');
+      console.debug('[deps] calculations array:', calculations);
       if (calculations && calculations.length) {
         const lines = calculations.filter(line => line.trim().startsWith(q.id));
+        console.debug('[deps] filtered lines for', q.id, ':', lines);
         const deps = new Set();
         const idRegex = /\b([A-Z][0-9]+)\b/g;
         lines.forEach(line => {
@@ -112,6 +114,7 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
             if (depId !== q.id) deps.add(depId);
           }
         });
+        console.debug('[deps] deps set for', q.id, ':', Array.from(deps));
         const missingDeps = Array.from(deps).filter(depId => {
           // find the answer key for this depId
           let depKey;
@@ -122,6 +125,7 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
           );
           return !answers[depKey];
         });
+        console.debug('[deps] missingDeps for', q.id, ':', missingDeps);
         if (missingDeps.length) {
           const msg = 'Сначала нужно ответить на вопрос(ы): ' + missingDeps.join(', ');
           setDepWarning(msg);
