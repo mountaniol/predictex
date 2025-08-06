@@ -98,6 +98,37 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
     try {
       const q = sections[si].questions[qi];
       const ans = answers[key];
+      // Dependency check: ensure prerequisite questions are answered
+      setDepWarning('');
+      if (calculations && calculations.length) {
+        const lines = calculations.filter(line => line.trim().startsWith(q.id));
+        const deps = new Set();
+        const idRegex = /\b([A-Z][0-9]+)\b/g;
+        lines.forEach(line => {
+          const rhs = line.split('=')[1] || '';
+          let m;
+          while ((m = idRegex.exec(rhs)) !== null) {
+            const depId = m[1];
+            if (depId !== q.id) deps.add(depId);
+          }
+        });
+        const missingDeps = Array.from(deps).filter(depId => {
+          // find the answer key for this depId
+          let depKey;
+          sections.forEach((sec, sIdx) =>
+            sec.questions.forEach((qq, qIdx) => {
+              if (qq.id === depId) depKey = qKey(sIdx, qIdx);
+            }),
+          );
+          return !answers[depKey];
+        });
+        if (missingDeps.length) {
+          const msg = 'Сначала нужно ответить на вопрос(ы): ' + missingDeps.join(', ');
+          setDepWarning(msg);
+          setLoading(prev => ({ ...prev, [key]: false }));
+          return;
+        }
+      }
       let userPrompt = `Question: ${q.text}\n`;
       if (q.question_type === 'yes-no' || q.question_type === 'numeric') {
         userPrompt += `answer = ${ans}`;
