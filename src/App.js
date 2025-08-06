@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import useLoadQuestions from "./useLoadQuestions";
 import LanguageSelector from "./LanguageSelector";
 import QuestionSection from "./QuestionSection";
+import Header from "./Header";
+import Footer from "./Footer";
 
 function App() {
   const [currentLanguage, setCurrentLanguage] = useState("en");
@@ -26,6 +28,7 @@ function App() {
         margin: "0 auto",
         padding: "32px 16px 0 16px"
       }}>
+        <Header />
         <QuestionSection
           sections={sections}
           aiPrompt={aiPrompt}
@@ -33,6 +36,7 @@ function App() {
           loading={loading}
           error={error}
         />
+        <Footer />
       </div>
     </div>
   );
