@@ -22,6 +22,7 @@ const useLoadQuestions = (language) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [labels, setLabels] = useState({ yes: 'Yes', no: 'No' });
+  const [calculations, setCalculations] = useState([]);
 
   useEffect(() => {
     const load = async () => {
@@ -42,6 +43,8 @@ const useLoadQuestions = (language) => {
         }
         // Initialize labels (and other future settings)
         setLabels(settings.labels || { yes: 'Yes', no: 'No' });
+        // Initialize calculation rules
+        setCalculations(settings.calculations || []);
 
         // Group by cluster_name
         const map = {};
@@ -75,7 +78,7 @@ const useLoadQuestions = (language) => {
     load();
   }, [language]);
 
-  return { sections, aiPrompt, apiKey, loading, error, labels };
+  return { sections, aiPrompt, apiKey, loading, error, labels, calculations };
 };
 
 export default useLoadQuestions;
