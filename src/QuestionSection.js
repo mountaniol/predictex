@@ -1,13 +1,10 @@
 import React, { useState, useContext } from 'react';
 import { AppContext } from './App';
 
-const QuestionSection = ({ sections, aiPrompt, apiKey, calculations: propCalculations }) => {
+const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
   const context = useContext(AppContext) || {};
-  console.log('[context] AppContext value:', context);
-  const { labels: ctxLabels, calculations: contextCalculations = [] } = context;
-  console.log('[context] contextCalculations:', contextCalculations);
-  const calculations = propCalculations || contextCalculations;
-  console.log('[context] effective calculations:', calculations);
+  const { labels: ctxLabels, calculations = [] } = context;
+  console.log('[context] calculations:', calculations);
 
   const [answers, setAnswers] = useState({});
   const [scores, setScores] = useState({});
@@ -32,14 +29,24 @@ const QuestionSection = ({ sections, aiPrompt, apiKey, calculations: propCalcula
     return '';
   };
 
+  // The 'evaluateAnswer' function uses the 'calculations' array from AppContext
+  // to perform inter-question dependency checks.
+  /**
+   * Evaluate an answer for a given question.
+   * @param {number} si - Section index
+   * @param {number} qi - Question index within the section
+   * Performs dependency checks, sends the answer to the AI API, parses the score,
+   * applies any post-calculations, and updates component state accordingly.
+   */
   const evaluateAnswer = async (si, qi) => {
-    const key = qKey(si, qi);
-    setLoading(prev => ({ ...prev, [key]: true }));
+    setLoading(prev => ({ ...prev, [qKey(si, qi)]: true }));
     setError('');
+    // Start evaluation: show loading spinner and clear previous error message
     try {
+      // Fetch question object and user-provided answer from state
       const q = sections[si].questions[qi];
-      const ans = answers[key];
-      // Dependency check: ensure prerequisite questions are answered
+      const ans = answers[qKey(si, qi)];
+      // Dependency guard: ensure all prerequisite questions have been answered
       setDepWarning('');
       console.log('[deps] calculations array:', calculations);
       console.log('[deps] answers state before check:', answers, 'for question ID', q.id);
@@ -71,10 +78,12 @@ const QuestionSection = ({ sections, aiPrompt, apiKey, calculations: propCalcula
         if (missingDeps.length) {
           const msg = 'Сначала нужно ответить на вопрос(ы): ' + missingDeps.join(', ');
           setDepWarning(msg);
-          setLoading(prev => ({ ...prev, [key]: false }));
+          setLoading(prev => ({ ...prev, [qKey(si, qi)]: false }));
           return;
         }
       }
+      
+      // Build user and system prompts for the OpenAI API request
       let userPrompt = `Question: ${q.text}\n`;
       if (q.question_type === 'yes-no' || q.question_type === 'numeric') {
         userPrompt += `answer = ${ans}`;
@@ -93,13 +102,14 @@ const QuestionSection = ({ sections, aiPrompt, apiKey, calculations: propCalcula
       if (loc && si > 0) {
         systemPrompt = `Location context: ${loc}. ${systemPrompt}`;
       }
-      // Sanitize API key by removing whitespace and newlines
+      // Clean up API key: remove whitespace and validate it's non-empty
       const sanitizedApiKey = apiKey.replace(/\s+/g, '').trim();
       if (!sanitizedApiKey) {
         setError('Invalid API key');
-        setLoading(prev => ({ ...prev, [key]: false }));
+        setLoading(prev => ({ ...prev, [qKey(si, qi)]: false }));
         return;
       }
+      // Send request to OpenAI Chat Completions endpoint
       const resp = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -118,6 +128,7 @@ const QuestionSection = ({ sections, aiPrompt, apiKey, calculations: propCalcula
       const data = await resp.json();
       if (data.error) throw new Error(data.error.message);
 
+      // Extract numeric score from API response
       let score;
       if (q.question_type === 'yes-no') {
         score = ans === 'yes' ? 100 : 0;
@@ -128,6 +139,7 @@ const QuestionSection = ({ sections, aiPrompt, apiKey, calculations: propCalcula
       }
       console.debug('[score] raw score for', q.id, '=', score);
       setScores(prev => {
+        // Update scores state and apply any post-answer calculations (e.g., inter-question dependencies)
         const baseById = { ...prev, [q.id]: score };
 
         // -------- dependency detection -----------------
@@ -160,10 +172,11 @@ const QuestionSection = ({ sections, aiPrompt, apiKey, calculations: propCalcula
           : baseById;
       });
     } catch (e) {
+      // On error, log it and display to the user
       console.error('Evaluation error:', e);
       setError(e.message);
     } finally {
-      setLoading(prev => ({ ...prev, [key]: false }));
+      setLoading(prev => ({ ...prev, [qKey(si, qi)]: false }));
     }
   };
 

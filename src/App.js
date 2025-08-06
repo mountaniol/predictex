@@ -9,7 +9,7 @@ export const AppContext = React.createContext(null);
 
 function App() {
   const [currentLanguage, setCurrentLanguage] = useState("en");
-  const { sections, aiPrompt, apiKey, loading, error, labels } = useLoadQuestions(currentLanguage);
+  const { sections, aiPrompt, apiKey, loading, error, labels, calculations } = useLoadQuestions(currentLanguage);
 
   // Helper to get a unique key for each question
   return (
@@ -20,6 +20,7 @@ function App() {
       labels,
       loading,
       error,
+      calculations,
       currentLanguage
     }}>
       <div style={{
