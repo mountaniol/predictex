@@ -13,25 +13,21 @@ const LanguageSelector = ({ onChange }) => {
 
   return (
     <div style={{
-      position: 'fixed',
-      top: 16,
-      left: 16,
-      zIndex: 1000,
-      background: '#fff',
-      borderRadius: 8,
-      padding: '8px 12px',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      border: '1px solid #e3e7ef',
+      width: '100%',
+      display: 'flex',
+      justifyContent: 'center',
+      margin: '4px 0 16px 0',
     }}>
       <select
         value={currentLanguage}
         onChange={e => onChange(e.target.value)}
         disabled={translating}
         style={{
+          padding: '0 6px',
+          fontSize: 12,
+          lineHeight: '16px',
           border: 'none',
           background: 'transparent',
-          fontSize: 14,
-          fontWeight: 600,
           color: '#1a2340',
           cursor: 'pointer',
           outline: 'none',
@@ -44,7 +40,7 @@ const LanguageSelector = ({ onChange }) => {
         ))}
       </select>
       {translating && (
-        <span style={{ marginLeft: 8, fontSize: 12, color: '#666' }}>
+        <span style={{ marginLeft: 6, fontSize: 11, color: '#666' }}>
           Translating...
         </span>
       )}

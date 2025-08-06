@@ -29,17 +29,17 @@ function App() {
         padding: 0,
         margin: 0
       }}>
-        <LanguageSelector
-          currentLanguage={currentLanguage}
-          onChange={setCurrentLanguage}
-          translating={loading}
-        />
         <div style={{
           maxWidth: 700,
           margin: "0 auto",
           padding: "32px 16px 0 16px"
         }}>
           <Header />
+          <LanguageSelector
+            currentLanguage={currentLanguage}
+            onChange={setCurrentLanguage}
+            translating={loading}
+          />
           <QuestionSection
             sections={sections}
             aiPrompt={aiPrompt}
