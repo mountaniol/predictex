@@ -1,5 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { AppContext } from './App';
+import data from './data.json';
 
 const QuestionSection = ({ sections, aiPrompt, apiKey, calculations: propCalculations }) => {
   const context = useContext(AppContext) || {};
