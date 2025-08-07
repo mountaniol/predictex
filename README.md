@@ -1,71 +1,98 @@
-# Getting Started with Create React App
+# QNA Evaluator
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Система оценки ответов на вопросы с использованием AI и зависимостей между вопросами.
 
-## Available Scripts
+## Архитектура
 
-In the project directory, you can run:
+Проект разделен на frontend и backend:
 
-### `npm start`
+- **Frontend**: React приложение для пользовательского интерфейса
+- **Backend**: Express сервер для обработки API запросов к OpenAI
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Установка и запуск
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Backend
 
-### `npm test`
+1. Перейдите в директорию backend:
+```bash
+cd backend
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+2. Установите зависимости:
+```bash
+npm install
+```
 
-### `npm run build`
+3. Создайте файл `.env` на основе `env.example`:
+```bash
+cp env.example .env
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+4. Добавьте ваш OpenAI API ключ в файл `.env`:
+```
+OPENAI_API_KEY=your_actual_api_key_here
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+5. Запустите backend:
+```bash
+npm run dev
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Backend будет доступен на http://localhost:5000
 
-### `npm run eject`
+### Frontend
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+1. В корневой директории проекта установите зависимости:
+```bash
+npm install
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+2. Запустите frontend:
+```bash
+npm start
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Frontend будет доступен на http://localhost:3000
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Функциональность
 
-## Learn More
+### Система зависимостей
+- Вопросы могут иметь зависимости от других вопросов
+- Формулы для модификации оценок: `A10 = A10 + (A3 / 2)`
+- Предупреждения о зависимостях при попытке ответить
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Многоязычность
+- Поддержка английского, немецкого и русского языков
+- Автоматическая загрузка переводов
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Безопасность
+- API ключи хранятся только на backend
+- CORS настроен для безопасного взаимодействия
+- Валидация всех входных данных
 
-### Code Splitting
+## Структура проекта
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```
+qna-evaluator/
+├── src/                    # Frontend React код
+│   ├── App.js             # Главный компонент с контекстом
+│   ├── QuestionSection.js # Компонент вопросов и зависимостей
+│   └── ...
+├── backend/               # Backend Express сервер
+│   ├── server.js         # Основной сервер
+│   ├── package.json      # Зависимости backend
+│   └── ...
+├── public/               # Статические файлы
+│   ├── questions2.json   # Вопросы и формулы
+│   └── ...
+└── package.json          # Зависимости frontend
+```
 
-### Analyzing the Bundle Size
+## API Endpoints
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### POST /api/evaluate
+Оценивает ответ на вопрос с помощью OpenAI API.
 
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### GET /api/health
+Проверка состояния сервера.
 

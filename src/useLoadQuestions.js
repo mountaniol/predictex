@@ -12,7 +12,7 @@ const loadJson = async (filename) => {
   const settings = Array.isArray(data) ? {} : (data.settings || {});
   const questions = Array.isArray(data) ? data : (data.questions || []);
   
-  // calculations находится на верхнем уровне, а не в settings
+  // calculations is at the top level, not in settings
   const calculations = Array.isArray(data) ? [] : (data.calculations || []);
 
   console.log(`[loadJson] loaded ${questions.length} questions and ${calculations.length} calculation rules`);
@@ -69,12 +69,8 @@ const useLoadQuestions = (language) => {
         const promptTxt = await fetch('/aiprompt.txt').then(r => r.text());
         setAiPrompt(promptTxt);
 
-        // Load API key
-        let key = process.env.REACT_APP_GPT_KEY;
-        if (!key) {
-          key = await fetch('/key.txt').then(r => r.text());
-        }
-        setApiKey(key.trim());
+        // Backend API endpoint
+        setApiKey('http://localhost:5000/api/evaluate');
       } catch (e) {
         console.error('Error loading questions:', e);
         setError('Failed to load questions');

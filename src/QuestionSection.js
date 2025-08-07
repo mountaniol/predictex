@@ -36,7 +36,7 @@ const QuestionSection = () => {
   const handleAnswerChange = (si, qi, value) => {
     const questionId = sections[si].questions[qi].id;
     setAnswers(prev => ({ ...prev, [questionId]: value }));
-    // Очищаем предупреждение для этого вопроса при изменении ответа
+    // Clear warning for this question when answer changes
     setDepWarnings(prev => ({ ...prev, [questionId]: '' }));
   };
 
@@ -96,21 +96,13 @@ const QuestionSection = () => {
         });
         console.log('[deps] missingDeps for', q.id, ':', missingDeps);
         if (missingDeps.length) {
-          const msg = 'Сначала нужно ответить на вопрос(ы): ' + missingDeps.join(', ');
+          const msg = 'Please answer the following question(s) first: ' + missingDeps.join(', ');
           setDepWarnings(prev => ({ ...prev, [q.id]: msg }));
           setLoading(prev => ({ ...prev, [qKey(si, qi)]: false }));
           return;
         }
       }
       
-      // Build user and system prompts for the OpenAI API request
-      let userPrompt = `Question: ${q.text}\n`;
-      if (q.question_type === 'yes-no' || q.question_type === 'numeric') {
-        userPrompt += `answer = ${ans}`;
-      } else {
-        userPrompt += `Answer: ${ans}`;
-      }
-
       let systemPrompt = aiPrompt;
       if (q.prompt) {
         systemPrompt = q.prompt;
@@ -122,41 +114,24 @@ const QuestionSection = () => {
       if (loc && si > 0) {
         systemPrompt = `Location context: ${loc}. ${systemPrompt}`;
       }
-      // Clean up API key: remove whitespace and validate it's non-empty
-      const sanitizedApiKey = apiKey.replace(/\s+/g, '').trim();
-      if (!sanitizedApiKey) {
-        setError('Invalid API key');
-        setLoading(prev => ({ ...prev, [qKey(si, qi)]: false }));
-        return;
-      }
-      // Send request to OpenAI Chat Completions endpoint
-      const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+      // Send request to backend API
+      const resp = await fetch(apiKey, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sanitizedApiKey}`,
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          max_tokens: 20,
+          question: q.text,
+          answer: ans,
+          systemPrompt: systemPrompt,
+          questionType: q.question_type,
         }),
       });
       const data = await resp.json();
-      if (data.error) throw new Error(data.error.message);
+      if (data.error) throw new Error(data.error);
 
-      // Extract numeric score from API response
-      let score;
-      if (q.question_type === 'yes-no') {
-        score = ans === 'yes' ? 100 : 0;
-      } else {
-        const content = data.choices[0].message.content;
-        const m = content.match(/\d{1,3}/);
-        score = m ? Math.min(100, Math.max(0, parseInt(m[0], 10))) : null;
-      }
+      // Extract score from backend response
+      const score = data.score;
       console.debug('[score] raw score for', q.id, '=', score);
       setScores(prev => {
         // Update scores state and apply any post-answer calculations (e.g., inter-question dependencies)
@@ -178,7 +153,7 @@ const QuestionSection = () => {
 
         if (missing.length) {
           const msg =
-            'Сначала нужно ответить на вопрос(ы): ' +
+            'Please answer the following question(s) first: ' +
             [...new Set(missing)].join(', ');
           setDepWarnings(prev => ({ ...prev, [q.id]: msg }));
           console.warn('[dep] ' + msg);
