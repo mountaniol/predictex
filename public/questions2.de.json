@@ -6,185 +6,693 @@
     }
   },
   "questions": [
-  {
-    "id": "LOCATION",
-    "text": "In welchem Land, Bundesland (falls relevant) und welcher Stadt befinden Sie sich?",
-    "cluster_name": "Standortinformationen",
-    "position_in_cluster": 1,
-    "question_type": "open-ended",
-    "prompt_add": "Verwenden Sie diese Standortinformationen, um genauere und kontextrelevante Unternehmensbewertungen zu erstellen. Berücksichtigen Sie lokale Marktbedingungen, Vorschriften und das spezifische Geschäftsumfeld an diesem Standort."
-  },
-  {
-    "id": "A1",
-    "text": "Warum möchten Sie das Unternehmen verkaufen?",
-    "cluster_name": "Strategische Grundlagen",
-    "position_in_cluster": 1,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A2",
-    "text": "Wie lange existiert das Unternehmen bereits?",
-    "cluster_name": "Strategische Grundlagen",
-    "position_in_cluster": 2,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A3",
-    "text": "Gab es bereits andere interessierte Käufer?",
-    "cluster_name": "Strategische Grundlagen",
-    "position_in_cluster": 3,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A4",
-    "text": "Wie stellen Sie sich den Übergabeprozess vor?",
-    "cluster_name": "Strategische Grundlagen",
-    "position_in_cluster": 4,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A5",
-    "text": "Was ist der aktuelle Marktwert des Unternehmens?",
-    "cluster_name": "Strategische Grundlagen",
-    "position_in_cluster": 5,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A6",
-    "text": "Was sind die Hauptgründe für den Verkauf?",
-    "cluster_name": "Strategische Grundlagen",
-    "position_in_cluster": 6,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A7",
-    "text": "Wie lange versuchen Sie bereits zu verkaufen?",
-    "cluster_name": "Strategische Grundlagen",
-    "position_in_cluster": 7,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A8",
-    "text": "Was ist der ideale Zeitplan für den Verkauf?",
-    "cluster_name": "Strategische Grundlagen",
-    "position_in_cluster": 8,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A9",
-    "text": "Was sind die wichtigsten Verkaufsargumente des Unternehmens?",
-    "cluster_name": "Strategische Grundlagen",
-    "position_in_cluster": 9,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A10",
-    "text": "Welche Faktoren würden die Expansion einschränken (z.B. Personal, Lizenzen, Maschinen)?",
-    "cluster_name": "Strategische Grundlagen",
-    "position_in_cluster": 10,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A11",
-    "text": "Welche Rolle spielt der aktuelle Eigentümer im Tagesgeschäft?",
-    "cluster_name": "Strategische Grundlagen",
-    "position_in_cluster": 11,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A12",
-    "text": "Wie kritisch ist der Eigentümer für den Unternehmenserfolg?",
-    "cluster_name": "Strategische Grundlagen",
-    "position_in_cluster": 12,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A13",
-    "text": "Was würde passieren, wenn der Eigentümer für 3 Monate weg wäre?",
-    "cluster_name": "Strategische Grundlagen",
-    "position_in_cluster": 13,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A14",
-    "text": "Was ist die Vision des Eigentümers für das Unternehmen nach dem Verkauf?",
-    "cluster_name": "Strategische Grundlagen",
-    "position_in_cluster": 14,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "B1",
-    "text": "Was ist der aktuelle monatliche Umsatz?",
-    "cluster_name": "Finanzielle Leistung",
-    "position_in_cluster": 1,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "B2",
-    "text": "Was sind die Haupteinnahmequellen?",
-    "cluster_name": "Finanzielle Leistung",
-    "position_in_cluster": 2,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "B3",
-    "text": "Was ist die Gewinnspanne?",
-    "cluster_name": "Finanzielle Leistung",
-    "position_in_cluster": 3,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "B4",
-    "text": "Was sind die Hauptausgaben?",
-    "cluster_name": "Finanzielle Leistung",
-    "position_in_cluster": 4,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "B5",
-    "text": "Ist das Unternehmen profitabel?",
-    "cluster_name": "Finanzielle Leistung",
-    "position_in_cluster": 5,
-    "question_type": "yes-no"
-  },
-  {
-    "id": "B6",
-    "text": "Wie ist die Cashflow-Situation?",
-    "cluster_name": "Finanzielle Leistung",
-    "position_in_cluster": 6,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "B7",
-    "text": "Gibt es ausstehende Schulden?",
-    "cluster_name": "Finanzielle Leistung",
-    "position_in_cluster": 7,
-    "question_type": "yes-no"
-  },
-  {
-    "id": "B8",
-    "text": "Was ist das Schulden-zu-Umsatz-Verhältnis?",
-    "cluster_name": "Finanzielle Leistung",
-    "position_in_cluster": 8,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "B9",
-    "text": "Gibt es anhängige rechtliche Fragen?",
-    "cluster_name": "Finanzielle Leistung",
-    "position_in_cluster": 9,
-    "question_type": "yes-no"
-  },
-  {
-    "id": "B10",
-    "text": "Was ist die Bewertung der finanziellen Gesundheit (1-10)?",
-    "cluster_name": "Finanzielle Leistung",
-    "position_in_cluster": 10,
-    "question_type": "numeric"
-  }
+    {
+      "id": "LOCATION",
+      "text": "In welchem Land, Bundesland (falls relevant) und welcher Stadt befinden Sie sich?",
+      "cluster_name": "Standortinformationen",
+      "position_in_cluster": 1,
+      "question_type": "open-ended",
+      "prompt_add": "Verwenden Sie diese Standortinformationen, um genauere und kontextrelevante Unternehmensbewertungen zu erstellen. Berücksichtigen Sie lokale Marktbedingungen, Vorschriften und das spezifische Geschäftsumfeld an diesem Standort."
+    },
+    {
+      "id": "A1",
+      "text": "Warum möchten Sie das Unternehmen verkaufen?",
+      "cluster_name": "Strategische Grundlagen",
+      "position_in_cluster": 1,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A2",
+      "text": "Seit wann besteht das Unternehmen?",
+      "cluster_name": "Strategische Grundlagen",
+      "position_in_cluster": 2,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A3",
+      "text": "Gab es bereits andere Interessenten?",
+      "cluster_name": "Strategische Grundlagen",
+      "position_in_cluster": 3,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A4",
+      "text": "Wie stellen Sie sich den Übergabeprozess vor?",
+      "cluster_name": "Strategische Grundlagen",
+      "position_in_cluster": 4,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A5",
+      "text": "Wären Sie bereit, während einer Übergangsphase Unterstützung oder Beratung zu leisten?",
+      "cluster_name": "Strategische Grundlagen",
+      "position_in_cluster": 5,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A6",
+      "text": "Welchen Kernnutzen bietet das Unternehmen seinen Kunden?",
+      "cluster_name": "Strategische Grundlagen",
+      "position_in_cluster": 6,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A7",
+      "text": "Was macht Ihr Angebot einzigartig oder schwer nachzuahmen?",
+      "cluster_name": "Strategische Grundlagen",
+      "position_in_cluster": 7,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A8",
+      "text": "Wie hoch ist Ihre durchschnittliche Marge pro Produkt- oder Dienstleistungsbereich?",
+      "cluster_name": "Strategische Grundlagen",
+      "position_in_cluster": 8,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A9",
+      "text": "Welche Kapazitätsgrenzen oder Wachstumsbeschränkungen hat das Unternehmen?",
+      "cluster_name": "Strategische Grundlagen",
+      "position_in_cluster": 9,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A10",
+      "text": "Welche Faktoren würden eine Expansion einschränken (z. B. Personal, Lizenzen, Maschinen)?",
+      "cluster_name": "Strategische Grundlagen",
+      "position_in_cluster": 10,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A11",
+      "text": "Wäre eine Probeübernahme (z. B. durch Pacht) eine Option?",
+      "cluster_name": "Strategische Grundlagen",
+      "position_in_cluster": 11,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A12",
+      "text": "Ist eine Rückabwicklungs- oder Ausstiegsklausel verhandelbar, falls die Übernahme scheitert?",
+      "cluster_name": "Strategische Grundlagen",
+      "position_in_cluster": 12,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "A13",
+      "text": "Welche Sicherheiten schlagen Sie für den Käufer vor, falls die Übernahme scheitert?",
+      "cluster_name": "Strategische Grundlagen",
+      "position_in_cluster": 13,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A14",
+      "text": "Welche Teile Ihrer Abläufe würden Sie als „am veraltetsten“ oder ineffizient bezeichnen?",
+      "cluster_name": "Strategische Grundlagen",
+      "position_in_cluster": 14,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "B1",
+      "text": "Wie hoch waren Umsatz und Gewinn in den letzten 3 Jahren?",
+      "cluster_name": "Finanzielle & Rechtliche Situation",
+      "position_in_cluster": 1,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "B2",
+      "text": "Wie hoch sind die monatlichen Fixkosten (z. B. Löhne, Miete, Leasing)?",
+      "cluster_name": "Finanzielle & Rechtliche Situation",
+      "position_in_cluster": 2,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "B3",
+      "text": "Bestehen Darlehen, Verbindlichkeiten oder Leasingverträge?",
+      "cluster_name": "Finanzielle & Rechtliche Situation",
+      "position_in_cluster": 3,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "B4",
+      "text": "Gibt es offene Forderungen oder unbezahlte Verbindlichkeiten?",
+      "cluster_name": "Finanzielle & Rechtliche Situation",
+      "position_in_cluster": 4,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "B5",
+      "text": "Wie wird die Preisgestaltung berechnet? Gibt es Marktdruck?",
+      "cluster_name": "Finanzielle & Rechtliche Situation",
+      "position_in_cluster": 5,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "B6",
+      "text": "Ist die Buchhaltung transparent (GuV, BWA, Bilanz)?",
+      "cluster_name": "Finanzielle & Rechtliche Situation",
+      "position_in_cluster": 6,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "B7",
+      "text": "Wurden alle Steuererklärungen fristgerecht eingereicht?",
+      "cluster_name": "Finanzielle & Rechtliche Situation",
+      "position_in_cluster": 7,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "B8",
+      "text": "Gab es in jüngster Zeit Steuerprüfungen oder Feststellungen?",
+      "cluster_name": "Finanzielle & Rechtliche Situation",
+      "position_in_cluster": 8,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "B9",
+      "text": "Gibt es persönliche Bürgschaften oder private Sicherheiten?",
+      "cluster_name": "Finanzielle & Rechtliche Situation",
+      "position_in_cluster": 9,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "B10",
+      "text": "Bestehen Rückstände bei Steuern oder Sozialversicherungen?",
+      "cluster_name": "Finanzielle & Rechtliche Situation",
+      "position_in_cluster": 10,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "B11",
+      "text": "Ist der Handelsregistereintrag aktuell und korrekt?",
+      "cluster_name": "Finanzielle & Rechtliche Situation",
+      "position_in_cluster": 11,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "B12",
+      "text": "Welche Rechtsform hat das Unternehmen?",
+      "cluster_name": "Finanzielle & Rechtliche Situation",
+      "position_in_cluster": 12,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "B13",
+      "text": "Wer hält Eigentum oder Anteile? Gibt es stille Gesellschafter?",
+      "cluster_name": "Finanzielle & Rechtliche Situation",
+      "position_in_cluster": 13,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "B14",
+      "text": "Gibt es Schutzrechte (z. B. Patente, Marken)?",
+      "cluster_name": "Finanzielle & Rechtliche Situation",
+      "position_in_cluster": 14,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "B15",
+      "text": "Gibt es übertragbare Lizenzen oder Zertifizierungen?",
+      "cluster_name": "Finanzielle & Rechtliche Situation",
+      "position_in_cluster": 15,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "B16",
+      "text": "Gelten branchenspezifische Vorschriften für das Unternehmen?",
+      "cluster_name": "Finanzielle & Rechtliche Situation",
+      "position_in_cluster": 16,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "B17",
+      "text": "Bestehen aktuelle oder vergangene Umwelt- oder Regelverstöße?",
+      "cluster_name": "Finanzielle & Rechtliche Situation",
+      "position_in_cluster": 17,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C1",
+      "text": "Wie viele Mitarbeiter haben Sie und in welchen Funktionen?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 1,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C2",
+      "text": "Gibt es Schlüsselpersonal mit einzigartiger Expertise?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 2,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C3",
+      "text": "Wie ist die Altersverteilung des Teams?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 3,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C4",
+      "text": "War die Mitarbeiterfluktuation in den letzten Jahren hoch?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 4,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C5",
+      "text": "Sind die Löhne im regionalen Arbeitsmarkt wettbewerbsfähig?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 5,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C6",
+      "text": "Welche Maschinen oder technischen Geräte nutzt das Unternehmen?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 6,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C7",
+      "text": "In welchem Zustand befindet sich die Ausrüstung?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 7,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C8",
+      "text": "Ist die Ausrüstung im Eigentum, geleast oder finanziert?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 8,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C9",
+      "text": "Gibt es Wartungs- oder Serviceverträge?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 9,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C10",
+      "text": "Wie ist der Arbeitsbereich hinsichtlich Effizienz organisiert?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 10,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C11",
+      "text": "Gibt es dokumentierte Arbeitsabläufe oder stützt man sich auf informelles Wissen?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 11,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C12",
+      "text": "Nutzen Sie digitale Werkzeuge (z. B. ERP, Rechnungsstellung, Zeiterfassung)?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 12,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C13",
+      "text": "Wie werden Angebote, Aufträge und Projektdokumente verwaltet?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 13,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C14",
+      "text": "Werden Kunden‑/Projektdaten digital und zentral gespeichert?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 14,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C15",
+      "text": "Wie viele Stunden pro Woche arbeitet der Inhaber aktiv im Betrieb?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 15,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C16",
+      "text": "Welche Aufgaben sind derzeit nicht delegierbar (z. B. Preisgestaltung, Vertrieb)?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 16,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C17",
+      "text": "Welche Schlüsselqualifikationen oder Lizenzen benötigt ein Käufer?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 17,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C18",
+      "text": "Wäre eine externe oder Teilzeit-Geschäftsführung realisierbar?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 18,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C19",
+      "text": "Welche Funktionen hängen ausschließlich vom Verkäufer ab?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 19,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C20",
+      "text": "Gibt es nicht dokumentiertes Wissen, das für den Betrieb kritisch ist?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 20,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C21",
+      "text": "[Optional – Lean/VSM] Können Sie eine typische Customer Journey beschreiben – von der ersten Anfrage bis zur Auslieferung?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 21,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C22",
+      "text": "[Optional – Lean/VSM] Gibt es wiederkehrende Verzögerungen, Engpässe oder Kapazitätsbeschränkungen?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 22,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C23",
+      "text": "[Optional – Lean/VSM] Wie werden Aufgaben priorisiert und eingeplant?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 23,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C24",
+      "text": "[Optional – Lean/VSM] Befolgen die Mitarbeitenden standardisierte Verfahren?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 24,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C25",
+      "text": "[Optional – Lean/VSM] Wie häufig reflektieren Sie Prozesse, um Verbesserungspotenziale zu identifizieren?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 25,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C26",
+      "text": "[Optional – Lean/VSM] Gibt es visuelle Tools oder Dashboards zur Verfolgung laufender Arbeiten?",
+      "cluster_name": "Betriebsbereitschaft",
+      "position_in_cluster": 26,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D1",
+      "text": "Wer sind Ihre typischen Kunden (Privat, Geschäft, öffentlich)?",
+      "cluster_name": "Markt- & Kundenumfeld",
+      "position_in_cluster": 1,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D2",
+      "text": "Haben Sie Stamm‑ oder Wiederholungskunden?",
+      "cluster_name": "Markt- & Kundenumfeld",
+      "position_in_cluster": 2,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D3",
+      "text": "Wie gewinnen Sie neue Kunden?",
+      "cluster_name": "Markt- & Kundenumfeld",
+      "position_in_cluster": 3,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D4",
+      "text": "Wie ist die aktuelle und prognostizierte Auftragslage?",
+      "cluster_name": "Markt- & Kundenumfeld",
+      "position_in_cluster": 4,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D5",
+      "text": "Welchen Ruf hat das Unternehmen lokal und online?",
+      "cluster_name": "Markt- & Kundenumfeld",
+      "position_in_cluster": 5,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D6",
+      "text": "Wie stark ist Ihre Marke (Logo, Design, Bekanntheit)?",
+      "cluster_name": "Markt- & Kundenumfeld",
+      "position_in_cluster": 6,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D7",
+      "text": "Welche Online-Präsenz besteht (Website, Social Media, Domainbesitz)?",
+      "cluster_name": "Markt- & Kundenumfeld",
+      "position_in_cluster": 7,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D8",
+      "text": "Ist der Markenname geschützt oder eingetragen?",
+      "cluster_name": "Markt- & Kundenumfeld",
+      "position_in_cluster": 8,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D9",
+      "text": "Wer sind Ihre Hauptlieferanten und wie stabil sind diese Beziehungen?",
+      "cluster_name": "Markt- & Kundenumfeld",
+      "position_in_cluster": 9,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D10",
+      "text": "Sind Preise fest oder variabel? Gibt es Verträge?",
+      "cluster_name": "Markt- & Kundenumfeld",
+      "position_in_cluster": 10,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D11",
+      "text": "Sind alternative Lieferanten verfügbar?",
+      "cluster_name": "Markt- & Kundenumfeld",
+      "position_in_cluster": 11,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D12",
+      "text": "Sind bekannte Risiken vorhanden (rechtlich, wirtschaftlich, operativ)?",
+      "cluster_name": "Markt- & Kundenumfeld",
+      "position_in_cluster": 12,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D13",
+      "text": "Ist das Unternehmen von bestimmten Kunden oder Lieferanten abhängig?",
+      "cluster_name": "Markt- & Kundenumfeld",
+      "position_in_cluster": 13,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D14",
+      "text": "Welche Möglichkeiten für Expansion oder Innovation bestehen?",
+      "cluster_name": "Markt- & Kundenumfeld",
+      "position_in_cluster": 14,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D15",
+      "text": "Gibt es negative Bewertungen, Gerichtsverfahren oder interne Konflikte?",
+      "cluster_name": "Markt- & Kundenumfeld",
+      "position_in_cluster": 15,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D16",
+      "text": "[Optional – Lean/VSM] Wie schnell können Sie nach Auftragseingang liefern?",
+      "cluster_name": "Markt- & Kundenumfeld",
+      "position_in_cluster": 16,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D17",
+      "text": "[Optional – Lean/VSM] Was sind typische Beschwerden oder Reibungspunkte von Kunden?",
+      "cluster_name": "Markt- & Kundenumfeld",
+      "position_in_cluster": 17,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "E1",
+      "text": "Ist der Standort gemietet oder im Eigentum?",
+      "cluster_name": "Standort & Infrastruktur",
+      "position_in_cluster": 1,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "E2",
+      "text": "Wie lange läuft der Mietvertrag? Ist eine Verlängerung möglich?",
+      "cluster_name": "Standort & Infrastruktur",
+      "position_in_cluster": 2,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "E3",
+      "text": "Gibt es relevante Verträge mit Vermietern, Lieferanten oder Partnern?",
+      "cluster_name": "Standort & Infrastruktur",
+      "position_in_cluster": 3,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "E4",
+      "text": "Gibt es Bauvorschriften, Lärmbeschränkungen oder Umweltauflagen?",
+      "cluster_name": "Standort & Infrastruktur",
+      "position_in_cluster": 4,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "E5",
+      "text": "Gibt es geplante städtische Projekte oder Baustellen in der Nähe?",
+      "cluster_name": "Standort & Infrastruktur",
+      "position_in_cluster": 5,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "E6",
+      "text": "Wie gut ist der Standort erreichbar (Laufkundschaft, Sichtbarkeit, Straßen)?",
+      "cluster_name": "Standort & Infrastruktur",
+      "position_in_cluster": 6,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "E7",
+      "text": "Gibt es Parkmöglichkeiten für Kunden und Lieferungen?",
+      "cluster_name": "Standort & Infrastruktur",
+      "position_in_cluster": 7,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "E8",
+      "text": "Sind Beschilderung und Außenbranding erlaubt oder eingeschränkt?",
+      "cluster_name": "Standort & Infrastruktur",
+      "position_in_cluster": 8,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "F1",
+      "text": "Was muss übergeben werden (Kontakte, Systeme, Passwörter)?",
+      "cluster_name": "Übergang & Unterstützung",
+      "position_in_cluster": 1,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "F2",
+      "text": "Gibt es undokumentiertes oder informelles Wissen, das übertragen werden muss?",
+      "cluster_name": "Übergang & Unterstützung",
+      "position_in_cluster": 2,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "F3",
+      "text": "Unterstützen Sie persönlich die Einführung oder Übergabe bei Kunden?",
+      "cluster_name": "Übergang & Unterstützung",
+      "position_in_cluster": 3,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "F4",
+      "text": "Welche Versicherungen bestehen?",
+      "cluster_name": "Übergang & Unterstützung",
+      "position_in_cluster": 4,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "F5",
+      "text": "Wurden diese kürzlich überprüft?",
+      "cluster_name": "Übergang & Unterstützung",
+      "position_in_cluster": 5,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "F6",
+      "text": "Gab es in der Vergangenheit Schadensfälle oder Probleme mit Versicherern?",
+      "cluster_name": "Übergang & Unterstützung",
+      "position_in_cluster": 6,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "H1",
+      "text": "Ist der derzeitige Inhaber in das Tagesgeschäft eingebunden?",
+      "cluster_name": "Abhängigkeit vom Inhaber & Ausstiegsrisiken",
+      "position_in_cluster": 1,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "H2",
+      "text": "Welche Schlüsseltätigkeiten werden ausschließlich vom Inhaber erledigt (z. B. Vertrieb, Preisgestaltung, Kundenbetreuung)?",
+      "cluster_name": "Abhängigkeit vom Inhaber & Ausstiegsrisiken",
+      "position_in_cluster": 2,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "H3",
+      "text": "Gibt es Dokumentation oder Delegation des Wissens und der Routinen des Inhabers?",
+      "cluster_name": "Abhängigkeit vom Inhaber & Ausstiegsrisiken",
+      "position_in_cluster": 3,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "H4",
+      "text": "Wie viele Stunden pro Woche arbeitet der Inhaber aktiv im Unternehmen?",
+      "cluster_name": "Abhängigkeit vom Inhaber & Ausstiegsrisiken",
+      "position_in_cluster": 4,
+      "question_type": "numeric"
+    },
+    {
+      "id": "H5",
+      "text": "Bestehen Nachfolgepläne oder eine zweite Führungsebene?",
+      "cluster_name": "Abhängigkeit vom Inhaber & Ausstiegsrisiken",
+      "position_in_cluster": 5,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "H6",
+      "text": "Könnte das Unternehmen mehr als 2 Monate ohne den Inhaber laufen?",
+      "cluster_name": "Abhängigkeit vom Inhaber & Ausstiegsrisiken",
+      "position_in_cluster": 6,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "H7",
+      "text": "Wie lange würde eine vollständige Übergabe realistisch dauern (in Monaten)?",
+      "cluster_name": "Abhängigkeit vom Inhaber & Ausstiegsrisiken",
+      "position_in_cluster": 7,
+      "question_type": "numeric"
+    },
+    {
+      "id": "H8",
+      "text": "Sind Kundenbeziehungen an die Person des Inhabers gebunden (persönliches Vertrauen, privates Netzwerk)?",
+      "cluster_name": "Abhängigkeit vom Inhaber & Ausstiegsrisiken",
+      "position_in_cluster": 8,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "H9",
+      "text": "Welcher Ruf oder welche Glaubwürdigkeit ginge verloren, wenn der Inhaber ausscheidet?",
+      "cluster_name": "Abhängigkeit vom Inhaber & Ausstiegsrisiken",
+      "position_in_cluster": 9,
+      "question_type": "open-ended"
+    }
   ],
-  "calculations": [
-    "A10 = A10 + (A3 / 2)",
-    "B10 = B10 * ((A2 + B8) / 3)"
-  ]
-} 
+  "calculations": []
+}

@@ -6,185 +6,693 @@
     }
   },
   "questions": [
-  {
-    "id": "LOCATION",
-    "text": "В какой стране, штате (если применимо) и городе вы находитесь?",
-    "cluster_name": "Информация о местоположении",
-    "position_in_cluster": 1,
-    "question_type": "open-ended",
-    "prompt_add": "Use this location information to provide more accurate and contextually relevant business evaluations. Consider local market conditions, regulations, and business environment specific to this location."
-  },
-  {
-    "id": "A1",
-    "text": "Почему вы хотите продать бизнес?",
-    "cluster_name": "Стратегические основы",
-    "position_in_cluster": 1,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A2",
-    "text": "Как долго существует бизнес?",
-    "cluster_name": "Стратегические основы",
-    "position_in_cluster": 2,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A3",
-    "text": "Были ли другие заинтересованные покупатели?",
-    "cluster_name": "Стратегические основы",
-    "position_in_cluster": 3,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A4",
-    "text": "Как вы представляете себе процесс передачи?",
-    "cluster_name": "Стратегические основы",
-    "position_in_cluster": 4,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A5",
-    "text": "Какова текущая рыночная стоимость бизнеса?",
-    "cluster_name": "Стратегические основы",
-    "position_in_cluster": 5,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A6",
-    "text": "Какие основные причины продажи?",
-    "cluster_name": "Стратегические основы",
-    "position_in_cluster": 6,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A7",
-    "text": "Как долго вы пытаетесь продать?",
-    "cluster_name": "Стратегические основы",
-    "position_in_cluster": 7,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A8",
-    "text": "Какой идеальный график для продажи?",
-    "cluster_name": "Стратегические основы",
-    "position_in_cluster": 8,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A9",
-    "text": "Какие ключевые преимущества бизнеса?",
-    "cluster_name": "Стратегические основы",
-    "position_in_cluster": 9,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A10",
-    "text": "Какие факторы ограничивают расширение (например, персонал, лицензии, оборудование)?",
-    "cluster_name": "Стратегические основы",
-    "position_in_cluster": 10,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A11",
-    "text": "Какова роль текущего владельца в повседневных операциях?",
-    "cluster_name": "Стратегические основы",
-    "position_in_cluster": 11,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A12",
-    "text": "Насколько критичен владелец для успеха бизнеса?",
-    "cluster_name": "Стратегические основы",
-    "position_in_cluster": 12,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A13",
-    "text": "Что произойдет, если владелец уедет на 3 месяца?",
-    "cluster_name": "Стратегические основы",
-    "position_in_cluster": 13,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "A14",
-    "text": "Какое видение владельца для бизнеса после продажи?",
-    "cluster_name": "Стратегические основы",
-    "position_in_cluster": 14,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "B1",
-    "text": "Какой текущий месячный доход?",
-    "cluster_name": "Финансовая эффективность",
-    "position_in_cluster": 1,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "B2",
-    "text": "Какие основные источники дохода?",
-    "cluster_name": "Финансовая эффективность",
-    "position_in_cluster": 2,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "B3",
-    "text": "Какова прибыльность?",
-    "cluster_name": "Финансовая эффективность",
-    "position_in_cluster": 3,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "B4",
-    "text": "Какие основные расходы?",
-    "cluster_name": "Финансовая эффективность",
-    "position_in_cluster": 4,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "B5",
-    "text": "Прибылен ли бизнес?",
-    "cluster_name": "Финансовая эффективность",
-    "position_in_cluster": 5,
-    "question_type": "yes-no"
-  },
-  {
-    "id": "B6",
-    "text": "Какова ситуация с денежным потоком?",
-    "cluster_name": "Финансовая эффективность",
-    "position_in_cluster": 6,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "B7",
-    "text": "Есть ли непогашенные долги?",
-    "cluster_name": "Финансовая эффективность",
-    "position_in_cluster": 7,
-    "question_type": "yes-no"
-  },
-  {
-    "id": "B8",
-    "text": "Каково соотношение долга к доходу?",
-    "cluster_name": "Финансовая эффективность",
-    "position_in_cluster": 8,
-    "question_type": "open-ended"
-  },
-  {
-    "id": "B9",
-    "text": "Есть ли незавершенные юридические вопросы?",
-    "cluster_name": "Финансовая эффективность",
-    "position_in_cluster": 9,
-    "question_type": "yes-no"
-  },
-  {
-    "id": "B10",
-    "text": "Какова оценка финансового здоровья (1-10)?",
-    "cluster_name": "Финансовая эффективность",
-    "position_in_cluster": 10,
-    "question_type": "numeric"
-  }
+    {
+      "id": "LOCATION",
+      "text": "В какой стране, штате (если применимо) и городе вы находитесь?",
+      "cluster_name": "Информация о местоположении",
+      "position_in_cluster": 1,
+      "question_type": "open-ended",
+      "prompt_add": "Use this location information to provide more accurate and contextually relevant business evaluations. Consider local market conditions, regulations, and business environment specific to this location."
+    },
+    {
+      "id": "A1",
+      "text": "Почему вы хотите продать бизнес?",
+      "cluster_name": "Стратегические основы",
+      "position_in_cluster": 1,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A2",
+      "text": "Как долго существует бизнес?",
+      "cluster_name": "Стратегические основы",
+      "position_in_cluster": 2,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A3",
+      "text": "Были ли другие заинтересованные покупатели?",
+      "cluster_name": "Стратегические основы",
+      "position_in_cluster": 3,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A4",
+      "text": "Как вы представляете себе процесс передачи?",
+      "cluster_name": "Стратегические основы",
+      "position_in_cluster": 4,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A5",
+      "text": "Готовы ли вы поддерживать или консультировать в переходный период?",
+      "cluster_name": "Стратегические основы",
+      "position_in_cluster": 5,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A6",
+      "text": "Какова основная ценность, которую бизнес предоставляет своим клиентам?",
+      "cluster_name": "Стратегические основы",
+      "position_in_cluster": 6,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A7",
+      "text": "Что делает ваше предложение уникальным или труднокопируемым?",
+      "cluster_name": "Стратегические основы",
+      "position_in_cluster": 7,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A8",
+      "text": "Какова средняя маржа по каждому продукту/услуге?",
+      "cluster_name": "Стратегические основы",
+      "position_in_cluster": 8,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A9",
+      "text": "Какие ограничения по мощностям или росту стоят перед бизнесом?",
+      "cluster_name": "Стратегические основы",
+      "position_in_cluster": 9,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A10",
+      "text": "Какие факторы ограничивают расширение (например, персонал, лицензии, оборудование)?",
+      "cluster_name": "Стратегические основы",
+      "position_in_cluster": 10,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A11",
+      "text": "Возможен ли пробный переход (например, через аренду)?",
+      "cluster_name": "Стратегические основы",
+      "position_in_cluster": 11,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A12",
+      "text": "Можно ли согласовать условие об отмене сделки или выходе в случае неудачи?",
+      "cluster_name": "Стратегические основы",
+      "position_in_cluster": 12,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "A13",
+      "text": "Какие меры защиты вы предлагаете покупателю, если передача бизнеса не состоится?",
+      "cluster_name": "Стратегические основы",
+      "position_in_cluster": 13,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "A14",
+      "text": "Какие аспекты вашей деятельности вы считаете «наиболее устаревшими» или неэффективными?",
+      "cluster_name": "Стратегические основы",
+      "position_in_cluster": 14,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "B1",
+      "text": "Каковы были выручка и прибыль за последние 3 года?",
+      "cluster_name": "Финансовое и юридическое положение",
+      "position_in_cluster": 1,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "B2",
+      "text": "Каковы фиксированные ежемесячные расходы (например, зарплаты, аренда, лизинг)?",
+      "cluster_name": "Финансовое и юридическое положение",
+      "position_in_cluster": 2,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "B3",
+      "text": "Есть ли кредиты, долги или лизинговые контракты?",
+      "cluster_name": "Финансовое и юридическое положение",
+      "position_in_cluster": 3,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "B4",
+      "text": "Есть ли просроченная дебиторская задолженность или неоплаченные обязательства?",
+      "cluster_name": "Финансовое и юридическое положение",
+      "position_in_cluster": 4,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "B5",
+      "text": "Как формируется цена? Оказывает ли рынок давление?",
+      "cluster_name": "Финансовое и юридическое положение",
+      "position_in_cluster": 5,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "B6",
+      "text": "Прозрачна ли бухгалтерия (отчёт о прибылях и убытках, BWA, баланс)?",
+      "cluster_name": "Финансовое и юридическое положение",
+      "position_in_cluster": 6,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "B7",
+      "text": "Все ли налоговые декларации подавались вовремя?",
+      "cluster_name": "Финансовое и юридическое положение",
+      "position_in_cluster": 7,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "B8",
+      "text": "Были ли недавно налоговые проверки или выявлены нарушения?",
+      "cluster_name": "Финансовое и юридическое положение",
+      "position_in_cluster": 8,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "B9",
+      "text": "Существуют ли личные гарантии или частное обеспечение?",
+      "cluster_name": "Финансовое и юридическое положение",
+      "position_in_cluster": 9,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "B10",
+      "text": "Есть ли задолженность по налогам или социальным взносам?",
+      "cluster_name": "Финансовое и юридическое положение",
+      "position_in_cluster": 10,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "B11",
+      "text": "Запись в реестре бизнеса актуальна и корректна?",
+      "cluster_name": "Финансовое и юридическое положение",
+      "position_in_cluster": 11,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "B12",
+      "text": "Какова юридическая структура бизнеса?",
+      "cluster_name": "Финансовое и юридическое положение",
+      "position_in_cluster": 12,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "B13",
+      "text": "Кто владеет долями или акциями? Есть ли скрытые партнёры?",
+      "cluster_name": "Финансовое и юридическое положение",
+      "position_in_cluster": 13,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "B14",
+      "text": "Существуют ли права интеллектуальной собственности (например, патенты, товарные знаки)?",
+      "cluster_name": "Финансовое и юридическое положение",
+      "position_in_cluster": 14,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "B15",
+      "text": "Есть ли передаваемые лицензии или сертификаты?",
+      "cluster_name": "Финансовое и юридическое положение",
+      "position_in_cluster": 15,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "B16",
+      "text": "Существуют ли отраслевые нормы, применимые к бизнесу?",
+      "cluster_name": "Финансовое и юридическое положение",
+      "position_in_cluster": 16,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "B17",
+      "text": "Есть ли текущие или прошлые экологические либо регуляторные нарушения?",
+      "cluster_name": "Финансовое и юридическое положение",
+      "position_in_cluster": 17,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C1",
+      "text": "Сколько у вас сотрудников и какие у них роли?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 1,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C2",
+      "text": "Есть ли ключевые сотрудники с уникальной экспертизой?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 2,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C3",
+      "text": "Каков возрастной состав команды?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 3,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C4",
+      "text": "Высок ли был уровень текучести кадров в последние годы?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 4,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C5",
+      "text": "Конкурентоспособны ли зарплаты на региональном рынке труда?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 5,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C6",
+      "text": "Какие машины или техническое оборудование использует бизнес?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 6,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C7",
+      "text": "В каком состоянии находится оборудование?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 7,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C8",
+      "text": "Оборудование принадлежит компании, арендовано или находится в лизинге?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 8,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C9",
+      "text": "Заключены ли контракты на обслуживание или сервис?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 9,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C10",
+      "text": "Как организовано рабочее пространство с точки зрения эффективности?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 10,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C11",
+      "text": "Существуют ли документированные рабочие процессы или полагаются на неформальные знания?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 11,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C12",
+      "text": "Используете ли вы цифровые инструменты (например, ERP, выставление счетов, учёт времени)?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 12,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C13",
+      "text": "Как управляются коммерческие предложения, заказы и проектная документация?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 13,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C14",
+      "text": "Хранится ли информация о клиентах/проектах в цифровом и централизованном виде?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 14,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C15",
+      "text": "Сколько часов в неделю владелец активно работает в операциях?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 15,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C16",
+      "text": "Какие задачи в настоящее время нельзя делегировать (например, ценообразование, продажи)?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 16,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C17",
+      "text": "Какие ключевые навыки или лицензии потребуются покупателю?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 17,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C18",
+      "text": "Возможно ли внешнее или частичное управление?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 18,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C19",
+      "text": "Какие функции зависят исключительно от продавца?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 19,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C20",
+      "text": "Есть ли недокументированные знания, критически важные для операций?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 20,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C21",
+      "text": "[Опционально – Lean/VSM] Можете ли описать типовой путь клиента — от первого запроса до окончательной поставки?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 21,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C22",
+      "text": "[Опционально – Lean/VSM] Есть ли повторяющиеся задержки, узкие места или ограничения по вместимости?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 22,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C23",
+      "text": "[Опционально – Lean/VSM] Как задачи приоритизируются и планируются?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 23,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C24",
+      "text": "[Опционально – Lean/VSM] Следуют ли сотрудники стандартным процедурам?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 24,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C25",
+      "text": "[Опционально – Lean/VSM] Как часто вы анализируете процессы для выявления потенциала улучшений?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 25,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "C26",
+      "text": "[Опционально – Lean/VSM] Используются ли визуальные инструменты или панели для отслеживания текущей работы?",
+      "cluster_name": "Операционная готовность",
+      "position_in_cluster": 26,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D1",
+      "text": "Кто ваши типовые клиенты (частные, бизнес, государственные)?",
+      "cluster_name": "Рыночная и клиентская среда",
+      "position_in_cluster": 1,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D2",
+      "text": "У вас есть постоянные или повторные клиенты?",
+      "cluster_name": "Рыночная и клиентская среда",
+      "position_in_cluster": 2,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D3",
+      "text": "Как вы привлекаете новых клиентов?",
+      "cluster_name": "Рыночная и клиентская среда",
+      "position_in_cluster": 3,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D4",
+      "text": "Какова текущая и прогнозируемая ситуация с заказами?",
+      "cluster_name": "Рыночная и клиентская среда",
+      "position_in_cluster": 4,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D5",
+      "text": "Какова репутация компании локально и онлайн?",
+      "cluster_name": "Рыночная и клиентская среда",
+      "position_in_cluster": 5,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D6",
+      "text": "Насколько сильный ваш бренд (логотип, дизайн, узнаваемость)?",
+      "cluster_name": "Рыночная и клиентская среда",
+      "position_in_cluster": 6,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D7",
+      "text": "Каково ваше онлайн‑присутствие (сайт, социальные сети, владение доменом)?",
+      "cluster_name": "Рыночная и клиентская среда",
+      "position_in_cluster": 7,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D8",
+      "text": "Защищено или зарегистрировано ли название бренда?",
+      "cluster_name": "Рыночная и клиентская среда",
+      "position_in_cluster": 8,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D9",
+      "text": "Кто ваши ключевые поставщики и насколько стабильны эти отношения?",
+      "cluster_name": "Рыночная и клиентская среда",
+      "position_in_cluster": 9,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D10",
+      "text": "Цены фиксированы или переменные? Существуют ли контракты?",
+      "cluster_name": "Рыночная и клиентская среда",
+      "position_in_cluster": 10,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D11",
+      "text": "Доступны ли альтернативные поставщики?",
+      "cluster_name": "Рыночная и клиентская среда",
+      "position_in_cluster": 11,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D12",
+      "text": "Известны ли риски (правовые, экономические, операционные)?",
+      "cluster_name": "Рыночная и клиентская среда",
+      "position_in_cluster": 12,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D13",
+      "text": "Зависит ли бизнес от конкретных клиентов или поставщиков?",
+      "cluster_name": "Рыночная и клиентская среда",
+      "position_in_cluster": 13,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D14",
+      "text": "Какие возможности существуют для расширения или инноваций?",
+      "cluster_name": "Рыночная и клиентская среда",
+      "position_in_cluster": 14,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D15",
+      "text": "Есть ли негативные отзывы, судебные дела или внутренние конфликты?",
+      "cluster_name": "Рыночная и клиентская среда",
+      "position_in_cluster": 15,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D16",
+      "text": "[Опционально – Lean/VSM] Как быстро вы можете доставить после получения заказа клиента?",
+      "cluster_name": "Рыночная и клиентская среда",
+      "position_in_cluster": 16,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "D17",
+      "text": "[Опционально – Lean/VSM] Какие типичные жалобы или точки трения у клиентов?",
+      "cluster_name": "Рыночная и клиентская среда",
+      "position_in_cluster": 17,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "E1",
+      "text": "Помещение арендуется или находится в собственности?",
+      "cluster_name": "Местоположение и инфраструктура",
+      "position_in_cluster": 1,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "E2",
+      "text": "На какой срок действует аренда? Возможна ли пролонгация?",
+      "cluster_name": "Местоположение и инфраструктура",
+      "position_in_cluster": 2,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "E3",
+      "text": "Существуют ли важные контракты с арендодателями, поставщиками или партнёрами?",
+      "cluster_name": "Местоположение и инфраструктура",
+      "position_in_cluster": 3,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "E4",
+      "text": "Есть ли строительные нормы, ограничения по шуму или экологические ограничения?",
+      "cluster_name": "Местоположение и инфраструктура",
+      "position_in_cluster": 4,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "E5",
+      "text": "Планируются ли городские проекты или строительство поблизости?",
+      "cluster_name": "Местоположение и инфраструктура",
+      "position_in_cluster": 5,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "E6",
+      "text": "Насколько доступно местоположение (пешеходный трафик, видимость, дороги)?",
+      "cluster_name": "Местоположение и инфраструктура",
+      "position_in_cluster": 6,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "E7",
+      "text": "Есть ли парковка для клиентов и доставок?",
+      "cluster_name": "Местоположение и инфраструктура",
+      "position_in_cluster": 7,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "E8",
+      "text": "Разрешена ли вывеска и внешнее брендирование или действуют ограничения?",
+      "cluster_name": "Местоположение и инфраструктура",
+      "position_in_cluster": 8,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "F1",
+      "text": "Что необходимо передать (контакты, системы, пароли)?",
+      "cluster_name": "Переход и поддержка",
+      "position_in_cluster": 1,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "F2",
+      "text": "Существуют ли недокументированные или неформальные знания, которые нужно передать?",
+      "cluster_name": "Переход и поддержка",
+      "position_in_cluster": 2,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "F3",
+      "text": "Готовы ли вы лично поддержать знакомство с клиентами или переход?",
+      "cluster_name": "Переход и поддержка",
+      "position_in_cluster": 3,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "F4",
+      "text": "Какие страховые полисы существуют?",
+      "cluster_name": "Переход и поддержка",
+      "position_in_cluster": 4,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "F5",
+      "text": "Проводилась ли их недавняя проверка?",
+      "cluster_name": "Переход и поддержка",
+      "position_in_cluster": 5,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "F6",
+      "text": "Были ли претензии или проблемы со страховщиками в прошлом?",
+      "cluster_name": "Переход и поддержка",
+      "position_in_cluster": 6,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "H1",
+      "text": "Вовлечён ли текущий владелец в повседневные операции?",
+      "cluster_name": "Зависимость от владельца и риски выхода",
+      "position_in_cluster": 1,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "H2",
+      "text": "Какие ключевые задачи выполняет исключительно владелец (например, продажи, ценообразование, работа с клиентами)?",
+      "cluster_name": "Зависимость от владельца и риски выхода",
+      "position_in_cluster": 2,
+      "question_type": "open-ended"
+    },
+    {
+      "id": "H3",
+      "text": "Существует ли документация или делегирование знаний и процессов владельца?",
+      "cluster_name": "Зависимость от владельца и риски выхода",
+      "position_in_cluster": 3,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "H4",
+      "text": "Сколько часов в неделю владелец активно работает в бизнесе?",
+      "cluster_name": "Зависимость от владельца и риски выхода",
+      "position_in_cluster": 4,
+      "question_type": "numeric"
+    },
+    {
+      "id": "H5",
+      "text": "Существуют ли планы преемственности или второе управленческое звено?",
+      "cluster_name": "Зависимость от владельца и риски выхода",
+      "position_in_cluster": 5,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "H6",
+      "text": "Сможет ли бизнес работать более двух месяцев без владельца?",
+      "cluster_name": "Зависимость от владельца и риски выхода",
+      "position_in_cluster": 6,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "H7",
+      "text": "Сколько месяцев реалистично потребуется для полной передачи?",
+      "cluster_name": "Зависимость от владельца и риски выхода",
+      "position_in_cluster": 7,
+      "question_type": "numeric"
+    },
+    {
+      "id": "H8",
+      "text": "Зависят ли отношения с клиентами от владельца (личное доверие, частные связи)?",
+      "cluster_name": "Зависимость от владельца и риски выхода",
+      "position_in_cluster": 8,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "H9",
+      "text": "Какую репутацию или доверие можно потерять, если владелец уйдёт?",
+      "cluster_name": "Зависимость от владельца и риски выхода",
+      "position_in_cluster": 9,
+      "question_type": "open-ended"
+    }
   ],
-  "calculations": [
-    "A10 = A10 + (A3 / 2)",
-    "B10 = B10 * ((A2 + B8) / 3)"
-  ]
-} 
+  "calculations": []
+}
