@@ -10,6 +10,8 @@ export const AppContext = React.createContext(null);
 function App() {
   const [currentLanguage, setCurrentLanguage] = useState("en");
   const { sections, aiPrompt, apiKey, loading, error, labels, calculations } = useLoadQuestions(currentLanguage);
+  const [answers, setAnswers] = useState({});
+  const [scores, setScores] = useState({});
 
   // Helper to get a unique key for each question
   return (
@@ -21,7 +23,11 @@ function App() {
       loading,
       error,
       calculations,
-      currentLanguage
+      currentLanguage,
+      answers,
+      setAnswers,
+      scores,
+      setScores
     }}>
       <div style={{
         minHeight: "100vh",
@@ -41,14 +47,7 @@ function App() {
             onChange={setCurrentLanguage}
             translating={loading}
           />
-          <QuestionSection
-            sections={sections}
-            aiPrompt={aiPrompt}
-            apiKey={apiKey}
-            loading={loading}
-            error={error}
-            labels={labels}
-          />
+          <QuestionSection />
           <Footer />
         </div>
       </div>

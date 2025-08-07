@@ -8,7 +8,8 @@ const languages = [
 ];
 
 const LanguageSelector = ({ onChange }) => {
-  const { currentLanguage, loading } = useContext(AppContext);
+  const context = useContext(AppContext);
+  const { currentLanguage, loading } = context || { currentLanguage: 'en', loading: false };
   const translating = loading;
 
   return (

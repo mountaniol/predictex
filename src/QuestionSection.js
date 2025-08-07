@@ -1,17 +1,32 @@
 import React, { useState, useContext } from 'react';
 import { AppContext } from './App';
 
-const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
-  const context = useContext(AppContext) || {};
-  const { labels: ctxLabels, calculations = [] } = context;
-  console.log('[context] calculations:', calculations);
-
-  const [answers, setAnswers] = useState({});
-  const [scores, setScores] = useState({});
+const QuestionSection = () => {
+  const context = useContext(AppContext);
   const [loading, setLoading] = useState({});
   const [error, setError] = useState('');
   const [expanded, setExpanded] = useState({});
   const [depWarning, setDepWarning] = useState('');
+
+  if (!context) {
+    return <div>Loading...</div>;
+  }
+  const { 
+    sections, 
+    aiPrompt, 
+    apiKey, 
+    labels: ctxLabels, 
+    calculations = [], 
+    loading: contextLoading, 
+    error: contextError,
+    answers,
+    setAnswers,
+    scores,
+    setScores
+  } = context;
+  console.log('[context] calculations:', calculations);
+  console.log('[context] answers:', answers);
+  console.log('[context] scores:', scores);
 
   // labels come from AppContext; fall back to defaults
   const activeLabels = ctxLabels && ctxLabels.yes ? ctxLabels : { yes: 'Yes', no: 'No' };
@@ -19,12 +34,19 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
   const qKey = (si, qi) => `${si}-${qi}`;
 
   const handleAnswerChange = (si, qi, value) => {
-    setAnswers(prev => ({ ...prev, [qKey(si, qi)]: value }));
+    const questionId = sections[si].questions[qi].id;
+    console.log(`[answer] setting answer for ${questionId}:`, value);
+    setAnswers(prev => {
+      const newAnswers = { ...prev, [questionId]: value };
+      console.log('[answer] updated answers:', newAnswers);
+      return newAnswers;
+    });
   };
 
   const getLocationAnswer = () => {
     if (sections.length && sections[0].questions.length) {
-      return answers[qKey(0, 0)] || '';
+      const locationQuestionId = sections[0].questions[0].id;
+      return answers[locationQuestionId] || '';
     }
     return '';
   };
@@ -50,7 +72,7 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
     try {
       // Fetch question object and user-provided answer from state
       const q = sections[si].questions[qi];
-      const ans = answers[qKey(si, qi)];
+      const ans = answers[q.id];
       console.log('[evaluateAnswer] question object:', q);
       console.log('[evaluateAnswer] user answer:', ans);
       // Dependency guard: ensure all prerequisite questions have been answered
@@ -72,14 +94,8 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
         });
         console.log('[deps] deps set for', q.id, ':', Array.from(deps));
         const missingDeps = Array.from(deps).filter(depId => {
-          // find the answer key for this depId
-          let depKey;
-          sections.forEach((sec, sIdx) =>
-            sec.questions.forEach((qq, qIdx) => {
-              if (qq.id === depId) depKey = qKey(sIdx, qIdx);
-            }),
-          );
-          return !answers[depKey];
+          // Check if the dependent question has been answered
+          return !answers[depId];
         });
         console.log('[deps] missingDeps for', q.id, ':', missingDeps);
         if (missingDeps.length) {
@@ -198,6 +214,14 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
     ? (Object.values(scores).reduce((a, b) => a + (b || 0), 0) / total).toFixed(2)
     : 0;
 
+  if (contextLoading) {
+    return <div style={{ textAlign: 'center', padding: '20px' }}>Loading questions...</div>;
+  }
+
+  if (contextError) {
+    return <div style={{ color: 'red', margin: '10px 0' }}>{contextError}</div>;
+  }
+
   return (
     <>
       {error && (
@@ -241,12 +265,12 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
                   </div>
                   <AnswerInput
                     q={q}
-                    value={answers[key] || ''}
+                    value={answers[q.id] || ''}
                     onChange={v => handleAnswerChange(si, qi, v)}
                     labels={activeLabels}
                   />
                   <button
-                    disabled={loading[key] || !answers[key]}
+                    disabled={loading[key] || !answers[q.id]}
                     onClick={() => evaluateAnswer(si, qi)}
                     style={{
                       ...buttonBaseStyle,
@@ -254,8 +278,8 @@ const QuestionSection = ({ sections, aiPrompt, apiKey }) => {
                       margin: '16px auto 0',
                       width: 'fit-content',
                       background: '#000000', // force black even when disabled
-                      cursor: loading[key] || !answers[key] ? 'default' : 'pointer',
-                      opacity: loading[key] || !answers[key] ? 1 : 1, // no grey-out
+                      cursor: loading[key] || !answers[q.id] ? 'default' : 'pointer',
+                      opacity: loading[key] || !answers[q.id] ? 1 : 1, // no grey-out
                     }}
                   >
                     {loading[key]
@@ -297,11 +321,12 @@ const buttonBaseStyle = {
   transition: 'opacity 0.2s ease',
 };
 
-const defaultLabels = { yes: 'Yes', no: 'No' };
-
 const applyCalculations = (base, calcArr) => {
   const res = { ...base };
   const idRegex = /\b([A-Z][0-9]+)\b/g; // matches A3, B10 etc.
+
+  console.log('[calc] applying calculations to base scores:', base);
+  console.log('[calc] calculation rules:', calcArr);
 
   calcArr.forEach(line => {
     if (!line || typeof line !== 'string') return;
@@ -324,6 +349,8 @@ const applyCalculations = (base, calcArr) => {
       return _;
     });
 
+    console.log(`[calc] for ${target}, referenced IDs:`, referenced);
+
     // check that every referenced ID already exists in res
     const unknown = referenced.filter(id => res[id] === undefined);
     if (unknown.length) {
@@ -345,6 +372,7 @@ const applyCalculations = (base, calcArr) => {
     }
   });
 
+  console.log('[calc] final result:', res);
   return res;
 };
 
