@@ -24,9 +24,7 @@ const QuestionSection = () => {
     scores,
     setScores
   } = context;
-  console.log('[context] calculations:', calculations);
-  console.log('[context] answers:', answers);
-  console.log('[context] scores:', scores);
+  console.log(`[context] loaded ${calculations.length} calculation rules, ${Object.keys(answers).length} answers, ${Object.keys(scores).length} scores`);
 
   // labels come from AppContext; fall back to defaults
   const activeLabels = ctxLabels && ctxLabels.yes ? ctxLabels : { yes: 'Yes', no: 'No' };
@@ -35,12 +33,7 @@ const QuestionSection = () => {
 
   const handleAnswerChange = (si, qi, value) => {
     const questionId = sections[si].questions[qi].id;
-    console.log(`[answer] setting answer for ${questionId}:`, value);
-    setAnswers(prev => {
-      const newAnswers = { ...prev, [questionId]: value };
-      console.log('[answer] updated answers:', newAnswers);
-      return newAnswers;
-    });
+    setAnswers(prev => ({ ...prev, [questionId]: value }));
   };
 
   const getLocationAnswer = () => {

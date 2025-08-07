@@ -11,8 +11,13 @@ const loadJson = async (filename) => {
 
   const settings = Array.isArray(data) ? {} : (data.settings || {});
   const questions = Array.isArray(data) ? data : (data.questions || []);
+  
+  // calculations находится на верхнем уровне, а не в settings
+  const calculations = Array.isArray(data) ? [] : (data.calculations || []);
 
-  return { questions, settings };
+  console.log(`[loadJson] loaded ${questions.length} questions and ${calculations.length} calculation rules`);
+
+  return { questions, settings, calculations };
 };
 
 const useLoadQuestions = (language) => {
@@ -35,16 +40,18 @@ const useLoadQuestions = (language) => {
           : `questions2.${language}.json`;
         let questions = [];
         let settings  = {};
+        let calculations = [];
         try {
-          ({ questions, settings } = await loadJson(fileName));
+          ({ questions, settings, calculations } = await loadJson(fileName));
         } catch (err) {
           console.warn(err.message + ' – falling back to default file');
-          ({ questions, settings } = await loadJson('questions2.json'));
+          ({ questions, settings, calculations } = await loadJson('questions2.json'));
         }
         // Initialize labels (and other future settings)
         setLabels(settings.labels || { yes: 'Yes', no: 'No' });
         // Initialize calculation rules
-        setCalculations(settings.calculations || []);
+        setCalculations(calculations);
+        console.log(`[useLoadQuestions] loaded ${calculations.length} calculation rules`);
 
         // Group by cluster_name
         const map = {};
