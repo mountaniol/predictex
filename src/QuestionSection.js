@@ -29,27 +29,7 @@ const QuestionSection = () => {
   // labels come from AppContext; fall back to defaults
   const activeLabels = ctxLabels && ctxLabels.yes ? ctxLabels : { yes: 'Yes', no: 'No' };
 
-  // Функция для проверки зависимостей конкретного вопроса
-  const checkQuestionDependencies = (questionId) => {
-    if (!calculations || !calculations.length) return [];
-    
-    const lines = calculations.filter(line => line.trim().startsWith(questionId));
-    if (lines.length === 0) return [];
-    
-    const deps = new Set();
-    const idRegex = /\b([A-Z][0-9]+)\b/g;
-    
-    lines.forEach(line => {
-      const rhs = line.split('=')[1] || '';
-      let m;
-      while ((m = idRegex.exec(rhs)) !== null) {
-        const depId = m[1];
-        if (depId !== questionId) deps.add(depId);
-      }
-    });
-    
-    return Array.from(deps).filter(depId => !answers[depId]);
-  };
+
 
   const qKey = (si, qi) => `${si}-${qi}`;
 
@@ -275,6 +255,21 @@ const QuestionSection = () => {
                   <div>
                     <strong>{q.id}:</strong> {q.text}
                   </div>
+                  {depWarnings[q.id] && (
+                    <div style={{ 
+                      color: 'crimson', 
+                      fontWeight: 'bold', 
+                      marginTop: 8,
+                      marginBottom: 8,
+                      fontSize: '14px',
+                      padding: '8px 12px',
+                      background: '#fff5f5',
+                      border: '1px solid #fed7d7',
+                      borderRadius: '4px'
+                    }}>
+                      ⚠️ {depWarnings[q.id]}
+                    </div>
+                  )}
                   <AnswerInput
                     q={q}
                     value={answers[q.id] || ''}
@@ -304,20 +299,6 @@ const QuestionSection = () => {
                     <span style={{ marginLeft: 16 }}>
                       Score: {scores[q.id]}
                     </span>
-                  )}
-                  {(depWarnings[q.id] || checkQuestionDependencies(q.id).length > 0) && (
-                    <div style={{ 
-                      color: 'crimson', 
-                      fontWeight: 'bold', 
-                      marginTop: 8,
-                      fontSize: '14px',
-                      padding: '8px 12px',
-                      background: '#fff5f5',
-                      border: '1px solid #fed7d7',
-                      borderRadius: '4px'
-                    }}>
-                      ⚠️ {depWarnings[q.id] || `Сначала нужно ответить на вопрос(ы): ${checkQuestionDependencies(q.id).join(', ')}`}
-                    </div>
                   )}
                 </div>
               );
