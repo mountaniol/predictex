@@ -6,7 +6,7 @@ const QuestionSection = () => {
   const [loading, setLoading] = useState({});
   const [error, setError] = useState('');
   const [expanded, setExpanded] = useState({});
-  const [depWarning, setDepWarning] = useState('');
+  const [depWarnings, setDepWarnings] = useState({});
 
   if (!context) {
     return <div>Loading...</div>;
@@ -29,11 +29,35 @@ const QuestionSection = () => {
   // labels come from AppContext; fall back to defaults
   const activeLabels = ctxLabels && ctxLabels.yes ? ctxLabels : { yes: 'Yes', no: 'No' };
 
+  // Функция для проверки зависимостей конкретного вопроса
+  const checkQuestionDependencies = (questionId) => {
+    if (!calculations || !calculations.length) return [];
+    
+    const lines = calculations.filter(line => line.trim().startsWith(questionId));
+    if (lines.length === 0) return [];
+    
+    const deps = new Set();
+    const idRegex = /\b([A-Z][0-9]+)\b/g;
+    
+    lines.forEach(line => {
+      const rhs = line.split('=')[1] || '';
+      let m;
+      while ((m = idRegex.exec(rhs)) !== null) {
+        const depId = m[1];
+        if (depId !== questionId) deps.add(depId);
+      }
+    });
+    
+    return Array.from(deps).filter(depId => !answers[depId]);
+  };
+
   const qKey = (si, qi) => `${si}-${qi}`;
 
   const handleAnswerChange = (si, qi, value) => {
     const questionId = sections[si].questions[qi].id;
     setAnswers(prev => ({ ...prev, [questionId]: value }));
+    // Очищаем предупреждение для этого вопроса при изменении ответа
+    setDepWarnings(prev => ({ ...prev, [questionId]: '' }));
   };
 
   const getLocationAnswer = () => {
@@ -69,7 +93,7 @@ const QuestionSection = () => {
       console.log('[evaluateAnswer] question object:', q);
       console.log('[evaluateAnswer] user answer:', ans);
       // Dependency guard: ensure all prerequisite questions have been answered
-      setDepWarning('');
+      setDepWarnings(prev => ({ ...prev, [q.id]: '' }));
       console.log('[deps] calculations array:', calculations);
       console.log('[deps] answers state before check:', answers, 'for question ID', q.id);
       if (calculations && calculations.length) {
@@ -93,7 +117,7 @@ const QuestionSection = () => {
         console.log('[deps] missingDeps for', q.id, ':', missingDeps);
         if (missingDeps.length) {
           const msg = 'Сначала нужно ответить на вопрос(ы): ' + missingDeps.join(', ');
-          setDepWarning(msg);
+          setDepWarnings(prev => ({ ...prev, [q.id]: msg }));
           setLoading(prev => ({ ...prev, [qKey(si, qi)]: false }));
           return;
         }
@@ -176,10 +200,10 @@ const QuestionSection = () => {
           const msg =
             'Сначала нужно ответить на вопрос(ы): ' +
             [...new Set(missing)].join(', ');
-          setDepWarning(msg);
+          setDepWarnings(prev => ({ ...prev, [q.id]: msg }));
           console.warn('[dep] ' + msg);
         } else {
-          setDepWarning('');
+          setDepWarnings(prev => ({ ...prev, [q.id]: '' }));
         }
         // -----------------------------------------------
 
@@ -219,11 +243,6 @@ const QuestionSection = () => {
     <>
       {error && (
         <div style={{ color: 'red', margin: '10px 0' }}>{error}</div>
-      )}
-      {depWarning && (
-        <p style={{ color: 'crimson', fontWeight: 'bold', marginTop: 8 }}>
-          {depWarning}
-        </p>
       )}
       {sections.map((sec, si) => (
         <div key={si} style={{ marginBottom: 32 }}>
@@ -285,6 +304,20 @@ const QuestionSection = () => {
                     <span style={{ marginLeft: 16 }}>
                       Score: {scores[q.id]}
                     </span>
+                  )}
+                  {(depWarnings[q.id] || checkQuestionDependencies(q.id).length > 0) && (
+                    <div style={{ 
+                      color: 'crimson', 
+                      fontWeight: 'bold', 
+                      marginTop: 8,
+                      fontSize: '14px',
+                      padding: '8px 12px',
+                      background: '#fff5f5',
+                      border: '1px solid #fed7d7',
+                      borderRadius: '4px'
+                    }}>
+                      ⚠️ {depWarnings[q.id] || `Сначала нужно ответить на вопрос(ы): ${checkQuestionDependencies(q.id).join(', ')}`}
+                    </div>
                   )}
                 </div>
               );
