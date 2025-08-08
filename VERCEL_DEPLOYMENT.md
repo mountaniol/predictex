@@ -1,63 +1,63 @@
-# Развертывание на Vercel
+# Vercel Deployment
 
-## Предварительные требования
+## Prerequisites
 
-1. Установите [Vercel CLI](https://vercel.com/docs/cli):
+1. Install [Vercel CLI](https://vercel.com/docs/cli):
 ```bash
 npm i -g vercel
 ```
 
-2. Убедитесь, что у вас есть аккаунт на [Vercel](https://vercel.com)
+2. Make sure you have an account on [Vercel](https://vercel.com)
 
-## Шаги развертывания
+## Deployment Steps
 
-### 1. Подготовка проекта
+### 1. Project Preparation
 
-Убедитесь, что все файлы готовы:
-- ✅ `vercel.json` - конфигурация Vercel
-- ✅ `api/evaluate.js` - serverless API функция
-- ✅ `package.json` - обновлен для Vercel
-- ✅ `.vercelignore` - исключения файлов
+Make sure all files are ready:
+- ✅ `vercel.json` - Vercel configuration
+- ✅ `api/evaluate.js` - serverless API function
+- ✅ `package.json` - updated for Vercel
+- ✅ `.vercelignore` - file exclusions
 
-### 2. Настройка переменных окружения
+### 2. Environment Variables Setup
 
-В Vercel Dashboard или через CLI добавьте переменную окружения:
+Add environment variable in Vercel Dashboard or via CLI:
 
 ```bash
 vercel env add OPENAI_API_KEY
 ```
 
-Или в Vercel Dashboard:
-1. Перейдите в Settings → Environment Variables
-2. Добавьте `OPENAI_API_KEY` с вашим ключом OpenAI
+Or in Vercel Dashboard:
+1. Go to Settings → Environment Variables
+2. Add `OPENAI_API_KEY` with your OpenAI key
 
-### 3. Развертывание
+### 3. Deployment
 
-#### Вариант A: Через Vercel CLI
+#### Option A: Via Vercel CLI
 ```bash
-# В директории qna-evaluator
+# In qna-evaluator directory
 vercel
 
-# Следуйте инструкциям:
-# - Выберите проект или создайте новый
-# - Подтвердите настройки
-# - Дождитесь завершения развертывания
+# Follow the instructions:
+# - Select project or create new one
+# - Confirm settings
+# - Wait for deployment completion
 ```
 
-#### Вариант B: Через GitHub
-1. Загрузите код в GitHub репозиторий
-2. Подключите репозиторий к Vercel
-3. Настройте переменные окружения
-4. Разверните проект
+#### Option B: Via GitHub
+1. Upload code to GitHub repository
+2. Connect repository to Vercel
+3. Configure environment variables
+4. Deploy project
 
-### 4. Проверка развертывания
+### 4. Deployment Verification
 
-После развертывания проверьте:
+After deployment, check:
 
 1. **Frontend**: `https://your-project.vercel.app`
 2. **API**: `https://your-project.vercel.app/api/evaluate`
 
-### 5. Тестирование API
+### 5. API Testing
 
 ```bash
 curl -X POST https://your-project.vercel.app/api/evaluate \
@@ -69,52 +69,52 @@ curl -X POST https://your-project.vercel.app/api/evaluate \
   }'
 ```
 
-## Структура проекта для Vercel
+## Project Structure for Vercel
 
 ```
 qna-evaluator/
 ├── api/
-│   └── evaluate.js          # Serverless API функция
+│   └── evaluate.js          # Serverless API function
 ├── public/
-│   ├── q3.json             # Данные вопросов
-│   └── ai-prompt.txt       # AI промпт
-├── src/                    # React компоненты
-├── vercel.json            # Конфигурация Vercel
-├── package.json           # Зависимости и скрипты
-└── .vercelignore          # Исключения файлов
+│   ├── q3.json             # Question data
+│   └── ai-prompt.txt       # AI prompt
+├── src/                    # React components
+├── vercel.json            # Vercel configuration
+├── package.json           # Dependencies and scripts
+└── .vercelignore          # File exclusions
 ```
 
-## Возможные проблемы
+## Troubleshooting
 
-### 1. Ошибка "OpenAI API key not configured"
-- Убедитесь, что переменная `OPENAI_API_KEY` установлена в Vercel
-- Проверьте, что ключ действителен
+### 1. Error "OpenAI API key not configured"
+- Make sure `OPENAI_API_KEY` environment variable is set in Vercel
+- Verify the key is valid
 
-### 2. Ошибка CORS
-- API функция уже настроена для CORS
-- Убедитесь, что запросы идут на правильный endpoint
+### 2. CORS Error
+- API function is already configured for CORS
+- Make sure requests go to the correct endpoint
 
-### 3. Ошибка сборки
-- Проверьте, что все зависимости установлены
-- Убедитесь, что `package.json` корректен
+### 3. Build Error
+- Check that all dependencies are installed
+- Make sure `package.json` is correct
 
-### 4. Файлы не загружаются
-- Проверьте, что файлы находятся в папке `public/`
-- Убедитесь, что пути в коде корректны
+### 4. Files Not Loading
+- Check that files are in the `public/` folder
+- Make sure paths in code are correct
 
-## Обновление развертывания
+## Deployment Updates
 
-Для обновления:
+To update:
 ```bash
 vercel --prod
 ```
 
-Или при push в GitHub (если настроен auto-deploy).
+Or when pushing to GitHub (if auto-deploy is configured).
 
-## Мониторинг
+## Monitoring
 
-В Vercel Dashboard вы можете:
-- Просматривать логи функций
-- Мониторить производительность
-- Настраивать домены
-- Управлять переменными окружения
+In Vercel Dashboard you can:
+- View function logs
+- Monitor performance
+- Configure domains
+- Manage environment variables

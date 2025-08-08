@@ -1,126 +1,126 @@
 # QnA Evaluator
 
-Интеллектуальная система оценки бизнес-рисков на основе вопросов и ответов с использованием AI.
+Intelligent business risk assessment system based on questions and answers using AI.
 
-## 🚀 Быстрый старт
+## 🚀 Quick Start
 
-### Локальная разработка
+### Local Development
 
-1. **Клонируйте репозиторий:**
+1. **Clone the repository:**
 ```bash
 git clone <your-repo-url>
 cd qna-evaluator
 ```
 
-2. **Установите зависимости:**
+2. **Install dependencies:**
 ```bash
 npm install
 ```
 
-3. **Настройте переменные окружения:**
+3. **Set up environment variables:**
 ```bash
-# Создайте .env файл в корне проекта
+# Create .env file in the project root
 echo "OPENAI_API_KEY=your_openai_api_key_here" > .env
 ```
 
-4. **Запустите проект:**
+4. **Start the project:**
 ```bash
-# Запуск только фронтенда (для разработки)
+# Start frontend only (for development)
 npm start
 
-# Или используйте скрипт для запуска фронтенда + бэкенда
+# Or use script to start frontend + backend
 ./start-dev.sh
 ```
 
-### Развертывание на Vercel
+### Deploy to Vercel
 
-Для развертывания на [Vercel](https://vercel.com):
+To deploy to [Vercel](https://vercel.com):
 
-1. **Установите Vercel CLI:**
+1. **Install Vercel CLI:**
 ```bash
 npm i -g vercel
 ```
 
-2. **Разверните проект:**
+2. **Deploy the project:**
 ```bash
 vercel
 ```
 
-3. **Настройте переменные окружения в Vercel Dashboard:**
-   - `OPENAI_API_KEY` - ваш ключ OpenAI API
+3. **Configure environment variables in Vercel Dashboard:**
+   - `OPENAI_API_KEY` - your OpenAI API key
 
-Подробные инструкции: [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md)
+Detailed instructions: [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md)
 
-## 📁 Архитектура проекта
+## 📁 Project Architecture
 
 ```
 qna-evaluator/
-├── src/                    # React компоненты
-│   ├── App.js             # Главный компонент с AppContext
-│   ├── QuestionSection.js # Отображение вопросов
-│   ├── MetaQuestionsSection.js # Мета-вопросы
-│   ├── AnswerInput.js     # Универсальный компонент ввода
-│   ├── LanguageSelector.js # Выбор языка
-│   ├── Header.js          # Заголовок
-│   ├── Footer.js          # Подвал
-│   └── useLoadQuestions.js # Хук загрузки данных
-├── public/                # Статические файлы
-│   ├── q3.json           # Новый формат вопросов
-│   ├── questions2.json   # Legacy формат
-│   └── ai-prompt.txt     # AI промпт
-├── api/                  # Vercel serverless функции
-│   └── evaluate.js       # API для оценки ответов
-├── backend/              # Локальный Express сервер
-│   ├── server.js         # Основной сервер
-│   └── package.json      # Зависимости бэкенда
-├── vercel.json          # Конфигурация Vercel
-├── package.json         # Зависимости фронтенда
-└── start-dev.sh         # Скрипт запуска
+├── src/                    # React components
+│   ├── App.js             # Main component with AppContext
+│   ├── QuestionSection.js # Question display
+│   ├── MetaQuestionsSection.js # Meta questions
+│   ├── AnswerInput.js     # Universal input component
+│   ├── LanguageSelector.js # Language selection
+│   ├── Header.js          # Header
+│   ├── Footer.js          # Footer
+│   └── useLoadQuestions.js # Data loading hook
+├── public/                # Static files
+│   ├── q3.json           # New question format
+│   ├── questions2.json   # Legacy format
+│   └── ai-prompt.txt     # AI prompt
+├── api/                  # Vercel serverless functions
+│   └── evaluate.js       # API for answer evaluation
+├── backend/              # Local Express server
+│   ├── server.js         # Main server
+│   └── package.json      # Backend dependencies
+├── vercel.json          # Vercel configuration
+├── package.json         # Frontend dependencies
+└── start-dev.sh         # Startup script
 ```
 
-## 🎯 Функциональность
+## 🎯 Features
 
-### Поддерживаемые типы вопросов:
-- **choice-single** - одиночный выбор (радио/dropdown)
-- **choice-multi** - множественный выбор с ограничениями
-- **yes-no** - да/нет вопросы
-- **text** - однострочный ввод
-- **textarea** - многострочный ввод
-- **number** - числовой ввод
-- **internal** - скрытые вопросы
+### Supported Question Types:
+- **choice-single** - single selection (radio/dropdown)
+- **choice-multi** - multiple selection with constraints
+- **yes-no** - yes/no questions
+- **text** - single-line input
+- **textarea** - multi-line input
+- **number** - numeric input
+- **internal** - hidden questions
 
-### Дополнительные возможности:
-- ✅ **Follow-up вопросы** - появляются при выборе определенных опций
-- ✅ **Hint и Info** - подсказки и дополнительная информация
-- ✅ **"Other" опции** - с дополнительным текстовым полем
-- ✅ **Максимальное количество выборов** для multi-select
-- ✅ **Ранжированный выбор** для multi-select
-- ✅ **Система зависимостей** между вопросами
-- ✅ **Многоязычность** (английский, русский, немецкий)
-- ✅ **AI оценка** ответов с контекстом
+### Additional Capabilities:
+- ✅ **Follow-up questions** - appear when selecting specific options
+- ✅ **Hint and Info** - hints and additional information
+- ✅ **"Other" options** - with additional text field
+- ✅ **Maximum selections** for multi-select
+- ✅ **Ranked selection** for multi-select
+- ✅ **Dependency system** between questions
+- ✅ **Multi-language support** (English, Russian, German)
+- ✅ **AI evaluation** of answers with context
 
-### Форматы данных:
-- **q3.json** - новый формат с мета-вопросами и расширенной функциональностью
-- **questions2.json** - legacy формат для обратной совместимости
+### Data Formats:
+- **q3.json** - new format with meta-questions and extended functionality
+- **questions2.json** - legacy format for backward compatibility
 
-## 🔧 Технологии
+## 🔧 Technologies
 
 ### Frontend:
-- **React 18** - UI библиотека
-- **React Context API** - управление состоянием
-- **React Hooks** - функциональные компоненты
-- **CSS-in-JS** - стилизация
+- **React 18** - UI library
+- **React Context API** - state management
+- **React Hooks** - functional components
+- **CSS-in-JS** - styling
 
 ### Backend:
-- **Vercel Functions** - serverless API (продакшн)
-- **Express.js** - локальный сервер (разработка)
-- **OpenAI API** - AI оценка ответов
-- **Axios** - HTTP клиент
+- **Vercel Functions** - serverless API (production)
+- **Express.js** - local server (development)
+- **OpenAI API** - AI answer evaluation
+- **Axios** - HTTP client
 
-### Инфраструктура:
-- **Vercel** - хостинг и развертывание
-- **GitHub** - версионный контроль
-- **npm** - управление зависимостями
+### Infrastructure:
+- **Vercel** - hosting and deployment
+- **GitHub** - version control
+- **npm** - dependency management
 
 ## 📊 API
 
@@ -159,44 +159,44 @@ qna-evaluator/
 }
 ```
 
-## 🌐 Развертывание
+## 🌐 Deployment
 
-### Vercel (рекомендуется)
-- Автоматическое развертывание из Git
-- Serverless функции
-- CDN для статических файлов
-- SSL сертификаты
-- Мониторинг и логи
+### Vercel (recommended)
+- Automatic deployment from Git
+- Serverless functions
+- CDN for static files
+- SSL certificates
+- Monitoring and logs
 
-### Локальный сервер
-- Express.js сервер
-- Для разработки и тестирования
-- Требует настройки CORS
+### Local Server
+- Express.js server
+- For development and testing
+- Requires CORS configuration
 
-## 🔒 Безопасность
+## 🔒 Security
 
-- API ключи хранятся в переменных окружения
-- CORS настроен для безопасности
-- Валидация входных данных
-- Обработка ошибок API
+- API keys stored in environment variables
+- CORS configured for security
+- Input data validation
+- API error handling
 
-## 📝 Лицензия
+## 📝 License
 
 MIT License
 
-## 🤝 Вклад в проект
+## 🤝 Contributing
 
-1. Fork репозитория
-2. Создайте feature branch
-3. Внесите изменения
-4. Создайте Pull Request
+1. Fork the repository
+2. Create a feature branch
+3. Make changes
+4. Create a Pull Request
 
-## 📞 Поддержка
+## 📞 Support
 
-При возникновении проблем:
-1. Проверьте [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md)
-2. Убедитесь, что все зависимости установлены
-3. Проверьте переменные окружения
-4. Создайте Issue в репозитории
+If you encounter issues:
+1. Check [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md)
+2. Ensure all dependencies are installed
+3. Verify environment variables
+4. Create an Issue in the repository
 
 
