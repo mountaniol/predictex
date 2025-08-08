@@ -1,306 +1,324 @@
-import React, { useState, useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { AppContext } from './App';
+import AnswerInput from './AnswerInput';
+import MetaQuestionsSection from './MetaQuestionsSection';
 
 const QuestionSection = () => {
   const context = useContext(AppContext);
-  const [loading, setLoading] = useState({});
-  const [error, setError] = useState('');
-  const [expanded, setExpanded] = useState({});
-  const [depWarnings, setDepWarnings] = useState({});
-
-  if (!context) {
-    return <div>Loading...</div>;
-  }
   const { 
     sections, 
+    metaQuestions,
     aiPrompt, 
     apiKey, 
-    labels: ctxLabels, 
-    calculations = [], 
+    labels, 
     loading: contextLoading, 
-    error: contextError,
+    error: contextError, 
+    calculations,
     answers,
     setAnswers,
     scores,
     setScores
-  } = context;
-  console.log(`[context] loaded ${calculations.length} calculation rules, ${Object.keys(answers).length} answers, ${Object.keys(scores).length} scores`);
+  } = context || {};
 
-  // labels come from AppContext; fall back to defaults
-  const activeLabels = ctxLabels && ctxLabels.yes ? ctxLabels : { yes: 'Yes', no: 'No' };
-
-
+  const [loading, setLoading] = useState({});
+  const [depWarnings, setDepWarnings] = useState({});
 
   const qKey = (si, qi) => `${si}-${qi}`;
 
   const handleAnswerChange = (si, qi, value) => {
-    const questionId = sections[si].questions[qi].id;
-    setAnswers(prev => ({ ...prev, [questionId]: value }));
-    // Clear warning for this question when answer changes
-    setDepWarnings(prev => ({ ...prev, [questionId]: '' }));
+    const question = sections[si]?.questions[qi];
+    if (!question) return;
+
+    setAnswers(prev => ({
+      ...prev,
+      [question.id]: value
+    }));
+
+    // Clear dependency warning for this question when answer changes
+    if (depWarnings[question.id]) {
+      setDepWarnings(prev => ({
+        ...prev,
+        [question.id]: undefined
+      }));
+    }
   };
 
   const getLocationAnswer = () => {
-    if (sections.length && sections[0].questions.length) {
-      const locationQuestionId = sections[0].questions[0].id;
-      return answers[locationQuestionId] || '';
+    // For new format, look for MET.LOC in meta questions
+    if (metaQuestions && metaQuestions.length > 0) {
+      const locationQuestion = metaQuestions.find(q => q.id === 'MET.LOC');
+      if (locationQuestion) {
+        return answers[locationQuestion.id] || '';
+      }
+    }
+    
+    // Fallback to legacy format
+    const locationSection = sections.find(s => s.title === 'Location Information');
+    if (locationSection) {
+      const locationQuestion = locationSection.questions.find(q => q.id === 'LOCATION');
+      if (locationQuestion) {
+        return answers[locationQuestion.id] || '';
+      }
     }
     return '';
   };
 
-  // The 'evaluateAnswer' function uses the 'calculations' array from AppContext
-  // to perform inter-question dependency checks.
-  /**
-   * Evaluate an answer for a given question.
-   * @param {number} si - Section index
-   * @param {number} qi - Question index within the section
-   * Performs dependency checks, sends the answer to the AI API, parses the score,
-   * applies any post-calculations, and updates component state accordingly.
-   */
   const evaluateAnswer = async (si, qi) => {
-    console.log(`[evaluateAnswer] called for section ${si}, question ${qi}`);
-    console.log('[evaluateAnswer] context object:', context);
-    console.log('[evaluateAnswer] global calculations:', calculations);
-    console.log('[evaluateAnswer] total sections:', sections.length);
-    if (sections[si]) console.log(`[evaluateAnswer] questions in section ${si}:`, sections[si].questions.map(q => q.id));
-    setLoading(prev => ({ ...prev, [qKey(si, qi)]: true }));
-    setError('');
-    // Start evaluation: show loading spinner and clear previous error message
+    const question = sections[si]?.questions[qi];
+    if (!question) return;
+
+    const key = qKey(si, qi);
+    setLoading(prev => ({ ...prev, [key]: true }));
+
     try {
-      // Fetch question object and user-provided answer from state
-      const q = sections[si].questions[qi];
-      const ans = answers[q.id];
-      console.log('[evaluateAnswer] question object:', q);
-      console.log('[evaluateAnswer] user answer:', ans);
-      // Dependency guard: ensure all prerequisite questions have been answered
-      setDepWarnings(prev => ({ ...prev, [q.id]: '' }));
-      console.log('[deps] calculations array:', calculations);
-      console.log('[deps] answers state before check:', answers, 'for question ID', q.id);
-      if (calculations && calculations.length) {
-        const lines = calculations.filter(line => line.trim().startsWith(q.id));
-        console.log('[deps] filtered lines for', q.id, ':', lines);
-        const deps = new Set();
-        const idRegex = /\b([A-Z][0-9]+)\b/g;
-        lines.forEach(line => {
-          const rhs = line.split('=')[1] || '';
-          let m;
-          while ((m = idRegex.exec(rhs)) !== null) {
-            const depId = m[1];
-            if (depId !== q.id) deps.add(depId);
-          }
-        });
-        console.log('[deps] deps set for', q.id, ':', Array.from(deps));
-        const missingDeps = Array.from(deps).filter(depId => {
-          // Check if the dependent question has been answered
-          return !answers[depId];
-        });
-        console.log('[deps] missingDeps for', q.id, ':', missingDeps);
-        if (missingDeps.length) {
-          const msg = 'Please answer the following question(s) first: ' + missingDeps.join(', ');
-          setDepWarnings(prev => ({ ...prev, [q.id]: msg }));
-          setLoading(prev => ({ ...prev, [qKey(si, qi)]: false }));
+      // Check dependencies first
+      if (question.ai_context?.include_answers && question.ai_context.include_answers.length > 0) {
+        const missingDeps = question.ai_context.include_answers.filter(depId => 
+          !answers[depId] || answers[depId] === ''
+        );
+        
+        if (missingDeps.length > 0) {
+          const depNames = missingDeps.map(id => id).join(', ');
+          setDepWarnings(prev => ({
+            ...prev,
+            [question.id]: `Please answer questions: ${depNames} first.`
+          }));
+          setLoading(prev => ({ ...prev, [key]: false }));
           return;
         }
       }
-      
-      let systemPrompt = aiPrompt;
-      if (q.prompt) {
-        systemPrompt = q.prompt;
-      } else if (q.prompt_add) {
-        systemPrompt = `${aiPrompt} ${q.prompt_add}`;
+
+      // Build the payload according to the new AI spec
+      const payload = {
+        system: aiPrompt,
+        prompt_add: question.prompt_add || '',
+        meta: {},
+        question: {
+          id: question.id,
+          text: question.text
+        },
+        answer: {
+          value: answers[question.id],
+          extra: {},
+          other_text: ''
+        },
+        answers_ctx: {}
+      };
+
+      // Add meta information
+      if (question.ai_context?.include_meta) {
+        question.ai_context.include_meta.forEach(metaId => {
+          const metaQuestion = metaQuestions?.find(q => q.id === metaId);
+          if (metaQuestion && answers[metaId]) {
+            payload.meta[metaId] = answers[metaId];
+          }
+        });
       }
 
-      const loc = getLocationAnswer();
-      if (loc && si > 0) {
-        systemPrompt = `Location context: ${loc}. ${systemPrompt}`;
+      // Add context answers
+      if (question.ai_context?.include_answers) {
+        question.ai_context.include_answers.forEach(answerId => {
+          if (answers[answerId]) {
+            payload.answers_ctx[answerId] = answers[answerId];
+          }
+        });
       }
-      // Send request to backend API
-      const resp = await fetch(apiKey, {
+
+      // Add location context
+      const locationAnswer = getLocationAnswer();
+      if (locationAnswer) {
+        payload.meta['MET.LOC'] = locationAnswer;
+      }
+
+      console.log('Sending payload to AI:', payload);
+
+      const response = await fetch(apiKey, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          question: q.text,
-          answer: ans,
-          systemPrompt: systemPrompt,
-          questionType: q.question_type,
-        }),
+        body: JSON.stringify(payload),
       });
-      const data = await resp.json();
-      if (data.error) throw new Error(data.error);
 
-      // Extract score from backend response
-      const score = data.score;
-      console.debug('[score] raw score for', q.id, '=', score);
-      setScores(prev => {
-        // Update scores state and apply any post-answer calculations (e.g., inter-question dependencies)
-        const baseById = { ...prev, [q.id]: score };
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-        // -------- dependency detection -----------------
-        const missing = [];
-        calculations
-          .filter(line => line.trim().startsWith(q.id))      // rules where current question is target
-          .forEach(line => {
-            const rhs = line.split('=')[1] || '';
-            const idRegex = /\b([A-Z][0-9]+)\b/g;
-            let m;
-            while ((m = idRegex.exec(rhs)) !== null) {
-              const id = m[1];
-              if (baseById[id] === undefined) missing.push(id);
-            }
-          });
+      const data = await response.json();
+      console.log('AI response:', data);
 
-        if (missing.length) {
-          const msg =
-            'Please answer the following question(s) first: ' +
-            [...new Set(missing)].join(', ');
-          setDepWarnings(prev => ({ ...prev, [q.id]: msg }));
-          console.warn('[dep] ' + msg);
-        } else {
-          setDepWarnings(prev => ({ ...prev, [q.id]: '' }));
+      if (data.score !== undefined) {
+        setScores(prev => ({
+          ...prev,
+          [question.id]: data.score
+        }));
+
+        // Clear dependency warning on successful evaluation
+        if (depWarnings[question.id]) {
+          setDepWarnings(prev => ({
+            ...prev,
+            [question.id]: undefined
+          }));
         }
-        // -----------------------------------------------
 
-        return calculations.length
-          ? applyCalculations(baseById, calculations)
-          : baseById;
-      });
-    } catch (e) {
-      // On error, log it and display to the user
-      console.error('Evaluation error:', e);
-      setError(e.message);
+        // Apply calculations if any
+        if (calculations && calculations.length > 0) {
+          const newScores = applyCalculations(
+            { ...scores, [question.id]: data.score },
+            calculations
+          );
+          setScores(newScores);
+        }
+      }
+    } catch (error) {
+      console.error('Error evaluating answer:', error);
+      alert('Error evaluating answer. Please try again.');
     } finally {
-      setLoading(prev => ({ ...prev, [qKey(si, qi)]: false }));
+      setLoading(prev => ({ ...prev, [key]: false }));
     }
   };
 
-  const toggleSection = idx => {
-    setExpanded(prev => ({ ...prev, [idx]: !prev[idx] }));
-  };
-
-  // Подсчёт прогресса
-  const total = sections.reduce((sum, s) => sum + s.questions.length, 0);
-  const allDone = total > 0 && Object.keys(scores).length === total;
-  const avg = total
-    ? (Object.values(scores).reduce((a, b) => a + (b || 0), 0) / total).toFixed(2)
-    : 0;
-
   if (contextLoading) {
-    return <div style={{ textAlign: 'center', padding: '20px' }}>Loading questions...</div>;
+    return (
+      <div style={{ textAlign: 'center', padding: '40px' }}>
+        <div>Loading questions...</div>
+      </div>
+    );
   }
 
   if (contextError) {
-    return <div style={{ color: 'red', margin: '10px 0' }}>{contextError}</div>;
+    return (
+      <div style={{ textAlign: 'center', padding: '40px', color: 'red' }}>
+        <div>Error: {contextError}</div>
+      </div>
+    );
   }
 
   return (
-    <>
-      {error && (
-        <div style={{ color: 'red', margin: '10px 0' }}>{error}</div>
-      )}
-      {sections.map((sec, si) => (
+    <div>
+      {/* Meta Questions Section */}
+      <MetaQuestionsSection />
+      
+      {/* Regular Questions Sections */}
+      {sections.map((section, si) => (
         <div key={si} style={{ marginBottom: 32 }}>
-          <div
-            onClick={() => toggleSection(si)}
-            style={{
-              cursor: 'pointer',
-              background: '#f0f3fa',
-              padding: 12,
-              borderRadius: 8,
-            }}
-          >
-            <strong>
-              {expanded[si] ? '▼' : '►'} {sec.section}
-            </strong>
-          </div>
-          {expanded[si] &&
-            sec.questions.map((q, qi) => {
-              const key = qKey(si, qi);
-              return (
-                <div
-                  key={key}
+          <h2 style={{
+            fontSize: '24px',
+            fontWeight: 'bold',
+            marginBottom: '20px',
+            color: '#2c3e50'
+          }}>
+            {section.title}
+          </h2>
+          
+          {section.questions.map((q, qi) => {
+            const key = qKey(si, qi);
+            
+            return (
+              <div
+                key={key}
+                style={{
+                  background: '#fff',
+                  padding: 24,
+                  marginBottom: 28,
+                  borderRadius: 12,
+                }}
+              >
+                <div>
+                  <strong>{q.id}:</strong> {q.text}
+                </div>
+                
+                {q.hint && (
+                  <div style={{
+                    fontSize: '14px',
+                    color: '#7f8c8d',
+                    marginTop: 8,
+                    marginBottom: 8,
+                    fontStyle: 'italic'
+                  }}>
+                    💡 {q.hint}
+                  </div>
+                )}
+                
+                {q.info && (
+                  <details style={{ marginBottom: 12 }}>
+                    <summary style={{
+                      cursor: 'pointer',
+                      color: '#3498db',
+                      fontSize: '14px',
+                      fontWeight: '500'
+                    }}>
+                      Learn more
+                    </summary>
+                    <div style={{
+                      marginTop: 8,
+                      padding: 12,
+                      background: '#f8f9fa',
+                      borderRadius: 6,
+                      fontSize: '14px',
+                      color: '#2c3e50'
+                    }}>
+                      {q.info}
+                    </div>
+                  </details>
+                )}
+                
+                {depWarnings[q.id] && (
+                  <div style={{
+                    color: 'crimson',
+                    fontWeight: 'bold',
+                    marginTop: 8,
+                    marginBottom: 8,
+                    fontSize: '14px',
+                    padding: '8px 12px',
+                    background: '#fff5f5',
+                    border: '1px solid #fed7d7',
+                    borderRadius: '4px'
+                  }}>
+                    ⚠️ {depWarnings[q.id]}
+                  </div>
+                )}
+                
+                <AnswerInput
+                  q={q}
+                  value={answers[q.id] || ''}
+                  onChange={v => handleAnswerChange(si, qi, v)}
+                  labels={labels}
+                />
+                
+                <button
+                  disabled={loading[key] || !answers[q.id]}
+                  onClick={() => evaluateAnswer(si, qi)}
                   style={{
-                    background: '#fff',
-                    padding: 24,
-                    marginBottom: 28,
-                    borderRadius: 12,
+                    marginTop: 16,
+                    padding: '10px 20px',
+                    backgroundColor: '#3498db',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 6,
+                    cursor: loading[key] || !answers[q.id] ? 'not-allowed' : 'pointer',
+                    opacity: loading[key] || !answers[q.id] ? 0.6 : 1
                   }}
                 >
-                  <div>
-                    <strong>{q.id}:</strong> {q.text}
-                  </div>
-                  {depWarnings[q.id] && (
-                    <div style={{ 
-                      color: 'crimson', 
-                      fontWeight: 'bold', 
-                      marginTop: 8,
-                      marginBottom: 8,
-                      fontSize: '14px',
-                      padding: '8px 12px',
-                      background: '#fff5f5',
-                      border: '1px solid #fed7d7',
-                      borderRadius: '4px'
-                    }}>
-                      ⚠️ {depWarnings[q.id]}
-                    </div>
-                  )}
-                  <AnswerInput
-                    q={q}
-                    value={answers[q.id] || ''}
-                    onChange={v => handleAnswerChange(si, qi, v)}
-                    labels={activeLabels}
-                  />
-                  <button
-                    disabled={loading[key] || !answers[q.id]}
-                    onClick={() => evaluateAnswer(si, qi)}
-                    style={{
-                      ...buttonBaseStyle,
-                      display: 'block',
-                      margin: '16px auto 0',
-                      width: 'fit-content',
-                      background: '#000000', // force black even when disabled
-                      cursor: loading[key] || !answers[q.id] ? 'default' : 'pointer',
-                      opacity: loading[key] || !answers[q.id] ? 1 : 1, // no grey-out
-                    }}
-                  >
-                    {loading[key]
-                      ? 'Evaluating...'
-                      : scores[q.id]
-                      ? 'Re-evaluate'
-                      : 'Submit'}
-                  </button>
-                  {scores[q.id] !== undefined && (
-                    <span style={{ marginLeft: 16 }}>
-                      Score: {scores[q.id]}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
+                  {loading[key]
+                    ? 'Evaluating...'
+                    : scores[q.id]
+                    ? 'Re-evaluate'
+                    : 'Submit'}
+                </button>
+                
+                {scores[q.id] !== undefined && (
+                  <span style={{ marginLeft: 16 }}>
+                    Score: {scores[q.id]}
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
       ))}
-      {allDone && (
-        <div style={{ textAlign: 'center', marginTop: 32 }}>
-          <h3>All questions evaluated!</h3>
-          <p>Average Score: {avg}</p>
-        </div>
-      )}
-    </>
+    </div>
   );
-};
-
-const buttonBaseStyle = {
-  background: '#000000',   // solid black
-  color: '#ffffff',
-  padding: '8px 20px',     // slimmer vertical padding
-  border: 'none',
-  borderRadius: 6,
-  fontWeight: 600,
-  fontSize: 15,
-  lineHeight: '20px',
-  cursor: 'pointer',
-  transition: 'opacity 0.2s ease',
 };
 
 const applyCalculations = (base, calcArr) => {
@@ -356,49 +374,6 @@ const applyCalculations = (base, calcArr) => {
 
   console.log('[calc] final result:', res);
   return res;
-};
-
-const AnswerInput = ({ q, value, onChange, labels }) => {
-  if (q.question_type === 'yes-no') {
-    const yesLabel = labels && labels.yes ? labels.yes : 'Yes';
-    const noLabel  = labels && labels.no  ? labels.no  : 'No';
-    return (
-      <div>
-        <label>
-          <input
-            type="radio"
-            checked={value === 'yes'}
-            onChange={() => onChange('yes')}
-          />{' '}
-          {yesLabel}
-        </label>
-        <label style={{ marginLeft: 8 }}>
-          <input
-            type="radio"
-            checked={value === 'no'}
-            onChange={() => onChange('no')}
-          />{' '}
-          {noLabel}
-        </label>
-      </div>
-    );
-  } else if (q.question_type === 'numeric') {
-    return (
-      <input
-        type="number"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-      />
-    );
-  }
-  return (
-    <textarea
-      rows={3}
-      style={{ width: '100%', marginTop: 8 }}
-      value={value}
-      onChange={e => onChange(e.target.value)}
-    />
-  );
 };
 
 export default QuestionSection;

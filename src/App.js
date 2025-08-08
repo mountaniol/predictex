@@ -9,14 +9,14 @@ export const AppContext = React.createContext(null);
 
 function App() {
   const [currentLanguage, setCurrentLanguage] = useState("en");
-  const { sections, aiPrompt, apiKey, loading, error, labels, calculations } = useLoadQuestions(currentLanguage);
+  const { sections, metaQuestions, aiPrompt, apiKey, loading, error, labels, calculations } = useLoadQuestions(currentLanguage);
   const [answers, setAnswers] = useState({});
   const [scores, setScores] = useState({});
 
-  // Helper to get a unique key for each question
   return (
     <AppContext.Provider value={{
       sections,
+      metaQuestions,
       aiPrompt,
       apiKey,
       labels,
