@@ -19,11 +19,16 @@
       "dest": "/api/$1"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
   ],
-  "env": {
-    "OPENAI_API_KEY": "@openai-api-key"
+  "functions": {
+    "api/evaluate.js": {
+      "maxDuration": 30
+    }
   }
 }

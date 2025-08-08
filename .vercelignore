@@ -42,3 +42,7 @@ coverage/
 # Temporary files
 *.tmp
 *.temp
+
+# Original files (backups)
+*_original.json
+*_clean.json
