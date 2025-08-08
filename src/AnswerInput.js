@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
 const AnswerInput = ({ q, value, onChange, labels }) => {
-  const [showOtherText, setShowOtherText] = useState(false);
-  const [otherText, setOtherText] = useState('');
-
   // Handle follow-up questions
   const [followUpAnswers, setFollowUpAnswers] = useState({});
 
@@ -144,13 +141,7 @@ const AnswerInput = ({ q, value, onChange, labels }) => {
             newValues = currentValues.filter(v => v !== optionCode);
           }
           
-          // Handle "other" option
-          if (optionCode === 'other') {
-            setShowOtherText(checked);
-            if (!checked) {
-              setOtherText('');
-            }
-          }
+          // Handle "other" option - now handled by follow-ups
           
           inputOnChange(newValues);
         };
