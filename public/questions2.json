@@ -1,12 +1,9 @@
 {
   "settings": {
     "labels": {
-      // Used in application
       "yes": "Yes",
       "no": "No",
-      // Added to prompt
-      "role": "buyer",
-
+      "role": "buyer"
     }
   },
   "questions": [
@@ -23,7 +20,7 @@
       "text": "Why do you want to sell the business?",
       "cluster_name": "Strategic Fundamentals",
       "position_in_cluster": 1,
-      "question_type": "open-ended"
+      "question_type": "open-ended",
       "prompt_add": "Good: planned retirement / succession; Red: urgent cash need, losses, lawsuits, insolvency; Scoring 0-19 critical, 20-49 high, 50-79 moderate, 80-100 low-risk exit"
     },
     {
@@ -64,7 +61,6 @@
       "cluster_name": "Strategic Fundamentals",
       "position_in_cluster": 6,
       "question_type": "open-ended",
-      // TODO: Send also business type
       "prompt_add": "Good: clear value proposition, strong customer relationships; Red: unclear or generic, no competitive advantage; Scoring 0–19 critical, 20–49 high, 50–79 moderate, 80–100 low-risk differentiation"
     },
     {
@@ -73,7 +69,6 @@
       "cluster_name": "Strategic Fundamentals",
       "position_in_cluster": 7,
       "question_type": "open-ended",
-      // TODO: Send also business type and location
       "prompt_add": "Good: clear value proposition, strong customer relationships; Red: unclear or generic, no competitive advantage; Scoring 0–19 critical, 20–49 high, 50–79 moderate, 80–100 low-risk differentiation"
     },
     {
@@ -82,7 +77,6 @@
       "cluster_name": "Strategic Fundamentals",
       "position_in_cluster": 8,
       "question_type": "open-ended",
-      // TODO: Send also business type and location
       "prompt_add": "Good: 10–20% margin, stable pricing, no market pressure; Red: 0–5% margin, price wars, declining margins; Scoring 0–19 critical, 20–49 high, 50–79 moderate, 80–100 low-risk pricing"
     },
     {
