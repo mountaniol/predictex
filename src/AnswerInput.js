@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const AnswerInput = ({ q, value, onChange, labels }) => {
   const [showOtherText, setShowOtherText] = useState(false);
@@ -7,11 +7,38 @@ const AnswerInput = ({ q, value, onChange, labels }) => {
   // Handle follow-up questions
   const [followUpAnswers, setFollowUpAnswers] = useState({});
 
+  // Initialize follow-up answers from existing value
+  useEffect(() => {
+    if (Array.isArray(value)) {
+      const otherOption = value.find(v => typeof v === 'object' && v.code === 'other');
+      if (otherOption && otherOption.text && q.other_text_id) {
+        setFollowUpAnswers(prev => ({
+          ...prev,
+          [q.other_text_id]: otherOption.text
+        }));
+      }
+    }
+  }, [value, q.other_text_id]);
+
   const handleFollowUpChange = (followUpId, followUpValue) => {
     setFollowUpAnswers(prev => ({
       ...prev,
       [followUpId]: followUpValue
     }));
+    
+    // Also update the main answer with follow-up data
+    if (q.other_text_id && followUpId === q.other_text_id) {
+      const currentValue = Array.isArray(value) ? value : [];
+      const hasOther = currentValue.includes('other');
+      
+      if (hasOther) {
+        // Update the main answer to include other text
+        const updatedValue = currentValue.map(v => 
+          v === 'other' ? { code: 'other', text: followUpValue } : v
+        );
+        onChange(updatedValue);
+      }
+    }
   };
 
   const shouldShowFollowUp = (followUp) => {
@@ -141,17 +168,7 @@ const AnswerInput = ({ q, value, onChange, labels }) => {
               </label>
             ))}
             
-            {showOtherText && q.with_other && (
-              <div style={{ marginTop: 12 }}>
-                <input
-                  type="text"
-                  placeholder="Please specify..."
-                  value={otherText}
-                  onChange={(e) => setOtherText(e.target.value)}
-                  style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ddd' }}
-                />
-              </div>
-            )}
+            {/* Removed duplicate "Please specify" field - using follow-up instead */}
           </div>
         );
 

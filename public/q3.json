@@ -124,7 +124,7 @@
       "follow_ups": [
         {
           "when": { "in": ["other"] },
-          "ask": { "id": "SG01_OTHER", "question_type": "text", "ui": "textarea", "placeholder": "Briefly describe the reason", "max_chars": 160 }
+          "ask": { "id": "SG01_OTHER", "question_type": "text", "ui": "textarea", "placeholder": "Explain", "max_chars": 160 }
         }
       ],
       "ai_context": { "include_meta": ["MET.LOC","MET.IND","MET.SIZE","MET.HC"], "include_answers": [] },
