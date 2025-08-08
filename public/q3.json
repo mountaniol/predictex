@@ -1,0 +1,913 @@
+{
+  "version": "1.2",
+  "settings": {
+    "labels": {
+      "yes": "Yes",
+      "no": "No",
+      "unknown": "I'm not sure",
+      "role": "buyer"
+    }
+  },
+  "meta_questions": [
+    {
+      "id": "MET.LOC",
+      "text": "Where is the business located (country, state, city)?",
+      "hint": "List main operating location(s).",
+      "info": "Write the country, state or province if applicable, and the city where the business mainly operates. If there are multiple locations, list them all. Example: USA, North Carolina, Charlotte.",
+      "cluster_name": "Meta",
+      "position_in_cluster": 1,
+      "question_type": "text"
+    },
+    {
+      "id": "MET.IND",
+      "text": "What is the primary industry or activity of the business?",
+      "hint": "Describe in simple words what the business does.",
+      "info": "Describe in simple words what the business does, such as coffee shop, plumbing services, online clothing store, small factory. If there are several activities, pick the one that brings the most revenue.",
+      "cluster_name": "Meta",
+      "position_in_cluster": 2,
+      "question_type": "text"
+    },
+    {
+      "id": "MET.SIZE",
+      "text": "Approximate annual revenue bracket",
+      "hint": "Pick a rough yearly sales range.",
+      "info": "Pick the rough yearly sales before expenses. If you do not know the exact number, choose the closest range. Ask the seller for last year sales totals or tax filings if needed.",
+      "cluster_name": "Meta",
+      "position_in_cluster": 3,
+      "question_type": "choice-single",
+      "ui": "dropdown",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "lt250k", "label": "< $250k" },
+        { "code": "250k_1m", "label": "$250k to $1m" },
+        { "code": "1m_5m", "label": "$1m to $5m" },
+        { "code": "gt5m", "label": ">$5m" }
+      ]
+    },
+    {
+      "id": "MET.HC",
+      "text": "How many people work in the business (FTE including owner)?",
+      "hint": "Full-time equivalents (FTE).",
+      "info": "Count everyone who works regularly. Two half time workers are about one full time equivalent. Include the owner if they work in the business.",
+      "cluster_name": "Meta",
+      "position_in_cluster": 4,
+      "question_type": "choice-single",
+      "ui": "dropdown",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "solo", "label": "1 (owner only)" },
+        { "code": "micro_2_5", "label": "2 to 5" },
+        { "code": "small_6_20", "label": "6 to 20" },
+        { "code": "med_21_100", "label": "21 to 100" },
+        { "code": "gt100", "label": ">100" }
+      ]
+    },
+    {
+      "id": "MET.PUBLIC",
+      "text": "Do you sell to government or state-owned customers?",
+      "hint": "Government, public agencies, or SOEs.",
+      "info": "Choose Yes if any customer is a government office, public agency, or state owned enterprise. This affects approvals and compliance checks.",
+      "cluster_name": "Meta",
+      "position_in_cluster": 5,
+      "question_type": "yes-no"
+    },
+    {
+      "id": "MET.DATA",
+      "text": "Do you process personal or financial customer data (PII)?",
+      "hint": "None, limited, or high sensitivity.",
+      "info": "If the business stores names, emails, phone numbers, or health or financial details, choose the level. None means almost no personal data. Limited means basic contacts or payments. High means sensitive data such as health or finance.",
+      "cluster_name": "Meta",
+      "position_in_cluster": 6,
+      "question_type": "choice-single",
+      "ui": "dropdown",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "none", "label": "None" },
+        { "code": "limited", "label": "Limited" },
+        { "code": "high", "label": "High" }
+      ]
+    },
+    {
+      "id": "MET.RISKCTX",
+      "text": "Regional corruption and informality context (auto)",
+      "hint": "Internal only.",
+      "info": "Internal field. The system sets a country or region risk factor from public indices to adjust scoring. You do not need to answer this.",
+      "cluster_name": "Meta",
+      "position_in_cluster": 7,
+      "question_type": "internal"
+    }
+  ],
+  "questions": [
+    {
+      "id": "SG01",
+      "text": "Why are you selling now?",
+      "hint": "Select up to two reasons (rank them).",
+      "info": "We want to know if the sale is planned (retirement, moving) or forced (falling sales, lawsuits, urgent cash needs). Ask the seller directly.",
+      "cluster_name": "Strategic Fundamentals",
+      "position_in_cluster": 1,
+      "question_type": "choice-multi",
+      "ui": "multiselect",
+      "max_selections": 2,
+      "ranked": true,
+      "with_other": true,
+      "other_text_id": "SG01_OTHER",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "retirement_move", "label": "Retirement or move" },
+        { "code": "health", "label": "Health or personal" },
+        { "code": "strategic_refocus", "label": "Strategic refocus" },
+        { "code": "declining_sales", "label": "Declining sales" },
+        { "code": "lawsuits_tax", "label": "Lawsuits or tax issues" },
+        { "code": "urgent_cash", "label": "Urgent cash need" },
+        { "code": "other", "label": "Other" }
+      ],
+      "follow_ups": [
+        {
+          "when": { "in": ["other"] },
+          "ask": { "id": "SG01_OTHER", "question_type": "text", "ui": "textarea", "placeholder": "Briefly describe the reason", "max_chars": 160 }
+        }
+      ],
+      "ai_context": { "include_meta": ["MET.LOC","MET.IND","MET.SIZE","MET.HC"], "include_answers": [] },
+      "related_to": ["SG02","SG04"],
+      "prompt_add": "Score intent of sale. Good: planned retirement/move/strategic refocus. Red: urgent cash need, lawsuits/tax issues, sale due to heavy losses. Penalize contradictions with SG02/SG04. Bands: 0–19 critical; 20–49 high; 50–79 moderate; 80–100 low."
+    },
+    {
+      "id": "SG02",
+      "text": "Have there been serious buyers in the last 6 months?",
+      "hint": "LOI or DD access counts as serious.",
+      "info": "Serious buyers usually sign a letter of intent or receive access to key documents. Ask if anyone reached that stage and why a deal did not close.",
+      "cluster_name": "Strategic Fundamentals",
+      "position_in_cluster": 2,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "no", "label": "No" },
+        { "code": "inquiries_only", "label": "Only initial inquiries" },
+        { "code": "loi_or_dd", "label": "LOI or due diligence access" },
+        { "code": "deals_withdrawn", "label": "Deals withdrawn" }
+      ],
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG01"] },
+      "related_to": ["SG01","SG04"],
+      "prompt_add": "Good: fresh listing or LOI/DD activity with credible reasons. Red: long time on market without serious interest or multiple withdrawn deals without clear cause. Cross-check SG01 (motive) and SG04 (trend)."
+    },
+    {
+      "id": "SG03A",
+      "text": "How old is the business?",
+      "hint": "Pick total age.",
+      "info": "Age shows stability and track record.",
+      "cluster_name": "Strategic Fundamentals",
+      "position_in_cluster": 3,
+      "question_type": "choice-single",
+      "ui": "dropdown",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "age_lt2", "label": "Under 2 years" },
+        { "code": "age_2_5", "label": "2–5 years" },
+        { "code": "age_5_20", "label": "5–20 years" },
+        { "code": "age_gt20", "label": "Over 20 years" }
+      ],
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": [] },
+      "related_to": ["SG04","SG05"],
+      "prompt_add": "Good: 5–20 years with consistent ops. Red: <2 years (unproven) unless strong backlog/margins. Adjust tolerance by MET.IND."
+    },
+    {
+      "id": "SG03B",
+      "text": "How long has the current revenue model existed?",
+      "hint": "Subscriptions, projects, retail, etc.",
+      "info": "If the revenue model changed recently, risk is higher until it proves stable.",
+      "cluster_name": "Strategic Fundamentals",
+      "position_in_cluster": 4,
+      "question_type": "choice-single",
+      "ui": "dropdown",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "rm_lt1", "label": "Under 1 year" },
+        { "code": "rm_1_3", "label": "1–3 years" },
+        { "code": "rm_3_7", "label": "3–7 years" },
+        { "code": "rm_gt7", "label": "Over 7 years" }
+      ],
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": [] },
+      "related_to": ["SG04","SG05"],
+      "prompt_add": "Good: model 3–7y+. Red: <1y without strong backlog or margins; penalize volatility per SG04/SG05."
+    },
+    {
+      "id": "SG07",
+      "text": "Typical gross margin band across main products/services",
+      "hint": "Estimate blended gross margin.",
+      "info": "Gross margin equals sales minus direct costs divided by sales. If margins are low, small price cuts can hurt.",
+      "cluster_name": "Strategic Fundamentals",
+      "position_in_cluster": 5,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "lt20", "label": "Below 20%" },
+        { "code": "20_40", "label": "20–40%" },
+        { "code": "gt40", "label": "Above 40%" }
+      ],
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG08"] },
+      "related_to": ["SG08"],
+      "prompt_add": "Good: 20–40%+ stable. Red: <20% with discounting (SG08) or price pressure. Consider MET.IND norms."
+    },
+    {
+      "id": "SG33",
+      "text": "Are you open to escrow/conditional payment or reversal if key approvals are not obtained?",
+      "hint": "Deal protection against missing approvals.",
+      "info": "Escrow/conditional payment means you hold part of the price until approvals happen (like landlord consent). Reversal means you can undo the deal if approvals fail.",
+      "cluster_name": "Strategic Fundamentals",
+      "position_in_cluster": 6,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "yes", "label": "Yes" },
+        { "code": "maybe", "label": "Maybe / depends" },
+        { "code": "no", "label": "No" }
+      ],
+      "ai_context": { "include_meta": [], "include_answers": ["SG11","SG20","SG21"] },
+      "related_to": ["SG11","SG20","SG21"],
+      "prompt_add": "Good: escrow/conditional/reversal accepted. Red: refuses protections while transfer risks exist (SG11/SG20/SG21)."
+    },
+    {
+      "id": "SG34",
+      "text": "Is a pilot or test-drive (temporary management/lease 30+ days) possible before closing?",
+      "hint": "Short trial run.",
+      "info": "A pilot lets you run the business briefly to test operations and customers before you fully commit.",
+      "cluster_name": "Strategic Fundamentals",
+      "position_in_cluster": 7,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "yes", "label": "Yes" },
+        { "code": "maybe", "label": "Maybe / discuss" },
+        { "code": "no", "label": "No" }
+      ],
+      "ai_context": { "include_meta": [], "include_answers": ["SG20","SG21"] },
+      "related_to": ["SG20","SG21"],
+      "prompt_add": "Good: pilot allowed. Red: refuses pilot where transfer/licensing risk exists (SG20/SG21)."
+    },
+    {
+      "id": "SG04",
+      "text": "Last 12 months revenue compared to the previous 12 months",
+      "hint": "Up / flat / down ≥20%.",
+      "info": "Compare sales for the last full year to the year before. Ask the seller for annual totals or tax returns.",
+      "cluster_name": "Financial & Legal Situation",
+      "position_in_cluster": 1,
+      "question_type": "choice-single",
+      "ui": "dropdown",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "up", "label": "Up" },
+        { "code": "flat", "label": "About flat" },
+        { "code": "down_20plus", "label": "Down 20% or more" }
+      ],
+      "follow_ups": [
+        {
+          "when": { "in": ["down_20plus"] },
+          "ask": { "id": "SG04_REASON", "question_type": "text", "ui": "textarea", "placeholder": "Main reason for decline", "max_chars": 140 }
+        }
+      ],
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG03A","SG03B","SG05","SG06"] },
+      "related_to": ["SG05","SG06","SG12","SG13"],
+      "prompt_add": "Good: up/flat with plausible context. Red: down ≥20% without credible reason or conflicting with SG05/SG12/SG13. Weigh industry cyclicality (MET.IND)."
+    },
+    {
+      "id": "SG05",
+      "text": "Any months in the last year with >30% drop vs same month last year?",
+      "hint": "Large single-month dip.",
+      "info": "A single very bad month can signal a lost client or a supply issue. Ask to see monthly sales for two years.",
+      "cluster_name": "Financial & Legal Situation",
+      "position_in_cluster": 2,
+      "question_type": "yes-no",
+      "follow_ups": [
+        {
+          "when": { "in": ["yes"] },
+          "ask": { "id": "SG05_NOTE", "question_type": "text", "ui": "textarea", "placeholder": "Brief reason (seasonality/shock)", "max_chars": 120 }
+        }
+      ],
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG04"] },
+      "related_to": ["SG04"],
+      "prompt_add": "Good: no large dips or dips explained by seasonality. Red: unexplained dips conflicting with SG04 trend."
+    },
+    {
+      "id": "SG06",
+      "text": "Does seasonality require extra working capital at peaks?",
+      "hint": "Extra cash before busy times?",
+      "info": "Working capital is cash tied in inventory and unpaid invoices. Seasonal businesses may need extra cash or short-term loans.",
+      "cluster_name": "Financial & Legal Situation",
+      "position_in_cluster": 3,
+      "question_type": "yes-no",
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG04"] },
+      "related_to": ["SG04","SG23"],
+      "prompt_add": "Good: no exceptional WC strain or well-planned financing. Red: heavy seasonal WC strain without plan; weigh with SG23 (inventory) and SG04."
+    },
+    {
+      "id": "SG08",
+      "text": "In the last year, did you use unusually deep discounts to keep sales?",
+      "hint": "Frequent deep discounting?",
+      "info": "Frequent heavy discounts can mean pressure from competitors or weak demand.",
+      "cluster_name": "Financial & Legal Situation",
+      "position_in_cluster": 4,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "frequent_deep", "label": "Yes, frequent/deep" },
+        { "code": "rare_or_no", "label": "Rarely or no" }
+      ],
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG07","SG04"] },
+      "related_to": ["SG07","SG04"],
+      "prompt_add": "Good: rare/no discounting with healthy margins (SG07). Red: frequent deep discounting, esp. if margins low or revenue flat/down."
+    },
+    {
+      "id": "SG14",
+      "text": "Average time to collect receivables (DSO)",
+      "hint": "Typical days to get paid.",
+      "info": "How many days on average it takes customers to pay invoices. Long delays can cause cash problems.",
+      "cluster_name": "Financial & Legal Situation",
+      "position_in_cluster": 5,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "lt30", "label": "Below 30 days" },
+        { "code": "30_45", "label": "30–45 days" },
+        { "code": "gt45", "label": "Above 45 days" }
+      ],
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG15"] },
+      "related_to": ["SG15"],
+      "prompt_add": "Good: DSO aligned with industry norms; <45 days for most SMB B2B. Red: >45 without explanation or with low write-offs (SG15) inconsistency."
+    },
+    {
+      "id": "SG15",
+      "text": "Did bad-debt write-offs in the last 12 months exceed ~1% of revenue?",
+      "hint": "Unpaid invoices written off.",
+      "info": "Bad debt means invoices you will never collect. High write-offs can mean weak customer quality.",
+      "cluster_name": "Financial & Legal Situation",
+      "position_in_cluster": 6,
+      "question_type": "yes-no",
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG14"] },
+      "related_to": ["SG14"],
+      "prompt_add": "Good: ≤1% write-offs with reasonable DSO. Red: high write-offs and long DSO; check mismatch if DSO long but write-offs claimed low."
+    },
+    {
+      "id": "SG16",
+      "text": "Are there any overdue taxes/penalties or tax installment plans now?",
+      "hint": "Current tax arrears or plans?",
+      "info": "Ask if taxes are fully paid. Overdue taxes or payment plans mean extra risk.",
+      "cluster_name": "Financial & Legal Situation",
+      "position_in_cluster": 7,
+      "question_type": "yes-no",
+      "ai_context": { "include_meta": ["MET.LOC"], "include_answers": ["SG04"] },
+      "related_to": ["SG17","SG04"],
+      "prompt_add": "Good: no arrears. Red: current arrears or installment plans; amplify if revenue is down (SG04)."
+    },
+    {
+      "id": "SG18",
+      "text": "Any loans, leases, or liens on assets included in the sale?",
+      "hint": "Encumbrances on assets?",
+      "info": "Liens/encumbrances mean a lender has rights over equipment or vehicles. Confirm clearance at or before closing.",
+      "cluster_name": "Financial & Legal Situation",
+      "position_in_cluster": 8,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "none", "label": "No" },
+        { "code": "some", "label": "Yes (some)" }
+      ],
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG24","SG25"] },
+      "related_to": ["SG24","SG25"],
+      "prompt_add": "Good: no encumbrances or clear payoff plan. Red: encumbered critical assets plus downtime (SG25) or no service (SG24)."
+    },
+    {
+      "id": "SG21",
+      "text": "Are required licenses/permits valid and transferable to the buyer?",
+      "hint": "Regulatory continuity.",
+      "info": "Some businesses need health, safety, or other permits. If they cannot transfer, operations may pause.",
+      "cluster_name": "Financial & Legal Situation",
+      "position_in_cluster": 9,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "all_ok", "label": "All valid and transferable" },
+        { "code": "some_issues", "label": "Some not transferable or expiring" },
+        { "code": "major_issues", "label": "Major issues / not transferable" },
+        { "code": "unknown", "label": "I'm not sure" }
+      ],
+      "ai_context": { "include_meta": ["MET.LOC","MET.IND"], "include_answers": ["SG33"] },
+      "related_to": ["SG33"],
+      "prompt_add": "Good: all valid & transferable. Red: major issues or unknown without protections (SG33/SG34)."
+    },
+    {
+      "id": "SG30",
+      "text": "Any lawsuits, regulatory fines, or investigations in the last 3 years? Any open now?",
+      "hint": "Legal history & current status.",
+      "info": "Ask if there were any legal or government issues. If yes, were they closed or still open?",
+      "cluster_name": "Financial & Legal Situation",
+      "position_in_cluster": 10,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "none", "label": "None" },
+        { "code": "past_closed", "label": "Past, closed" },
+        { "code": "open_now", "label": "Open now" }
+      ],
+      "ai_context": { "include_meta": ["MET.LOC","MET.IND"], "include_answers": ["SG04","SG13"] },
+      "related_to": ["SG04","SG13"],
+      "prompt_add": "Good: none or closed minor items. Red: open cases; penalize if inconsistent with claimed stability (SG04 up/flat and SG13 ≥3m)."
+    },
+    {
+      "id": "SG36",
+      "text": "Any regulatory, environmental, health/safety, or sanitation violations in last 3 years?",
+      "hint": "Inspections & violations.",
+      "info": "Ask about inspections or notices from authorities. If there were problems, were they fixed? Are any cases still open?",
+      "cluster_name": "Financial & Legal Situation",
+      "position_in_cluster": 11,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "none", "label": "None" },
+        { "code": "past_closed", "label": "Past, closed" },
+        { "code": "open_now", "label": "Open now" }
+      ],
+      "ai_context": { "include_meta": ["MET.LOC","MET.IND"], "include_answers": ["SG21","SG30"] },
+      "related_to": ["SG21","SG30"],
+      "prompt_add": "Good: none or closed. Red: open violations, especially if licenses are problematic (SG21)."
+    },
+    {
+      "id": "SG09",
+      "text": "Largest single customer's share of revenue (approx)?",
+      "hint": "How much the #1 client contributes.",
+      "info": "Ask for a simple top-customer list. High share is risk if they leave.",
+      "cluster_name": "Market & Customer Environment",
+      "position_in_cluster": 1,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "lt20", "label": "Below 20%" },
+        { "code": "20_35", "label": "20–35%" },
+        { "code": "gt35", "label": "Above 35%" }
+      ],
+      "ai_context": { "include_meta": ["MET.IND","MET.SIZE"], "include_answers": [] },
+      "related_to": ["SG10","SG11","SG32"],
+      "prompt_add": "Good: <20% for most sizes; tolerate higher for micro (MET.SIZE). Red: >35% with weak transferability (SG11) or no seller support (SG32)."
+    },
+    {
+      "id": "SG10",
+      "text": "Top-5 customers combined share of revenue (approx)?",
+      "hint": "Sum of top-5 clients.",
+      "info": "If this number is high, losing one hurts a lot.",
+      "cluster_name": "Market & Customer Environment",
+      "position_in_cluster": 2,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "lt40", "label": "Below 40%" },
+        { "code": "40_60", "label": "40–60%" },
+        { "code": "gt60", "label": "Above 60%" }
+      ],
+      "ai_context": { "include_meta": ["MET.IND","MET.SIZE"], "include_answers": ["SG09"] },
+      "related_to": ["SG09","SG11"],
+      "prompt_add": "Good: diversified <40–60% depending on size. Red: >60% with weak contracts (SG11)."
+    },
+    {
+      "id": "SG11",
+      "text": "Do key customer contracts allow transfer on change of control?",
+      "hint": "Will contracts survive the ownership change?",
+      "info": "Some contracts stop or need approval when the owner changes. If not transferable, sales may drop after you buy.",
+      "cluster_name": "Market & Customer Environment",
+      "position_in_cluster": 3,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "all_transferable", "label": "All transferable" },
+        { "code": "some_not", "label": "Some not transferable" },
+        { "code": "none", "label": "No / mostly not" },
+        { "code": "unknown", "label": "I'm not sure" }
+      ],
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG09","SG10","SG33"] },
+      "related_to": ["SG09","SG10","SG33"],
+      "prompt_add": "Good: all transferable. Red: non-transferable or unknown without protections (SG33) and high concentration (SG09/SG10)."
+    },
+    {
+      "id": "SG12",
+      "text": "In the last 12 months, did you lose clients totaling >10% of revenue?",
+      "hint": "Client churn impact.",
+      "info": "If yes, ask why (competition, service, price).",
+      "cluster_name": "Market & Customer Environment",
+      "position_in_cluster": 4,
+      "question_type": "yes-no",
+      "follow_ups": [
+        {
+          "when": { "in": ["yes"] },
+          "ask": { "id": "SG12_REASON", "question_type": "text", "ui": "textarea", "placeholder": "Brief reason", "max_chars": 120 }
+        }
+      ],
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG04","SG13"] },
+      "related_to": ["SG04","SG13"],
+      "prompt_add": "Good: no material churn or replaced quickly. Red: >10% churn conflicting with SG04 up/flat or SG13 ≥3m."
+    },
+    {
+      "id": "SG13",
+      "text": "Does current backlog/subscriptions cover at least the next 3 months of revenue?",
+      "hint": "Order book/recurring cover.",
+      "info": "Ask how long current orders/subscriptions last if no new sales happen.",
+      "cluster_name": "Market & Customer Environment",
+      "position_in_cluster": 5,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "backlog_ge_3m", "label": "Yes, ≥3 months" },
+        { "code": "backlog_lt_3m", "label": "No / <3 months" }
+      ],
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG04","SG12"] },
+      "related_to": ["SG04","SG12"],
+      "prompt_add": "Good: ≥3 months coverage. Red: <3 months, esp. with revenue down (SG04) or recent churn (SG12)."
+    },
+    {
+      "id": "SG22",
+      "text": "Any critical supplier >40% of purchases? Is an equal alternative available?",
+      "hint": "Single-supplier exposure.",
+      "info": "If one supplier is critical and there’s no backup, risk is high.",
+      "cluster_name": "Market & Customer Environment",
+      "position_in_cluster": 6,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "no_concentration", "label": "No, diversified" },
+        { "code": "concentrated_with_alt", "label": "Yes, but equal alternative" },
+        { "code": "concentrated_no_alt", "label": "Yes, no equal alternative" },
+        { "code": "unknown", "label": "I'm not sure" }
+      ],
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG23"] },
+      "related_to": ["SG23"],
+      "prompt_add": "Good: diversified or viable alternative. Red: concentrated with no alternative; penalize unknown if inventory issues exist (SG23)."
+    },
+    {
+      "id": "SG35",
+      "text": "Do all digital assets (domains/website/email/social/ad accounts) belong to the business and transfer to the buyer?",
+      "hint": "Ownership & transfer of digital assets.",
+      "info": "List domains, hosting, email admin, social and ad accounts. Ensure ownership and transferability.",
+      "cluster_name": "Market & Customer Environment",
+      "position_in_cluster": 7,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "all_transfer", "label": "Yes, all transfer" },
+        { "code": "some_issues", "label": "Some not owned/transferable" },
+        { "code": "major_issues", "label": "Major issues" }
+      ],
+      "ai_context": { "include_meta": [], "include_answers": ["SG29"] },
+      "related_to": ["SG29"],
+      "prompt_add": "Good: all transfer. Red: major gaps; penalize mismatch if SG29 claims documentation but assets not transferable."
+    },
+    {
+      "id": "SG17",
+      "text": "Any salary or mandatory payment delays to employees in last 12 months?",
+      "hint": "Payroll/mandatory payments on time?",
+      "info": "Delays are a sign of cash stress and can cause legal issues.",
+      "cluster_name": "Operational Readiness",
+      "position_in_cluster": 1,
+      "question_type": "yes-no",
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG16","SG04"] },
+      "related_to": ["SG16","SG04"],
+      "prompt_add": "Good: no delays. Red: delays, especially with revenue down (SG04) or tax arrears (SG16)."
+    },
+    {
+      "id": "SG23",
+      "text": "Inventory issues more often: long aging >90 days or frequent stockouts?",
+      "hint": "Which problem occurs more?",
+      "info": "Aging ties up cash; stockouts lose sales.",
+      "cluster_name": "Operational Readiness",
+      "position_in_cluster": 2,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "aging", "label": "Aging >90 days" },
+        { "code": "stockouts", "label": "Frequent stockouts" },
+        { "code": "balanced", "label": "Neither is common" }
+      ],
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG22","SG06"] },
+      "related_to": ["SG22","SG06"],
+      "prompt_add": "Good: balanced/controlled. Red: chronic aging or stockouts; weigh with supplier concentration (SG22) and seasonality (SG06)."
+    },
+    {
+      "id": "SG24",
+      "text": "For key equipment, are service/maintenance contracts in place?",
+      "hint": "Preventive coverage?",
+      "info": "Service contracts help avoid long breakdowns.",
+      "cluster_name": "Operational Readiness",
+      "position_in_cluster": 3,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "service_full", "label": "Yes, full coverage" },
+        { "code": "service_partial", "label": "Partial / informal" },
+        { "code": "service_none", "label": "None" }
+      ],
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG25","SG18"] },
+      "related_to": ["SG25","SG18"],
+      "prompt_add": "Good: full coverage, low downtime. Red: none plus downtime (SG25) and encumbrances (SG18)."
+    },
+    {
+      "id": "SG25",
+      "text": "Any unplanned downtime of critical equipment >2 days in last 12 months?",
+      "hint": "Recent prolonged outages?",
+      "info": "If yes, note why and how it was fixed.",
+      "cluster_name": "Operational Readiness",
+      "position_in_cluster": 4,
+      "question_type": "yes-no",
+      "follow_ups": [
+        {
+          "when": { "in": ["yes"] },
+          "ask": { "id": "SG25_REASON", "question_type": "text", "ui": "textarea", "placeholder": "Brief reason / fix", "max_chars": 120 }
+        }
+      ],
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG24"] },
+      "related_to": ["SG24"],
+      "prompt_add": "Good: no outages or well-managed rare incident. Red: repeated or long outages with poor service cover (SG24)."
+    },
+    {
+      "id": "SG29",
+      "text": "Core systems (accounting/CRM/website/email): are admin access and regular backups documented and transferable?",
+      "hint": "Access + backups + handover.",
+      "info": "Ask for a list of systems with admin logins, who controls them, and how backups are done. Ensure handover.",
+      "cluster_name": "Operational Readiness",
+      "position_in_cluster": 5,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "all_documented", "label": "All documented and transferable" },
+        { "code": "partially", "label": "Partially documented" },
+        { "code": "not_documented", "label": "Not documented" }
+      ],
+      "ai_context": { "include_meta": [], "include_answers": ["SG35"] },
+      "related_to": ["SG35"],
+      "prompt_add": "Good: all documented & transferable. Red: not documented; penalize if digital assets also problematic (SG35)."
+    },
+    {
+      "id": "SG19",
+      "text": "Premises: owned or leased? If leased, how much time remains?",
+      "hint": "Lease runway matters.",
+      "info": "Short time left may force a move or tough renegotiation.",
+      "cluster_name": "Location & Infrastructure",
+      "position_in_cluster": 1,
+      "question_type": "choice-single",
+      "ui": "dropdown",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "owned", "label": "Owned" },
+        { "code": "lease_ge_2y", "label": "Leased, ≥2 years left" },
+        { "code": "lease_lt_2y", "label": "Leased, <2 years left" }
+      ],
+      "ai_context": { "include_meta": ["MET.LOC"], "include_answers": [] },
+      "related_to": ["SG20","SG13"],
+      "prompt_add": "Good: owned or ≥2y lease. Red: <2y and weak landlord stance (SG20), esp. with backlog exposure (SG13)."
+    },
+    {
+      "id": "SG20",
+      "text": "Is the lease transferable to a new owner? Does the landlord agree in principle?",
+      "hint": "Change-of-control clause & consent.",
+      "info": "Some leases need landlord approval when ownership changes. Ask for a simple confirmation email if possible.",
+      "cluster_name": "Location & Infrastructure",
+      "position_in_cluster": 2,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "transfer_ok", "label": "Yes, transferable" },
+        { "code": "transfer_partial", "label": "Maybe / conditional" },
+        { "code": "transfer_no", "label": "No" },
+        { "code": "unknown", "label": "I'm not sure" }
+      ],
+      "ai_context": { "include_meta": ["MET.LOC"], "include_answers": ["SG19","SG33","SG34"] },
+      "related_to": ["SG19","SG33","SG34"],
+      "prompt_add": "Good: transferable with consent. Red: no/unknown without protections (SG33) or pilot (SG34)."
+    },
+    {
+      "id": "SG26",
+      "text": "Owner’s weekly hours in day-to-day operations (approx)?",
+      "hint": "Hands-on time.",
+      "info": "High hours may mean the business depends too much on the owner.",
+      "cluster_name": "Owner Dependency & Exit Risks",
+      "position_in_cluster": 1,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "lt10h", "label": "<10 h/week" },
+        { "code": "10_30h", "label": "10–30 h/week" },
+        { "code": "gt30h", "label": ">30 h/week" }
+      ],
+      "ai_context": { "include_meta": ["MET.HC"], "include_answers": ["SG27","SG28"] },
+      "related_to": ["SG27","SG28"],
+      "prompt_add": "Good: ≤10–30h with delegation (SG27) and survivability (SG28). Red: >30h plus many owner-only tasks."
+    },
+    {
+      "id": "SG27",
+      "text": "Which tasks are owner-only (e.g., pricing, sales, key clients)?",
+      "hint": "Delegation depth.",
+      "info": "Owner-only tasks increase risk for a new buyer.",
+      "cluster_name": "Owner Dependency & Exit Risks",
+      "position_in_cluster": 2,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "none", "label": "None / fully delegated" },
+        { "code": "some", "label": "Some tasks owner-only" },
+        { "code": "many", "label": "Many tasks owner-only" }
+      ],
+      "ai_context": { "include_meta": ["MET.HC"], "include_answers": ["SG26","SG28"] },
+      "related_to": ["SG26","SG28"],
+      "prompt_add": "Good: none/some with cover. Red: many owner-only tasks, esp. if SG26 is high hours."
+    },
+    {
+      "id": "SG28",
+      "text": "Can the business run for 2+ months without the current owner?",
+      "hint": "Survive owner absence?",
+      "info": "If not, say what would stop.",
+      "cluster_name": "Owner Dependency & Exit Risks",
+      "position_in_cluster": 3,
+      "question_type": "yes-no",
+      "ai_context": { "include_meta": ["MET.HC"], "include_answers": ["SG26","SG27","SG32"] },
+      "related_to": ["SG26","SG27","SG32"],
+      "prompt_add": "Good: yes, with processes and team. Red: no, esp. with many owner-only tasks (SG27) and high hours (SG26)."
+    },
+    {
+      "id": "SG31",
+      "text": "Active insurance policies (general/professional/workers/cyber)? Any claims in last 3 years?",
+      "hint": "Coverage & claim history.",
+      "info": "Insurance helps with accidents and disputes.",
+      "cluster_name": "Transition & Support",
+      "position_in_cluster": 1,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "coverage_and_no_claims", "label": "Coverage, no claims" },
+        { "code": "coverage_with_claims", "label": "Coverage with claims" },
+        { "code": "no_coverage", "label": "No coverage" }
+      ],
+      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG30"] },
+      "related_to": ["SG30"],
+      "prompt_add": "Good: coverage in place; occasional claims ok. Red: no coverage or many claims linked to open issues (SG30)."
+    },
+    {
+      "id": "SG32",
+      "text": "Is the seller willing to provide a paid transition (e.g., 60 hours over 2 months) and personal introductions to key clients?",
+      "hint": "Post-close support.",
+      "info": "Transition support reduces risk.",
+      "cluster_name": "Transition & Support",
+      "position_in_cluster": 2,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "yes_strong", "label": "Yes, structured commitment" },
+        { "code": "limited", "label": "Limited help" },
+        { "code": "no", "label": "No" }
+      ],
+      "ai_context": { "include_meta": [], "include_answers": ["SG28","SG09","SG10"] },
+      "related_to": ["SG28","SG09","SG10"],
+      "prompt_add": "Good: structured support & intros, esp. with client concentration (SG09/SG10). Red: no support while owner-dependency is high."
+    }
+  ],
+  "optional_questions": [
+    {
+      "id": "SGA01",
+      "text": "Do you use sales agents (>20% of sales) or sell to government/state-owned entities?",
+      "hint": "Third parties or public sector sales.",
+      "info": "Agents and government sales often require extra rules and checks.",
+      "cluster_name": "Integrity & Compliance Add-on",
+      "position_in_cluster": 1,
+      "question_type": "choice-single",
+      "ui": "dropdown",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "no", "label": "No" },
+        { "code": "agents_only", "label": "Agents/intermediaries" },
+        { "code": "public_only", "label": "Government/state-owned" },
+        { "code": "both", "label": "Both" },
+        { "code": "unknown", "label": "I'm not sure" }
+      ],
+      "ai_context": { "include_meta": ["MET.LOC","MET.IND","MET.PUBLIC","MET.RISKCTX"], "include_answers": ["SG09","SG10"] },
+      "related_to": ["SG11","SG33"],
+      "prompt_add": "Higher inherent risk with agents/public sales; weigh need for ABC controls (SGA02/SGA03) and deal protections (SG33). Scale by MET.RISKCTX."
+    },
+    {
+      "id": "SGA02",
+      "text": "Do you have an anti-bribery policy and a whistleblowing channel?",
+      "hint": "Basic integrity controls.",
+      "info": "Policy says no bribes; whistleblowing is a safe reporting line.",
+      "cluster_name": "Integrity & Compliance Add-on",
+      "position_in_cluster": 2,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "both", "label": "Both are in place" },
+        { "code": "policy_only", "label": "Policy only" },
+        { "code": "none", "label": "None" },
+        { "code": "unknown", "label": "I'm not sure" }
+      ],
+      "ai_context": { "include_meta": ["MET.RISKCTX"], "include_answers": [] },
+      "related_to": ["SGA01"],
+      "prompt_add": "Good: both present. Red: none/unknown in higher-risk context (MET.RISKCTX)."
+    },
+    {
+      "id": "SGA03",
+      "text": "Are commissions to agents/intermediaries over 10% on any deals in the last 12 months?",
+      "hint": "Unusually high commissions.",
+      "info": "Very high commissions may be a red flag; ask why.",
+      "cluster_name": "Integrity & Compliance Add-on",
+      "position_in_cluster": 3,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "yes_high", "label": "Yes, >10%" },
+        { "code": "no", "label": "No" },
+        { "code": "unknown", "label": "I'm not sure" }
+      ],
+      "ai_context": { "include_meta": ["MET.RISKCTX"], "include_answers": ["SGA01"] },
+      "related_to": ["SGA01","SG08"],
+      "prompt_add": "Good: normal commissions. Red: >10% without justification; scale by MET.RISKCTX."
+    },
+    {
+      "id": "SGA04",
+      "text": "Are “expedite/facilitation” payments used for licenses or customs?",
+      "hint": "Small payments to speed routine tasks.",
+      "info": "In some places these are common but risky.",
+      "cluster_name": "Integrity & Compliance Add-on",
+      "position_in_cluster": 4,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "often", "label": "Often" },
+        { "code": "rare", "label": "Rare" },
+        { "code": "no", "label": "No" },
+        { "code": "unknown", "label": "I'm not sure" }
+      ],
+      "ai_context": { "include_meta": ["MET.LOC","MET.RISKCTX"], "include_answers": [] },
+      "related_to": ["SG21","SG22"],
+      "prompt_add": "Good: none/rare. Red: often, esp. alongside license issues (SG21) or supplier choke points (SG22); scale by MET.RISKCTX."
+    },
+    {
+      "id": "SGA05",
+      "text": "Any investigations or claims about bribery/improper payments in the last 3 years?",
+      "hint": "History of integrity issues.",
+      "info": "If cases exist, were they closed?",
+      "cluster_name": "Integrity & Compliance Add-on",
+      "position_in_cluster": 5,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "open_now", "label": "Open now" },
+        { "code": "past_closed", "label": "Past, closed" },
+        { "code": "none", "label": "None" },
+        { "code": "unknown", "label": "I'm not sure" }
+      ],
+      "ai_context": { "include_meta": ["MET.LOC","MET.RISKCTX"], "include_answers": ["SG30","SG31"] },
+      "related_to": ["SG30","SG31"],
+      "prompt_add": "Good: none or past closed with remediation. Red: open now; scale by MET.RISKCTX."
+    },
+    {
+      "id": "SGA06",
+      "text": "Do you check key customers/suppliers against sanctions/PEP lists (KYC)?",
+      "hint": "Risk-based screening.",
+      "info": "KYC reduces risk of restricted or politically exposed parties.",
+      "cluster_name": "Integrity & Compliance Add-on",
+      "position_in_cluster": 6,
+      "question_type": "choice-single",
+      "ui": "radio",
+      "options_sort": "as_is",
+      "options": [
+        { "code": "risk_based", "label": "Yes, risk-based" },
+        { "code": "ad_hoc", "label": "Ad-hoc" },
+        { "code": "no", "label": "No" },
+        { "code": "unknown", "label": "I'm not sure" }
+      ],
+      "ai_context": { "include_meta": ["MET.RISKCTX"], "include_answers": ["SG22"] },
+      "related_to": ["SG22"],
+      "prompt_add": "Good: risk-based checks. Red: no/unknown with concentrated suppliers (SG22); scale by MET.RISKCTX."
+    }
+  ]
+}

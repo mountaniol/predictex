@@ -1,8 +1,12 @@
 {
   "settings": {
     "labels": {
+      // Used in application
       "yes": "Yes",
-      "no": "No"
+      "no": "No",
+      // Added to prompt
+      "role": "buyer",
+
     }
   },
   "questions": [
@@ -20,104 +24,122 @@
       "cluster_name": "Strategic Fundamentals",
       "position_in_cluster": 1,
       "question_type": "open-ended"
+      "prompt_add": "Good: planned retirement / succession; Red: urgent cash need, losses, lawsuits, insolvency; Scoring 0-19 critical, 20-49 high, 50-79 moderate, 80-100 low-risk exit"
     },
     {
       "id": "A2",
       "text": "How long has the business existed?",
       "cluster_name": "Strategic Fundamentals",
       "position_in_cluster": 2,
-      "question_type": "open-ended"
+      "question_type": "open-ended",
+      "prompt_add": "Good: 5–20 yrs steady operation; Red: <2 yrs unproven or >30 yrs showing decline; Scoring 0–19 critical, 20–49 high, 50–79 moderate, 80–100 low-risk longevity"
     },
     {
       "id": "A3",
       "text": "Have there been other interested buyers?",
       "cluster_name": "Strategic Fundamentals",
       "position_in_cluster": 3,
-      "question_type": "open-ended"
+      "question_type": "open-ended",
+      "prompt_add": "Good: documented multiple serious offers or fresh listing with initial inquiries; Red: unverified or conflicting claims, long listing without offers, withdrawn deals; Scoring 0–19 critical, 20–49 high, 50–79 moderate, 80–100 low-risk interest"
     },
     {
       "id": "A4",
       "text": "How do you envision the handover process?",
       "cluster_name": "Strategic Fundamentals",
       "position_in_cluster": 4,
-      "question_type": "open-ended"
+      "question_type": "open-ended",
+      "prompt_add": "Good: phased handover with documentation and seller support; Red: vague/immediate exit, no docs or assistance; Scoring 0–19 critical, 20–49 high, 50–79 moderate, 80–100 low-risk transition"
     },
     {
       "id": "A5",
       "text": "Would you be willing to support or consult during a transition period?",
       "cluster_name": "Strategic Fundamentals",
       "position_in_cluster": 5,
-      "question_type": "open-ended"
+      "question_type": "open-ended",
+      "prompt_add": "Good: seller commits to 6–12 mo structured support/training at fair terms; Red: unwilling, token help, or costly fees; Scoring 0–19 critical, 20–49 high, 50–79 moderate, 80–100 low-risk transition"
     },
     {
       "id": "A6",
       "text": "What is the core value the business provides to its customers?",
       "cluster_name": "Strategic Fundamentals",
       "position_in_cluster": 6,
-      "question_type": "open-ended"
+      "question_type": "open-ended",
+      // TODO: Send also business type
+      "prompt_add": "Good: clear value proposition, strong customer relationships; Red: unclear or generic, no competitive advantage; Scoring 0–19 critical, 20–49 high, 50–79 moderate, 80–100 low-risk differentiation"
     },
     {
       "id": "A7",
       "text": "What makes your offering unique or difficult to replicate?",
       "cluster_name": "Strategic Fundamentals",
       "position_in_cluster": 7,
-      "question_type": "open-ended"
+      "question_type": "open-ended",
+      // TODO: Send also business type and location
+      "prompt_add": "Good: clear value proposition, strong customer relationships; Red: unclear or generic, no competitive advantage; Scoring 0–19 critical, 20–49 high, 50–79 moderate, 80–100 low-risk differentiation"
     },
     {
       "id": "A8",
       "text": "What is your average margin per product/service line?",
       "cluster_name": "Strategic Fundamentals",
       "position_in_cluster": 8,
-      "question_type": "open-ended"
+      "question_type": "open-ended",
+      // TODO: Send also business type and location
+      "prompt_add": "Good: 10–20% margin, stable pricing, no market pressure; Red: 0–5% margin, price wars, declining margins; Scoring 0–19 critical, 20–49 high, 50–79 moderate, 80–100 low-risk pricing"
     },
     {
       "id": "A9",
       "text": "What capacity limits or growth constraints does the business face?",
       "cluster_name": "Strategic Fundamentals",
       "position_in_cluster": 9,
-      "question_type": "open-ended"
+      "question_type": "open-ended",
+      "prompt_add": "Good: 10–20% margin, stable pricing, no market pressure; Red: 0–5% margin, price wars, declining margins; Scoring 0–19 critical, 20–49 high, 50–79 moderate, 80–100 low-risk pricing"
     },
     {
       "id": "A10",
       "text": "What factors would limit expansion (e.g., staff, licenses, machines)?",
       "cluster_name": "Strategic Fundamentals",
       "position_in_cluster": 10,
-      "question_type": "open-ended"
+      "question_type": "open-ended",
+      "prompt_add": "Good: 10–20% margin, stable pricing, no market pressure; Red: 0–5% margin, price wars, declining margins; Scoring 0–19 critical, 20–49 high, 50–79 moderate, 80–100 low-risk pricing"
     },
     {
       "id": "A11",
       "text": "Would a trial takeover (e.g., via lease) be an option?",
       "cluster_name": "Strategic Fundamentals",
       "position_in_cluster": 11,
-      "question_type": "open-ended"
+      "question_type": "open-ended",
+      "prompt_add": "Good: 10–20% margin, stable pricing, no market pressure; Red: 0–5% margin, price wars, declining margins; Scoring 0–19 critical, 20–49 high, 50–79 moderate, 80–100 low-risk pricing"
     },
     {
       "id": "A12",
       "text": "Is a reversal or exit clause negotiable in case of failure?",
       "cluster_name": "Strategic Fundamentals",
       "position_in_cluster": 12,
-      "question_type": "yes-no"
+      "question_type": "yes-no",
+      "prompt_add": "Good: 10–20% margin, stable pricing, no market pressure; Red: 0–5% margin, price wars, declining margins; Scoring 0–19 critical, 20–49 high, 50–79 moderate, 80–100 low-risk pricing"
     },
     {
       "id": "A13",
       "text": "What safeguards do you suggest for the buyer if the takeover fails?",
       "cluster_name": "Strategic Fundamentals",
       "position_in_cluster": 13,
-      "question_type": "open-ended"
+      "question_type": "open-ended",
+      "prompt_add": "Good: 10–20% margin, stable pricing, no market pressure; Red: 0–5% margin, price wars, declining margins; Scoring 0–19 critical, 20–49 high, 50–79 moderate, 80–100 low-risk pricing"
     },
     {
       "id": "A14",
       "text": "What aspects of your operations would you say are \"most outdated\" or inefficient?",
       "cluster_name": "Strategic Fundamentals",
       "position_in_cluster": 14,
-      "question_type": "open-ended"
+      "question_type": "open-ended",
+      "prompt_add": "Good: 10–20% margin, stable pricing, no market pressure; Red: 0–5% margin, price wars, declining margins; Scoring 0–19 critical, 20–49 high, 50–79 moderate, 80–100 low-risk pricing"
     },
     {
       "id": "B1",
       "text": "What were the revenues and profits over the past 3 years?",
       "cluster_name": "Financial & Legal Situation",
       "position_in_cluster": 1,
-      "question_type": "open-ended"
+      "question_type": "open-ended",
+      "prompt_add": "Good: 10–20% margin, stable pricing, no market pressure; Red: 0–5% margin, price wars, declining margins; Scoring 0–19 critical, 20–49 high, 50–79 moderate, 80–100 low-risk pricing"
     },
     {
       "id": "B2",
