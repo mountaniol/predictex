@@ -7,12 +7,16 @@
       "config": {
         "distDir": "build"
       }
-    },
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
     }
   ],
+  "functions": {
+    "api/evaluate.js": {
+      "runtime": "edge"
+    },
+    "api/test.js": {
+      "runtime": "edge"
+    }
+  },
   "routes": [
     {
       "src": "/api/(.*)",
@@ -30,10 +34,5 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "functions": {
-    "api/evaluate.js": {
-      "maxDuration": 30
-    }
-  }
+  ]
 }

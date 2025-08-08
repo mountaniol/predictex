@@ -1,6 +1,4 @@
-const axios = require('axios');
-
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -22,22 +20,22 @@ module.exports = async (req, res) => {
 
     // Validate required fields
     if (!system || !question || !answer) {
-      return res.status(400).json({ 
-        error: 'Missing required fields: system, question, answer' 
+      return res.status(400).json({
+        error: 'Missing required fields: system, question, answer'
       });
     }
 
     // Check if API key is available - try both possible environment variable names
     const openaiApiKey = process.env.REACT_APP_GPT_KEY || process.env.OPENAI_API_KEY;
     if (!openaiApiKey) {
-      return res.status(500).json({ 
-        error: 'OpenAI API key not configured. Please set REACT_APP_GPT_KEY or OPENAI_API_KEY environment variable.' 
+      return res.status(500).json({
+        error: 'OpenAI API key not configured. Please set REACT_APP_GPT_KEY or OPENAI_API_KEY environment variable.'
       });
     }
 
     // Build the prompt for OpenAI
     let fullPrompt = system;
-    
+
     // Add prompt_add if provided
     if (prompt_add) {
       fullPrompt += `\n\n${prompt_add}`;
@@ -89,9 +87,13 @@ module.exports = async (req, res) => {
     });
 
     // Call OpenAI API
-    const openaiResponse = await axios.post(
-      'https://api.openai.com/v1/chat/completions',
-      {
+    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openaiApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
         model: 'gpt-4',
         messages: [
           {
@@ -105,16 +107,33 @@ module.exports = async (req, res) => {
         ],
         temperature: 0.1,
         max_tokens: 150
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${openaiApiKey}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+      })
+    });
 
-    const aiResponse = openaiResponse.data.choices[0].message.content;
+    if (!openaiResponse.ok) {
+      const errorText = await openaiResponse.text();
+      console.error('OpenAI API error:', openaiResponse.status, errorText);
+
+      if (openaiResponse.status === 401) {
+        return res.status(500).json({
+          error: 'Invalid API key. Please check your REACT_APP_GPT_KEY configuration.'
+        });
+      }
+
+      if (openaiResponse.status === 429) {
+        return res.status(500).json({
+          error: 'Rate limit exceeded. Please try again later.'
+        });
+      }
+
+      return res.status(500).json({
+        error: 'OpenAI API error',
+        details: errorText
+      });
+    }
+
+    const openaiData = await openaiResponse.json();
+    const aiResponse = openaiData.choices[0].message.content;
     console.log('OpenAI response:', aiResponse);
 
     // Parse the score from the response
@@ -136,7 +155,7 @@ module.exports = async (req, res) => {
     }
 
     if (score === null || score === undefined || isNaN(score)) {
-      return res.status(500).json({ 
+      return res.status(500).json({
         error: 'Failed to extract valid score from AI response',
         aiResponse: aiResponse
       });
@@ -149,22 +168,9 @@ module.exports = async (req, res) => {
 
   } catch (error) {
     console.error('Evaluation error:', error);
-
-    if (error.response?.status === 401) {
-      return res.status(500).json({ 
-        error: 'Invalid API key. Please check your REACT_APP_GPT_KEY configuration.' 
-      });
-    }
-
-    if (error.response?.status === 429) {
-      return res.status(500).json({ 
-        error: 'Rate limit exceeded. Please try again later.' 
-      });
-    }
-
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to evaluate answer. Please try again.',
       details: error.message
     });
   }
-};
+}
