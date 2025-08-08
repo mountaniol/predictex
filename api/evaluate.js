@@ -27,11 +27,11 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Check if API key is available
-    const openaiApiKey = process.env.OPENAI_API_KEY;
+    // Check if API key is available - try both possible environment variable names
+    const openaiApiKey = process.env.REACT_APP_GPT_KEY || process.env.OPENAI_API_KEY;
     if (!openaiApiKey) {
       return res.status(500).json({ 
-        error: 'OpenAI API key not configured. Please set OPENAI_API_KEY environment variable.' 
+        error: 'OpenAI API key not configured. Please set REACT_APP_GPT_KEY or OPENAI_API_KEY environment variable.' 
       });
     }
 
@@ -84,7 +84,8 @@ module.exports = async (req, res) => {
       question: question.text,
       answer: answer.value,
       metaKeys: Object.keys(meta || {}),
-      contextKeys: Object.keys(answers_ctx || {})
+      contextKeys: Object.keys(answers_ctx || {}),
+      hasApiKey: !!openaiApiKey
     });
 
     // Call OpenAI API
@@ -151,7 +152,7 @@ module.exports = async (req, res) => {
 
     if (error.response?.status === 401) {
       return res.status(500).json({ 
-        error: 'Invalid API key. Please check your OpenAI API key configuration.' 
+        error: 'Invalid API key. Please check your REACT_APP_GPT_KEY configuration.' 
       });
     }
 
