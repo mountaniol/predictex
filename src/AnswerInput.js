@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const AnswerInput = ({ q, value, onChange, labels }) => {
+const AnswerInput = ({ q, value, onChange, labels, answers }) => {
   // Handle follow-up questions
   const [followUpAnswers, setFollowUpAnswers] = useState({});
 
@@ -15,7 +15,15 @@ const AnswerInput = ({ q, value, onChange, labels }) => {
         }));
       }
     }
-  }, [value, q.other_text_id]);
+    
+    // Also check if follow-up data exists in answers context
+    if (q.other_text_id && answers && answers[q.other_text_id]) {
+      setFollowUpAnswers(prev => ({
+        ...prev,
+        [q.other_text_id]: answers[q.other_text_id]
+      }));
+    }
+  }, [value, q.other_text_id, answers]);
 
   const handleFollowUpChange = (followUpId, followUpValue) => {
     setFollowUpAnswers(prev => ({
@@ -23,18 +31,13 @@ const AnswerInput = ({ q, value, onChange, labels }) => {
       [followUpId]: followUpValue
     }));
     
-    // Also update the main answer with follow-up data
+    // Pass follow-up data to parent component
     if (q.other_text_id && followUpId === q.other_text_id) {
-      const currentValue = Array.isArray(value) ? value : [];
-      const hasOther = currentValue.includes('other');
-      
-      if (hasOther) {
-        // Update the main answer to include other text
-        const updatedValue = currentValue.map(v => 
-          v === 'other' ? { code: 'other', text: followUpValue } : v
-        );
-        onChange(updatedValue);
-      }
+      // Call onChange with the follow-up data
+      onChange({
+        mainValue: value,
+        followUpData: { [followUpId]: followUpValue }
+      });
     }
   };
 

@@ -88,6 +88,7 @@ const MetaQuestionsSection = () => {
               value={answers[question.id] || ''}
               onChange={(value) => handleAnswerChange(question.id, value)}
               labels={labels}
+              answers={answers}
             />
           </div>
         );

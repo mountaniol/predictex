@@ -29,10 +29,21 @@ const QuestionSection = () => {
     const question = sections[si]?.questions[qi];
     if (!question) return;
 
-    setAnswers(prev => ({
-      ...prev,
-      [question.id]: value
-    }));
+    // Handle follow-up data
+    if (value && typeof value === 'object' && value.followUpData) {
+      // This is follow-up data, update both main answer and follow-up
+      setAnswers(prev => ({
+        ...prev,
+        [question.id]: value.mainValue,
+        ...value.followUpData
+      }));
+    } else {
+      // Regular answer change
+      setAnswers(prev => ({
+        ...prev,
+        [question.id]: value
+      }));
+    }
 
     // Clear dependency warning for this question when answer changes
     if (depWarnings[question.id]) {
@@ -284,6 +295,7 @@ const QuestionSection = () => {
                   value={answers[q.id] || ''}
                   onChange={v => handleAnswerChange(si, qi, v)}
                   labels={labels}
+                  answers={answers}
                 />
                 
                 <button
