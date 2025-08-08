@@ -119,7 +119,7 @@ const useLoadQuestions = (currentLanguage) => {
         }
         
         // Use Vercel API endpoint
-        setApiKey('/api/evaluate');
+        setApiKey('/api/simple-evaluate');
       } catch (err) {
         console.error('Failed to load questions:', err);
         setError(err.message);
