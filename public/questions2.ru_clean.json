@@ -1,0 +1,190 @@
+{
+  "settings": {
+    "labels": {
+      "yes": "Да",
+      "no": "Нет"
+    }
+  },
+  "questions": [
+  {
+    "id": "LOCATION",
+    "text": "В какой стране, штате (если применимо) и городе вы находитесь?",
+    "cluster_name": "Информация о местоположении",
+    "position_in_cluster": 1,
+    "question_type": "open-ended",
+    "prompt_add": "Use this location information to provide more accurate and contextually relevant business evaluations. Consider local market conditions, regulations, and business environment specific to this location."
+  },
+  {
+    "id": "A1",
+    "text": "Почему вы хотите продать бизнес?",
+    "cluster_name": "Стратегические основы",
+    "position_in_cluster": 1,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A2",
+    "text": "Как долго существует бизнес?",
+    "cluster_name": "Стратегические основы",
+    "position_in_cluster": 2,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A3",
+    "text": "Были ли другие заинтересованные покупатели?",
+    "cluster_name": "Стратегические основы",
+    "position_in_cluster": 3,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A4",
+    "text": "Как вы представляете себе процесс передачи?",
+    "cluster_name": "Стратегические основы",
+    "position_in_cluster": 4,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A5",
+    "text": "Какова текущая рыночная стоимость бизнеса?",
+    "cluster_name": "Стратегические основы",
+    "position_in_cluster": 5,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A6",
+    "text": "Какие основные причины продажи?",
+    "cluster_name": "Стратегические основы",
+    "position_in_cluster": 6,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A7",
+    "text": "Как долго вы пытаетесь продать?",
+    "cluster_name": "Стратегические основы",
+    "position_in_cluster": 7,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A8",
+    "text": "Какой идеальный график для продажи?",
+    "cluster_name": "Стратегические основы",
+    "position_in_cluster": 8,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A9",
+    "text": "Какие ключевые преимущества бизнеса?",
+    "cluster_name": "Стратегические основы",
+    "position_in_cluster": 9,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A10",
+    "text": "Какие факторы ограничивают расширение (например, персонал, лицензии, оборудование)?",
+    "cluster_name": "Стратегические основы",
+    "position_in_cluster": 10,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A11",
+    "text": "Какова роль текущего владельца в повседневных операциях?",
+    "cluster_name": "Стратегические основы",
+    "position_in_cluster": 11,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A12",
+    "text": "Насколько критичен владелец для успеха бизнеса?",
+    "cluster_name": "Стратегические основы",
+    "position_in_cluster": 12,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A13",
+    "text": "Что произойдет, если владелец уедет на 3 месяца?",
+    "cluster_name": "Стратегические основы",
+    "position_in_cluster": 13,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A14",
+    "text": "Какое видение владельца для бизнеса после продажи?",
+    "cluster_name": "Стратегические основы",
+    "position_in_cluster": 14,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B1",
+    "text": "Какой текущий месячный доход?",
+    "cluster_name": "Финансовая эффективность",
+    "position_in_cluster": 1,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B2",
+    "text": "Какие основные источники дохода?",
+    "cluster_name": "Финансовая эффективность",
+    "position_in_cluster": 2,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B3",
+    "text": "Какова прибыльность?",
+    "cluster_name": "Финансовая эффективность",
+    "position_in_cluster": 3,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B4",
+    "text": "Какие основные расходы?",
+    "cluster_name": "Финансовая эффективность",
+    "position_in_cluster": 4,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B5",
+    "text": "Прибылен ли бизнес?",
+    "cluster_name": "Финансовая эффективность",
+    "position_in_cluster": 5,
+    "question_type": "yes-no"
+  },
+  {
+    "id": "B6",
+    "text": "Какова ситуация с денежным потоком?",
+    "cluster_name": "Финансовая эффективность",
+    "position_in_cluster": 6,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B7",
+    "text": "Есть ли непогашенные долги?",
+    "cluster_name": "Финансовая эффективность",
+    "position_in_cluster": 7,
+    "question_type": "yes-no"
+  },
+  {
+    "id": "B8",
+    "text": "Каково соотношение долга к доходу?",
+    "cluster_name": "Финансовая эффективность",
+    "position_in_cluster": 8,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B9",
+    "text": "Есть ли незавершенные юридические вопросы?",
+    "cluster_name": "Финансовая эффективность",
+    "position_in_cluster": 9,
+    "question_type": "yes-no"
+  },
+  {
+    "id": "B10",
+    "text": "Какова оценка финансового здоровья (1-10)?",
+    "cluster_name": "Финансовая эффективность",
+    "position_in_cluster": 10,
+    "question_type": "numeric"
+  }
+  ],
+  "calculations": [
+    "A10 = A10 + (A3 / 2)",
+    "B10 = B10 * ((A2 + B8) / 3)"
+  ]
+} 

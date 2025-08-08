@@ -1,0 +1,190 @@
+{
+  "settings": {
+    "labels": {
+      "yes": "Ja",
+      "no": "Nein"
+    }
+  },
+  "questions": [
+  {
+    "id": "LOCATION",
+    "text": "In welchem Land, Bundesland (falls relevant) und welcher Stadt befinden Sie sich?",
+    "cluster_name": "Standortinformationen",
+    "position_in_cluster": 1,
+    "question_type": "open-ended",
+    "prompt_add": "Verwenden Sie diese Standortinformationen, um genauere und kontextrelevante Unternehmensbewertungen zu erstellen. Berücksichtigen Sie lokale Marktbedingungen, Vorschriften und das spezifische Geschäftsumfeld an diesem Standort."
+  },
+  {
+    "id": "A1",
+    "text": "Warum möchten Sie das Unternehmen verkaufen?",
+    "cluster_name": "Strategische Grundlagen",
+    "position_in_cluster": 1,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A2",
+    "text": "Wie lange existiert das Unternehmen bereits?",
+    "cluster_name": "Strategische Grundlagen",
+    "position_in_cluster": 2,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A3",
+    "text": "Gab es bereits andere interessierte Käufer?",
+    "cluster_name": "Strategische Grundlagen",
+    "position_in_cluster": 3,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A4",
+    "text": "Wie stellen Sie sich den Übergabeprozess vor?",
+    "cluster_name": "Strategische Grundlagen",
+    "position_in_cluster": 4,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A5",
+    "text": "Was ist der aktuelle Marktwert des Unternehmens?",
+    "cluster_name": "Strategische Grundlagen",
+    "position_in_cluster": 5,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A6",
+    "text": "Was sind die Hauptgründe für den Verkauf?",
+    "cluster_name": "Strategische Grundlagen",
+    "position_in_cluster": 6,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A7",
+    "text": "Wie lange versuchen Sie bereits zu verkaufen?",
+    "cluster_name": "Strategische Grundlagen",
+    "position_in_cluster": 7,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A8",
+    "text": "Was ist der ideale Zeitplan für den Verkauf?",
+    "cluster_name": "Strategische Grundlagen",
+    "position_in_cluster": 8,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A9",
+    "text": "Was sind die wichtigsten Verkaufsargumente des Unternehmens?",
+    "cluster_name": "Strategische Grundlagen",
+    "position_in_cluster": 9,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A10",
+    "text": "Welche Faktoren würden die Expansion einschränken (z.B. Personal, Lizenzen, Maschinen)?",
+    "cluster_name": "Strategische Grundlagen",
+    "position_in_cluster": 10,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A11",
+    "text": "Welche Rolle spielt der aktuelle Eigentümer im Tagesgeschäft?",
+    "cluster_name": "Strategische Grundlagen",
+    "position_in_cluster": 11,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A12",
+    "text": "Wie kritisch ist der Eigentümer für den Unternehmenserfolg?",
+    "cluster_name": "Strategische Grundlagen",
+    "position_in_cluster": 12,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A13",
+    "text": "Was würde passieren, wenn der Eigentümer für 3 Monate weg wäre?",
+    "cluster_name": "Strategische Grundlagen",
+    "position_in_cluster": 13,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A14",
+    "text": "Was ist die Vision des Eigentümers für das Unternehmen nach dem Verkauf?",
+    "cluster_name": "Strategische Grundlagen",
+    "position_in_cluster": 14,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B1",
+    "text": "Was ist der aktuelle monatliche Umsatz?",
+    "cluster_name": "Finanzielle Leistung",
+    "position_in_cluster": 1,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B2",
+    "text": "Was sind die Haupteinnahmequellen?",
+    "cluster_name": "Finanzielle Leistung",
+    "position_in_cluster": 2,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B3",
+    "text": "Was ist die Gewinnspanne?",
+    "cluster_name": "Finanzielle Leistung",
+    "position_in_cluster": 3,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B4",
+    "text": "Was sind die Hauptausgaben?",
+    "cluster_name": "Finanzielle Leistung",
+    "position_in_cluster": 4,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B5",
+    "text": "Ist das Unternehmen profitabel?",
+    "cluster_name": "Finanzielle Leistung",
+    "position_in_cluster": 5,
+    "question_type": "yes-no"
+  },
+  {
+    "id": "B6",
+    "text": "Wie ist die Cashflow-Situation?",
+    "cluster_name": "Finanzielle Leistung",
+    "position_in_cluster": 6,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B7",
+    "text": "Gibt es ausstehende Schulden?",
+    "cluster_name": "Finanzielle Leistung",
+    "position_in_cluster": 7,
+    "question_type": "yes-no"
+  },
+  {
+    "id": "B8",
+    "text": "Was ist das Schulden-zu-Umsatz-Verhältnis?",
+    "cluster_name": "Finanzielle Leistung",
+    "position_in_cluster": 8,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B9",
+    "text": "Gibt es anhängige rechtliche Fragen?",
+    "cluster_name": "Finanzielle Leistung",
+    "position_in_cluster": 9,
+    "question_type": "yes-no"
+  },
+  {
+    "id": "B10",
+    "text": "Was ist die Bewertung der finanziellen Gesundheit (1-10)?",
+    "cluster_name": "Finanzielle Leistung",
+    "position_in_cluster": 10,
+    "question_type": "numeric"
+  }
+  ],
+  "calculations": [
+    "A10 = A10 + (A3 / 2)",
+    "B10 = B10 * ((A2 + B8) / 3)"
+  ]
+} 

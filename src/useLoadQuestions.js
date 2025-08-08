@@ -118,7 +118,8 @@ const useLoadQuestions = (currentLanguage) => {
           setAiPrompt('You are an expert business evaluator. Analyze the provided information and return a score from 0 to 100, where 0 is extremely high risk and 100 is extremely low risk.');
         }
         
-        setApiKey('http://localhost:5000/api/evaluate');
+        // Use Vercel API endpoint
+        setApiKey('/api/evaluate');
       } catch (err) {
         console.error('Failed to load questions:', err);
         setError(err.message);

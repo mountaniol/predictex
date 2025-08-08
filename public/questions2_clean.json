@@ -1,0 +1,190 @@
+{
+  "settings": {
+    "labels": {
+      "yes": "Yes",
+      "no": "No"
+    }
+  },
+  "questions": [
+  {
+    "id": "LOCATION",
+    "text": "What country, state (if relevant), and city are you located in?",
+    "cluster_name": "Location Information",
+    "position_in_cluster": 1,
+    "question_type": "open-ended",
+    "prompt_add": "Use this location information to provide more accurate and contextually relevant business evaluations. Consider local market conditions, regulations, and business environment specific to this location."
+  },
+  {
+    "id": "A1",
+    "text": "Why do you want to sell the business?",
+    "cluster_name": "Strategic Fundamentals",
+    "position_in_cluster": 1,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A2",
+    "text": "How long has the business existed?",
+    "cluster_name": "Strategic Fundamentals",
+    "position_in_cluster": 2,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A3",
+    "text": "Have there been other interested buyers?",
+    "cluster_name": "Strategic Fundamentals",
+    "position_in_cluster": 3,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A4",
+    "text": "How do you envision the handover process?",
+    "cluster_name": "Strategic Fundamentals",
+    "position_in_cluster": 4,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A5",
+    "text": "What is the current market value of the business?",
+    "cluster_name": "Strategic Fundamentals",
+    "position_in_cluster": 5,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A6",
+    "text": "What are the main reasons for selling?",
+    "cluster_name": "Strategic Fundamentals",
+    "position_in_cluster": 6,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A7",
+    "text": "How long have you been trying to sell?",
+    "cluster_name": "Strategic Fundamentals",
+    "position_in_cluster": 7,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A8",
+    "text": "What is the ideal timeline for the sale?",
+    "cluster_name": "Strategic Fundamentals",
+    "position_in_cluster": 8,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A9",
+    "text": "What are the key selling points of the business?",
+    "cluster_name": "Strategic Fundamentals",
+    "position_in_cluster": 9,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A10",
+    "text": "What factors would limit expansion (e.g., staff, licenses, machines)?",
+    "cluster_name": "Strategic Fundamentals",
+    "position_in_cluster": 10,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A11",
+    "text": "What is the current owner's role in daily operations?",
+    "cluster_name": "Strategic Fundamentals",
+    "position_in_cluster": 11,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A12",
+    "text": "How critical is the owner to business success?",
+    "cluster_name": "Strategic Fundamentals",
+    "position_in_cluster": 12,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A13",
+    "text": "What would happen if the owner left for 3 months?",
+    "cluster_name": "Strategic Fundamentals",
+    "position_in_cluster": 13,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "A14",
+    "text": "What is the owner's vision for the business after sale?",
+    "cluster_name": "Strategic Fundamentals",
+    "position_in_cluster": 14,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B1",
+    "text": "What is the current monthly revenue?",
+    "cluster_name": "Financial Performance",
+    "position_in_cluster": 1,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B2",
+    "text": "What are the main revenue streams?",
+    "cluster_name": "Financial Performance",
+    "position_in_cluster": 2,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B3",
+    "text": "What is the profit margin?",
+    "cluster_name": "Financial Performance",
+    "position_in_cluster": 3,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B4",
+    "text": "What are the main expenses?",
+    "cluster_name": "Financial Performance",
+    "position_in_cluster": 4,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B5",
+    "text": "Is the business profitable?",
+    "cluster_name": "Financial Performance",
+    "position_in_cluster": 5,
+    "question_type": "yes-no"
+  },
+  {
+    "id": "B6",
+    "text": "What is the cash flow situation?",
+    "cluster_name": "Financial Performance",
+    "position_in_cluster": 6,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B7",
+    "text": "Are there any outstanding debts?",
+    "cluster_name": "Financial Performance",
+    "position_in_cluster": 7,
+    "question_type": "yes-no"
+  },
+  {
+    "id": "B8",
+    "text": "What is the debt-to-revenue ratio?",
+    "cluster_name": "Financial Performance",
+    "position_in_cluster": 8,
+    "question_type": "open-ended"
+  },
+  {
+    "id": "B9",
+    "text": "Are there any pending legal issues?",
+    "cluster_name": "Financial Performance",
+    "position_in_cluster": 9,
+    "question_type": "yes-no"
+  },
+  {
+    "id": "B10",
+    "text": "What is the financial health score (1-10)?",
+    "cluster_name": "Financial Performance",
+    "position_in_cluster": 10,
+    "question_type": "numeric"
+  }
+  ],
+  "calculations": [
+    "A10 = A10 + (A3 / 2)",
+    "B10 = B10 * ((A2 + B8) / 3)"
+  ]
+} 
