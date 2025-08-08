@@ -25,10 +25,5 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "functions": {
-    "api/evaluate.js": {
-      "maxDuration": 30
-    }
-  }
+  ]
 }
