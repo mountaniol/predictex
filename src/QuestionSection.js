@@ -94,10 +94,17 @@ const QuestionSection = () => {
    * This ensures the application state is always consistent and up-to-date on startup.
    */
   useEffect(() => {
+    console.log('[QuestionSection.js] useEffect triggered. Checking conditions:', {
+      contextLoading,
+      sectionsExists: !!sections,
+      sectionsLength: sections?.length,
+    });
+
     if (!sections || sections.length === 0 || contextLoading) {
       return;
     }
 
+    console.log('[QuestionSection.js] Conditions met, executing runStartupCheck...');
     const runStartupCheck = async () => {
       // Use an iterative approach to resolve dependencies layer by layer.
       // This is more robust than a single or two-pass check.
@@ -526,6 +533,8 @@ const QuestionSection = () => {
       if (locationAnswer) {
         payload.meta['MET.LOC'] = locationAnswer;
       }
+
+      console.log('[QuestionSection] Sending payload to API:', JSON.stringify(payload, null, 2));
 
       const response = await fetch(apiKey, {
         method: 'POST',
