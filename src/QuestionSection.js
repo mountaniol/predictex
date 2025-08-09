@@ -84,6 +84,22 @@ const QuestionSection = () => {
   const [loading, setLoading] = useState({});
   const [depWarnings, setDepWarnings] = useState({});
 
+  const computeAllStates = (currentScores, currentStates) => {
+    const newStates = { ...currentStates };
+    let changed = false;
+    for (const sec of sections) {
+      for (const q of sec.questions) {
+        const oldState = newStates[q.id];
+        const newState = getQuestionState(q, answers, currentScores, newStates);
+        if (oldState !== newState) {
+          newStates[q.id] = newState;
+          changed = true;
+        }
+      }
+    }
+    return changed ? newStates : currentStates;
+  };
+
   /**
    * @brief Effect to run a comprehensive check on component mount.
    * @description This effect runs once after the initial render. It performs two key tasks:
@@ -94,67 +110,65 @@ const QuestionSection = () => {
    * This ensures the application state is always consistent and up-to-date on startup.
    */
   useEffect(() => {
-    console.log('[QuestionSection.js] useEffect triggered. Checking conditions:', {
-      contextLoading,
-      sectionsExists: !!sections,
-      sectionsLength: sections?.length,
-    });
-
     if (!sections || sections.length === 0 || contextLoading) {
       return;
     }
 
-    console.log('[QuestionSection.js] Conditions met, executing runStartupCheck...');
     const runStartupCheck = async () => {
-      // Use an iterative approach to resolve dependencies layer by layer.
-      // This is more robust than a single or two-pass check.
-      let changedInPass = true;
-      let passes = 0;
-      const maxPasses = 5; // Sufficient for deep dependency chains.
-
+      console.log('--- [Startup] Starting Startup Check ---');
+      let currentScores = { ...scores };
       let currentStates = { ...questionStates };
 
-      while (changedInPass && passes < maxPasses) {
-        changedInPass = false;
+      currentStates = computeAllStates(currentScores, currentStates);
+
+      let reevaluatedInPass = true;
+      let passes = 0;
+      const maxPasses = 10;
+
+      while (reevaluatedInPass && passes < maxPasses) {
         passes++;
+        reevaluatedInPass = false;
+        console.log(`--- [Startup] Loop Pass ${passes} ---`);
 
-        const nextStates = { ...currentStates };
+        let questionToReevaluate = null;
+        let reeval_si = -1, reeval_qi = -1;
 
-        for (const section of sections) {
-          for (const question of section.questions) {
-            const oldState = currentStates[question.id] || 'unanswered';
-            const newState = getQuestionState(question, answers, scores, currentStates);
-
-            if (oldState !== newState) {
-              nextStates[question.id] = newState;
-              changedInPass = true;
-            }
-
-            // Check if a partially answered question is now ready for re-evaluation.
-            if (newState === 'partially_answered') {
-              const dependencies = getQuestionDependencies(question);
-              // Create a snapshot of the states for this specific check to avoid unsafe references in the loop.
-              const statesSnapshot = { ...currentStates };
-              const allDependenciesMet = dependencies.every(
-                (depId) => statesSnapshot[depId] === 'fully_answered'
-              );
-
-              if (allDependenciesMet) {
-                const si = sections.findIndex((s) => s.title === section.title);
-                const qi = section.questions.findIndex((q) => q.id === question.id);
-                if (si !== -1 && qi !== -1) {
-                  // This question is ready, re-evaluate it.
-                  // Note: This happens outside the state update loop to avoid side-effects within state calculation.
-                  evaluateAnswer(si, qi, true);
-                }
+        for (let i = 0; i < sections.length; i++) {
+          for (let j = 0; j < sections[i].questions.length; j++) {
+            const q = sections[i].questions[j];
+            const hasAnswer = answers[q.id] && answers[q.id] !== '';
+            const state = currentStates[q.id] || 'unanswered';
+            
+            if (hasAnswer && state !== 'fully_answered') {
+              const dependencies = getQuestionDependencies(q);
+              const allDepsMet = dependencies.every(depId => currentStates[depId] === 'fully_answered');
+              if (allDepsMet) {
+                questionToReevaluate = q;
+                reeval_si = i;
+                reeval_qi = j;
+                break;
               }
             }
           }
+          if (questionToReevaluate) break;
         }
-        currentStates = nextStates;
+
+        if (questionToReevaluate) {
+          console.log(`[Startup] Re-evaluating ${questionToReevaluate.id}`);
+          const newScore = await evaluateAnswer(reeval_si, reeval_qi);
+          if (newScore !== null) {
+            currentScores[questionToReevaluate.id] = newScore;
+            currentStates = computeAllStates(currentScores, currentStates);
+            reevaluatedInPass = true;
+          }
+        }
       }
 
-      // After all iterations, update the global state.
+      console.log('[Startup] Loop finished. Committing final state.');
+      if (calculations && calculations.length > 0) {
+        currentScores = applyCalculations(currentScores, calculations);
+      }
+      setScores(currentScores);
       setQuestionStates(currentStates);
     };
 
@@ -281,84 +295,6 @@ const QuestionSection = () => {
   };
 
   /**
-   * @brief Finds all questions that depend on a given question
-   * 
-   * Searches through all sections to find questions that have the given question
-   * in their ai_context.include_answers array.
-   * 
-   * @function findDependentQuestions
-   * @param {string} questionId - Question ID to find dependents for
-   * @returns {Array} Array of question objects that depend on the given question
-   * 
-   * @reads {sections} - Searches through all sections and questions
-   * 
-   * @role {Dependency Finder} - Finds questions that depend on a given question
-   */
-  const findDependentQuestions = (questionId) => {
-    const dependents = [];
-    sections.forEach(section => {
-      section.questions.forEach(question => {
-        const dependencies = getQuestionDependencies(question);
-        if (dependencies.includes(questionId)) {
-          dependents.push(question);
-        }
-      });
-    });
-    return dependents;
-  };
-
-  /**
-   * @brief Recursively updates dependent questions when a question becomes fully answered
-   * 
-   * When a question becomes fully answered, this function finds all questions that depend on it
-   * and checks if they should be re-evaluated. This creates a cascade of updates.
-   * 
-   * @function cascadeUpdateDependents
-   * @param {string} questionId - Question ID that just became fully answered
-   * 
-   * @uses {findDependentQuestions} - Finds questions that depend on the given question
-   * @uses {getQuestionState} - Determines current state of dependent questions
-   * @uses {evaluateAnswer} - Re-evaluates questions that are ready
-   * 
-   * @role {Cascade Manager} - Manages cascade updates of dependent questions
-   */
-  const cascadeUpdateDependents = async (questionId) => {
-    const dependents = findDependentQuestions(questionId);
-    
-    for (const dependent of dependents) {
-      const currentState = getQuestionState(dependent, answers, scores, questionStates);
-      
-      if (currentState === 'partially_answered') {
-        // Check if all dependencies are now fully answered
-        const dependencies = getQuestionDependencies(dependent);
-        const allDependenciesFullyAnswered = dependencies.every(depId => 
-          questionStates[depId] === 'fully_answered'
-        );
-        
-        if (allDependenciesFullyAnswered) {
-          // Find the section and question indices for this dependent
-          let foundSectionIndex = -1;
-          let foundQuestionIndex = -1;
-          
-          sections.forEach((section, si) => {
-            section.questions.forEach((q, qi) => {
-              if (q.id === dependent.id) {
-                foundSectionIndex = si;
-                foundQuestionIndex = qi;
-              }
-            });
-          });
-          
-          if (foundSectionIndex !== -1 && foundQuestionIndex !== -1) {
-            // Re-evaluate this dependent question
-            await evaluateAnswer(foundSectionIndex, foundQuestionIndex, true); // true = isReevaluation
-          }
-        }
-      }
-    }
-  };
-
-  /**
    * @brief Handles user answer changes and follow-up data
    * 
    * Processes answer changes from AnswerInput components, including both regular
@@ -476,40 +412,27 @@ const QuestionSection = () => {
    * @role {Score Manager} - Updates and manages evaluation scores
    * @role {Error Handler} - Manages evaluation errors and user feedback
    */
-  const evaluateAnswer = async (si, qi, isReevaluation = false) => {
+  const evaluateAnswer = async (si, qi) => {
     const question = sections[si]?.questions[qi];
-    if (!question) return;
+    if (!question) return null;
 
     const key = qKey(si, qi);
     setLoading(prev => ({ ...prev, [key]: true }));
 
     try {
-      // Remove dependency warnings - we now allow evaluation without dependencies
       if (depWarnings[question.id]) {
-        setDepWarnings(prev => ({
-          ...prev,
-          [question.id]: undefined
-        }));
+        setDepWarnings(prev => ({ ...prev, [question.id]: undefined }));
       }
 
-      // Build the payload according to the new AI spec
       const payload = {
         system: aiPrompt,
         prompt_add: question.prompt_add || '',
         meta: {},
-        question: {
-          id: question.id,
-          text: question.text
-        },
-        answer: {
-          value: answers[question.id],
-          extra: {},
-          other_text: ''
-        },
+        question: { id: question.id, text: question.text },
+        answer: { value: answers[question.id], extra: {}, other_text: '' },
         answers_ctx: {}
       };
 
-      // Add meta information
       if (question.ai_context?.include_meta) {
         question.ai_context.include_meta.forEach(metaId => {
           const metaQuestion = metaQuestions?.find(q => q.id === metaId);
@@ -519,7 +442,6 @@ const QuestionSection = () => {
         });
       }
 
-      // Add context answers
       if (question.ai_context?.include_answers) {
         question.ai_context.include_answers.forEach(answerId => {
           if (answers[answerId]) {
@@ -528,7 +450,6 @@ const QuestionSection = () => {
         });
       }
 
-      // Add location context
       const locationAnswer = getLocationAnswer();
       if (locationAnswer) {
         payload.meta['MET.LOC'] = locationAnswer;
@@ -536,9 +457,7 @@ const QuestionSection = () => {
 
       const response = await fetch(apiKey, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
@@ -547,34 +466,80 @@ const QuestionSection = () => {
       }
 
       const data = await response.json();
+      return data.score !== undefined ? data.score : null;
 
-      if (data.score !== undefined) {
-        const newScores = { ...scores, [question.id]: data.score };
-        
-        // Update scores and states
-        setScores(newScores);
-
-        // Update question state and trigger cascade updates
-        const newState = getQuestionState(question, answers, newScores, questionStates);
-        updateQuestionState(question.id, newState);
-        
-        // If this question just became fully answered, trigger cascade updates
-        if (newState === 'fully_answered' && !isReevaluation) {
-          await cascadeUpdateDependents(question.id);
-        }
-
-        // Apply calculations if any
-        if (calculations && calculations.length > 0) {
-          const calculatedScores = applyCalculations(newScores, calculations);
-          setScores(calculatedScores);
-        }
-      }
     } catch (error) {
       console.error('Error evaluating answer:', error);
       alert('Error evaluating answer. Please try again.');
+      return null;
     } finally {
       setLoading(prev => ({ ...prev, [key]: false }));
     }
+  };
+
+  const handleSubmitAndResolveDependencies = async (si, qi) => {
+    const initialQuestion = sections[si]?.questions[qi];
+    if (!initialQuestion) return;
+
+    console.log(`--- [Orchestrator] Starting evaluation for ${initialQuestion.id} ---`);
+
+    const initialScore = await evaluateAnswer(si, qi);
+    if (initialScore === null) return;
+
+    let currentScores = { ...scores, [initialQuestion.id]: initialScore };
+    let currentStates = { ...questionStates };
+    
+    currentStates = computeAllStates(currentScores, currentStates);
+
+    let reevaluatedInPass = true;
+    let passes = 0;
+    const maxPasses = 10;
+
+    while (reevaluatedInPass && passes < maxPasses) {
+      passes++;
+      reevaluatedInPass = false;
+      console.log(`--- [Orchestrator] Loop Pass ${passes} ---`);
+
+      let questionToReevaluate = null;
+      let reeval_si = -1, reeval_qi = -1;
+
+      for (let i = 0; i < sections.length; i++) {
+        for (let j = 0; j < sections[i].questions.length; j++) {
+          const q = sections[i].questions[j];
+          const hasAnswer = answers[q.id] && answers[q.id] !== '';
+          const state = currentStates[q.id] || 'unanswered';
+          
+          if (hasAnswer && state !== 'fully_answered') {
+            const dependencies = getQuestionDependencies(q);
+            const allDepsMet = dependencies.every(depId => currentStates[depId] === 'fully_answered');
+            if (allDepsMet) {
+              questionToReevaluate = q;
+              reeval_si = i;
+              reeval_qi = j;
+              break;
+            }
+          }
+        }
+        if (questionToReevaluate) break;
+      }
+
+      if (questionToReevaluate) {
+        console.log(`[Orchestrator] Re-evaluating ${questionToReevaluate.id}`);
+        const newScore = await evaluateAnswer(reeval_si, reeval_qi);
+        if (newScore !== null) {
+          currentScores[questionToReevaluate.id] = newScore;
+          currentStates = computeAllStates(currentScores, currentStates);
+          reevaluatedInPass = true;
+        }
+      }
+    }
+
+    console.log('[Orchestrator] Loop finished. Committing final state.');
+    if (calculations && calculations.length > 0) {
+      currentScores = applyCalculations(currentScores, calculations);
+    }
+    setScores(currentScores);
+    setQuestionStates(currentStates);
   };
 
   if (contextLoading) {
@@ -691,7 +656,7 @@ const QuestionSection = () => {
                 
                 <button
                   disabled={loading[key] || !answers[q.id]}
-                  onClick={() => evaluateAnswer(si, qi)}
+                  onClick={() => handleSubmitAndResolveDependencies(si, qi)}
                   style={{
                     marginTop: 16,
                     padding: '10px 20px',
