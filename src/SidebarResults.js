@@ -32,7 +32,7 @@ import { AppContext } from './App';
  * @role {Sidebar UI} - Provides fixed sidebar interface
  */
 const SidebarResults = () => {
-  const { questionSetId, sections, answers, scores, calculations, questionStates, setAnswers, setScores, setQuestionStates } = useContext(AppContext);
+  const { questionSetId, sections, answers, scores, calculations, questionStates, setAnswers, setScores, setQuestionStates, explanations, setExplanations } = useContext(AppContext);
   const [clearState, setClearState] = useState(0); // 0: idle, 1: first press, 2: second press
   const [clearTimer, setClearTimer] = useState(null);
 
@@ -51,6 +51,7 @@ const SidebarResults = () => {
       answers,
       scores,
       questionStates,
+      explanations,
       savedAt: new Date().toISOString(),
     };
     const blob = new Blob([JSON.stringify(dataToSave, null, 2)], { type: 'application/json' });
@@ -80,6 +81,8 @@ const SidebarResults = () => {
           setAnswers(data.answers);
           setScores(data.scores);
           setQuestionStates(data.questionStates);
+          // Explanations might not exist in older save files, so handle this gracefully
+          setExplanations(data.explanations || {});
           alert('Successfully loaded data from file!');
         } else {
           throw new Error('Invalid file format.');
@@ -117,10 +120,12 @@ const SidebarResults = () => {
       setAnswers({});
       setScores({});
       setQuestionStates({});
+      setExplanations({});
       if (questionSetId) {
         localStorage.removeItem(`qna-evaluator-answers-${questionSetId}`);
         localStorage.removeItem(`qna-evaluator-scores-${questionSetId}`);
         localStorage.removeItem(`qna-evaluator-questionStates-${questionSetId}`);
+        localStorage.removeItem(`qna-evaluator-explanations-${questionSetId}`);
       }
       setClearState(0);
       setClearTimer(null);

@@ -76,7 +76,7 @@ export default async (req, res) => {
   }
 
   try {
-    const { system, prompt_add, meta, question, answer, answers_ctx } = req.body;
+    const { system, additional_context, meta, question, answer, answers_ctx } = req.body;
 
     // Validate required fields
     if (!system || !question || !answer) {
@@ -95,10 +95,28 @@ export default async (req, res) => {
 
     // Build the prompt
     let fullPrompt = system;
-    if (prompt_add) fullPrompt += `\n\n${prompt_add}`;
+
+    if (meta && Object.keys(meta).length > 0) {
+      fullPrompt += '\n\nBusiness Context:\n';
+      for (const [key, value] of Object.entries(meta)) {
+        fullPrompt += `- ${key}: ${value}\n`;
+      }
+    }
+
+    if (answers_ctx && Object.keys(answers_ctx).length > 0) {
+      fullPrompt += '\n\nAdditional Answer Context:\n';
+      for (const [key, value] of Object.entries(answers_ctx)) {
+        fullPrompt += `- ${key}: ${value}\n`;
+      }
+    }
+
+    if (additional_context) fullPrompt += `\n\nAdditional Context: ${additional_context}`;
     fullPrompt += `\n\nQuestion: ${question.text}`;
-    fullPrompt += `\nAnswer: ${answer.value}`;
-    fullPrompt += '\n\nPlease evaluate this answer and return a score from 0 to 100, where 0 is extremely high risk and 100 is extremely low risk. Return only a JSON object with a "score" field.';
+    fullPrompt += `\nAnswer: ${JSON.stringify(answer)}`;
+    fullPrompt += '\n\nPlease evaluate this answer. Return ONLY a single JSON object with two fields: "score" (a number from 0 to 100, where 0 is high risk and 100 is low risk) and "explanation" (a detailed rationale for the score, referencing business location and type if provided).';
+
+    console.log('--- OpenAI Payload ---');
+    console.log(JSON.stringify(req.body, null, 2));
 
     // Call OpenAI API
     const openaiResponse = await axios.post(
@@ -108,7 +126,7 @@ export default async (req, res) => {
         messages: [
           {
             role: 'system',
-            content: 'You are an expert business evaluator. Return only a JSON object with a "score" field.'
+            content: 'You are an expert business evaluator. Your response must be a single JSON object with "score" and "explanation" fields.'
           },
           {
             role: 'user',
@@ -128,34 +146,44 @@ export default async (req, res) => {
 
     const aiResponse = openaiResponse.data.choices[0].message.content;
     
-    // Parse the score
-    let score;
+    console.log('--- Raw AI Response ---');
+    console.log(aiResponse);
+    console.log('-----------------------');
+
+    // Parse the response
+    let score, explanation;
     try {
-      const jsonMatch = aiResponse.match(/\{.*\}/);
+      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
         score = parsed.score;
+        explanation = parsed.explanation;
       } else {
+        // Fallback for non-JSON response, try to find a number
         const numberMatch = aiResponse.match(/\b\d+\b/);
         score = numberMatch ? parseInt(numberMatch[0]) : null;
+        explanation = 'Could not parse explanation.';
       }
     } catch (parseError) {
       score = null;
+      explanation = 'Failed to parse AI response.';
     }
 
     if (score === null || score === undefined || isNaN(score)) {
       return res.status(500).json({
-        error: 'Failed to extract valid score from AI response'
+        error: 'Failed to extract valid score from AI response',
+        details: aiResponse
       });
     }
 
     score = Math.max(0, Math.min(100, score));
-    res.json({ score: score });
+    res.json({ score, explanation });
 
   } catch (error) {
-    console.error('Evaluation error:', error);
+    console.error('Evaluation error:', error.response ? error.response.data : error.message);
     res.status(500).json({
-      error: 'Failed to evaluate answer. Please try again.'
+      error: 'Failed to evaluate answer. Please try again.',
+      details: error.message
     });
   }
 };

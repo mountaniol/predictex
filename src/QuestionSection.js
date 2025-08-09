@@ -78,11 +78,21 @@ const QuestionSection = () => {
     scores,
     setScores,
     questionStates,
-    setQuestionStates
+    setQuestionStates,
+    explanations,
+    setExplanations
   } = context || {};
 
   const [loading, setLoading] = useState({});
   const [depWarnings, setDepWarnings] = useState({});
+  const [expandedExplanations, setExpandedExplanations] = useState({});
+
+  const toggleExplanation = (questionId) => {
+    setExpandedExplanations(prev => ({
+      ...prev,
+      [questionId]: !prev[questionId]
+    }));
+  };
 
   const computeAllStates = (currentScores, currentStates) => {
     const newStates = { ...currentStates };
@@ -156,9 +166,11 @@ const QuestionSection = () => {
 
         if (questionToReevaluate) {
           console.log(`[Startup] Re-evaluating ${questionToReevaluate.id}`);
-          const newScore = await evaluateAnswer(reeval_si, reeval_qi);
-          if (newScore !== null) {
-            currentScores[questionToReevaluate.id] = newScore;
+          const evalResult = await evaluateAnswer(reeval_si, reeval_qi);
+          if (evalResult && evalResult.score !== null) {
+            currentScores[questionToReevaluate.id] = evalResult.score;
+            // Assuming explanations should also be updated during startup check
+            // If you have a separate state for explanations, update it here.
             currentStates = computeAllStates(currentScores, currentStates);
             reevaluatedInPass = true;
           }
@@ -230,6 +242,44 @@ const QuestionSection = () => {
       return `${question.id} [${dependencies.join(', ')}]: ${question.text}`;
     }
     return `${question.id}: ${question.text}`;
+  };
+
+  const findQuestionById = (id) => {
+    if (!sections || !metaQuestions) return null;
+    // Check in regular questions
+    for (const section of sections) {
+      const question = section.questions.find(q => q.id === id);
+      if (question) return question;
+    }
+    // Check in meta questions
+    const metaQuestion = metaQuestions.find(q => q.id === id);
+    if (metaQuestion) return metaQuestion;
+    
+    return null;
+  };
+
+  const getReadableAnswer = (question, answerValue) => {
+    if (!question || answerValue === undefined || answerValue === null || answerValue === '') {
+      return answerValue;
+    }
+
+    if (question.question_type === 'yes-no') {
+      return answerValue === 'yes' ? (labels?.yes || 'Yes') : (labels?.no || 'No');
+    }
+
+    if (Array.isArray(answerValue) && question.options) { // choice-multi
+      return answerValue.map(val => {
+        const option = question.options.find(opt => opt.code === val);
+        return option ? option.label : val;
+      }).join(', ');
+    }
+    
+    if (question.options) { // choice-single
+      const option = question.options.find(opt => opt.code === answerValue);
+      return option ? option.label : answerValue;
+    }
+
+    return answerValue; // For text, number, etc.
   };
 
   /**
@@ -427,34 +477,44 @@ const QuestionSection = () => {
 
       const payload = {
         system: aiPrompt,
-        prompt_add: question.prompt_add || '',
+        additional_context: question.prompt_add || '',
         meta: {},
         question: { id: question.id, text: question.text },
-        answer: { value: answers[question.id], extra: {}, other_text: '' },
+        answer: getReadableAnswer(question, answers[question.id]),
         answers_ctx: {}
       };
 
       if (question.ai_context?.include_meta) {
         question.ai_context.include_meta.forEach(metaId => {
-          const metaQuestion = metaQuestions?.find(q => q.id === metaId);
+          const metaQuestion = findQuestionById(metaId);
           if (metaQuestion && answers[metaId]) {
-            payload.meta[metaId] = answers[metaId];
+            payload.meta[metaQuestion.text] = getReadableAnswer(metaQuestion, answers[metaId]);
           }
         });
       }
 
       if (question.ai_context?.include_answers) {
         question.ai_context.include_answers.forEach(answerId => {
-          if (answers[answerId]) {
-            payload.answers_ctx[answerId] = answers[answerId];
+          const ctxQuestion = findQuestionById(answerId);
+          if (ctxQuestion && answers[answerId]) {
+            payload.answers_ctx[ctxQuestion.text] = getReadableAnswer(ctxQuestion, answers[answerId]);
           }
         });
       }
 
       const locationAnswer = getLocationAnswer();
       if (locationAnswer) {
-        payload.meta['MET.LOC'] = locationAnswer;
+        const locationQuestion = findQuestionById('MET.LOC');
+        if (locationQuestion) {
+          payload.meta[locationQuestion.text] = locationAnswer;
+        } else {
+          payload.meta['Business Location'] = locationAnswer;
+        }
       }
+
+      console.log('--- Frontend Payload ---');
+      console.log(JSON.stringify(payload, null, 2));
+      console.log('------------------------');
 
       const response = await fetch(apiKey, {
         method: 'POST',
@@ -467,7 +527,7 @@ const QuestionSection = () => {
       }
 
       const data = await response.json();
-      return data.score !== undefined ? data.score : null;
+      return (data.score !== undefined && data.explanation !== undefined) ? data : null;
 
     } catch (error) {
       console.error('Error evaluating answer:', error);
@@ -484,10 +544,11 @@ const QuestionSection = () => {
 
     console.log(`--- [Orchestrator] Starting evaluation for ${initialQuestion.id} ---`);
 
-    const initialScore = await evaluateAnswer(si, qi);
-    if (initialScore === null) return;
+    const initialEvalResult = await evaluateAnswer(si, qi);
+    if (!initialEvalResult || initialEvalResult.score === null) return;
 
-    let currentScores = { ...scores, [initialQuestion.id]: initialScore };
+    let currentScores = { ...scores, [initialQuestion.id]: initialEvalResult.score };
+    let currentExplanations = { ...explanations, [initialQuestion.id]: initialEvalResult.explanation };
     let currentStates = { ...questionStates };
     
     currentStates = computeAllStates(currentScores, currentStates);
@@ -527,9 +588,10 @@ const QuestionSection = () => {
 
       if (questionToReevaluate) {
         console.log(`[Orchestrator] Re-evaluating ${questionToReevaluate.id}`);
-        const newScore = await evaluateAnswer(reeval_si, reeval_qi);
-        if (newScore !== null) {
-          currentScores[questionToReevaluate.id] = newScore;
+        const newEvalResult = await evaluateAnswer(reeval_si, reeval_qi);
+        if (newEvalResult && newEvalResult.score !== null) {
+          currentScores[questionToReevaluate.id] = newEvalResult.score;
+          currentExplanations[questionToReevaluate.id] = newEvalResult.explanation;
           currentStates = computeAllStates(currentScores, currentStates);
           reevaluatedInPass = true;
         }
@@ -541,6 +603,7 @@ const QuestionSection = () => {
       currentScores = applyCalculations(currentScores, calculations);
     }
     setScores(currentScores);
+    setExplanations(currentExplanations);
     setQuestionStates(currentStates);
   };
 
@@ -656,41 +719,79 @@ const QuestionSection = () => {
                   setAnswers={setAnswers} // Pass setAnswers directly
                 />
                 
-                <button
-                  disabled={loading[key] || !answers[q.id]}
-                  onClick={() => handleSubmitAndResolveDependencies(si, qi)}
-                  style={{
-                    marginTop: 16,
-                    padding: '10px 20px',
-                    backgroundColor: '#3498db',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: 6,
-                    cursor: loading[key] || !answers[q.id] ? 'not-allowed' : 'pointer',
-                    opacity: loading[key] || !answers[q.id] ? 0.6 : 1
-                  }}
-                >
-                  {loading[key]
-                    ? 'Evaluating...'
-                    : scores[q.id]
-                    ? 'Re-evaluate'
-                    : 'Submit'}
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: 16 }}>
+                  <button
+                    disabled={loading[key] || !answers[q.id]}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSubmitAndResolveDependencies(si, qi);
+                    }}
+                    style={{
+                      padding: '10px 20px',
+                      backgroundColor: '#3498db',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 6,
+                      cursor: loading[key] || !answers[q.id] ? 'not-allowed' : 'pointer',
+                      opacity: loading[key] || !answers[q.id] ? 0.6 : 1
+                    }}
+                  >
+                    {loading[key]
+                      ? 'Evaluating...'
+                      : scores[q.id]
+                      ? 'Re-evaluate'
+                      : 'Submit'}
+                  </button>
+                  
+                  {scores[q.id] !== undefined && (
+                    <div style={{ marginLeft: 16, display: 'flex', alignItems: 'center' }}>
+                      <span>
+                        Score: {scores[q.id]}
+                      </span>
+                      <span style={{ 
+                        marginLeft: 8, 
+                        fontSize: '12px',
+                        padding: '2px 6px',
+                        borderRadius: '3px',
+                        backgroundColor: questionStates[q.id] === 'fully_answered' ? '#27ae60' : '#f39c12',
+                        color: 'white'
+                      }}>
+                        {questionStates[q.id] === 'fully_answered' ? '✓ Fully' : '⚠ Partly'}
+                      </span>
+                      {explanations[q.id] && (
+                        <button 
+                          onClick={() => toggleExplanation(q.id)}
+                          style={{
+                            marginLeft: 10,
+                            padding: '2px 8px',
+                            fontSize: '12px',
+                            backgroundColor: '#ecf0f1',
+                            color: '#2c3e50',
+                            border: '1px solid #bdc3c7',
+                            borderRadius: '3px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {expandedExplanations[q.id] ? 'Collapse' : 'Explain'}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
                 
-                {scores[q.id] !== undefined && (
-                  <span style={{ marginLeft: 16 }}>
-                    Score: {scores[q.id]}
-                    <span style={{ 
-                      marginLeft: 8, 
-                      fontSize: '12px',
-                      padding: '2px 6px',
-                      borderRadius: '3px',
-                      backgroundColor: questionStates[q.id] === 'fully_answered' ? '#27ae60' : '#f39c12',
-                      color: 'white'
-                    }}>
-                      {questionStates[q.id] === 'fully_answered' ? '✓ Fully' : '⚠ Partly'}
-                    </span>
-                  </span>
+                {expandedExplanations[q.id] && explanations[q.id] && (
+                  <div style={{
+                    marginTop: '16px',
+                    padding: '12px',
+                    backgroundColor: '#f8f9fa',
+                    border: '1px solid #e9ecef',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#2c3e50',
+                    lineHeight: '1.6'
+                  }}>
+                    {explanations[q.id]}
+                  </div>
                 )}
               </div>
             );

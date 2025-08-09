@@ -635,7 +635,7 @@
       "question_type": "yes-no",
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG14"] },
       "related_to": ["SG14"],
-      "prompt_add": "Good: ≤1% write-offs with reasonable DSO. Red: high write-offs and long DSO; check mismatch if DSO long but write-offs claimed low."
+      "prompt_add": "Good: ≤1% write-offs with reasonable DSO. Red: high write-offs and long DSO; check mismatch if DSO long but write-offs claimed low. Also, try to search information regarding this type of business in the given place, and condinsider it in your scoring. In your answer expand explanation, explain what is normal for this type of business in this area."
     },
     {
       "id": "SG16",

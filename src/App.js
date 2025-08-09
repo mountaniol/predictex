@@ -96,6 +96,16 @@ function App() {
     }
   });
 
+  const [explanations, setExplanations] = useState(() => {
+    try {
+      const savedExplanations = localStorage.getItem(`qna-evaluator-explanations-${questionSetId}`);
+      return savedExplanations ? JSON.parse(savedExplanations) : {};
+    } catch (error) {
+      console.warn('Failed to load explanations from localStorage:', error);
+      return {};
+    }
+  });
+
   // Log context values
   useEffect(() => {
     console.log('[App.js] Context Provider value updated:', {
@@ -105,8 +115,9 @@ function App() {
       answersCount: Object.keys(answers).length,
       scoresCount: Object.keys(scores).length,
       statesCount: Object.keys(questionStates).length,
+      explanationsCount: Object.keys(explanations).length,
     });
-  }, [loading, sections, metaQuestions, answers, scores, questionStates]);
+  }, [loading, sections, metaQuestions, answers, scores, questionStates, explanations]);
 
   // Save data to localStorage whenever it changes
   useEffect(() => {
@@ -139,6 +150,16 @@ function App() {
     }
   }, [questionStates, questionSetId]);
 
+  useEffect(() => {
+    if (questionSetId) {
+      try {
+        localStorage.setItem(`qna-evaluator-explanations-${questionSetId}`, JSON.stringify(explanations));
+      } catch (error) {
+        console.warn('Failed to save explanations to localStorage:', error);
+      }
+    }
+  }, [explanations, questionSetId]);
+
   // Add event listener to save data before page unload
   useEffect(() => {
     const handleBeforeUnload = () => {
@@ -147,6 +168,7 @@ function App() {
           localStorage.setItem(`qna-evaluator-answers-${questionSetId}`, JSON.stringify(answers));
           localStorage.setItem(`qna-evaluator-scores-${questionSetId}`, JSON.stringify(scores));
           localStorage.setItem(`qna-evaluator-questionStates-${questionSetId}`, JSON.stringify(questionStates));
+          localStorage.setItem(`qna-evaluator-explanations-${questionSetId}`, JSON.stringify(explanations));
         } catch (error) {
           console.warn('Failed to save data before unload:', error);
         }
@@ -155,7 +177,7 @@ function App() {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [answers, scores, questionStates, questionSetId]);
+  }, [answers, scores, questionStates, explanations, questionSetId]);
 
   return (
     <AppContext.Provider value={{
@@ -174,7 +196,9 @@ function App() {
       scores,
       setScores,
       questionStates,
-      setQuestionStates
+      setQuestionStates,
+      explanations,
+      setExplanations
     }}>
       <div style={{
         minHeight: "100vh",
