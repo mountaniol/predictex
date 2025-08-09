@@ -1,3 +1,12 @@
+/**
+ * @file This file defines the core QuestionSection component of the QnA Evaluator application.
+ * @summary It handles the rendering of all questions (both meta and standard), manages user input,
+ * orchestrates the AI evaluation process, and implements the complex logic for handling
+ * question dependencies and cascading re-evaluations.
+ * @version 1.1.0
+ * @author Predictex AI
+ */
+
 import React, { useContext, useState } from 'react';
 import { AppContext } from './App';
 import AnswerInput from './AnswerInput';
@@ -51,6 +60,7 @@ import MetaQuestionsSection from './MetaQuestionsSection';
  * @workflow {4} Validates dependencies before evaluation
  * @workflow {5} Calls AI evaluation API
  * @workflow {6} Updates scores and applies calculations
+ * @workflow {7} Manages cascading re-evaluation of dependent questions.
  */
 const QuestionSection = () => {
   const context = useContext(AppContext);
@@ -145,9 +155,9 @@ const QuestionSection = () => {
    * 
    * @role {State Determiner} - Determines current state of a question
    */
-  const getQuestionState = (question) => {
-    const hasAnswer = answers[question.id] && answers[question.id] !== '';
-    const hasScore = scores[question.id] !== undefined;
+  const getQuestionState = (question, currentAnswers, currentScores, currentStates) => {
+    const hasAnswer = currentAnswers[question.id] && currentAnswers[question.id] !== '';
+    const hasScore = currentScores[question.id] !== undefined;
     const dependencies = getQuestionDependencies(question);
     
     if (!hasAnswer) {
@@ -161,7 +171,7 @@ const QuestionSection = () => {
     
     // Check if all dependencies are fully answered
     const allDependenciesFullyAnswered = dependencies.every(depId => 
-      questionStates[depId] === 'fully_answered'
+      currentStates[depId] === 'fully_answered'
     );
     
     if (allDependenciesFullyAnswered && hasScore) {
@@ -237,7 +247,7 @@ const QuestionSection = () => {
     const dependents = findDependentQuestions(questionId);
     
     for (const dependent of dependents) {
-      const currentState = getQuestionState(dependent);
+      const currentState = getQuestionState(dependent, answers, scores, questionStates);
       
       if (currentState === 'partially_answered') {
         // Check if all dependencies are now fully answered
@@ -302,23 +312,25 @@ const QuestionSection = () => {
     // Handle follow-up data
     if (value && typeof value === 'object' && value.followUpData) {
       // This is follow-up data, update both main answer and follow-up
-      setAnswers(prev => {
-        const newAnswers = {
-          ...prev,
-          [question.id]: value.mainValue,
-          ...value.followUpData
-        };
-        return newAnswers;
-      });
+      const newAnswers = {
+        ...answers,
+        [question.id]: value.mainValue,
+        ...value.followUpData
+      };
+      setAnswers(newAnswers);
+      // Update question state after answer change
+      const newState = getQuestionState(question, newAnswers, scores, questionStates);
+      updateQuestionState(question.id, newState);
     } else {
       // Regular answer change
-      setAnswers(prev => {
-        const newAnswers = {
-          ...prev,
-          [question.id]: value
-        };
-        return newAnswers;
-      });
+      const newAnswers = {
+        ...answers,
+        [question.id]: value
+      };
+      setAnswers(newAnswers);
+      // Update question state after answer change
+      const newState = getQuestionState(question, newAnswers, scores, questionStates);
+      updateQuestionState(question.id, newState);
     }
 
     // Clear dependency warning for this question when answer changes
@@ -328,10 +340,6 @@ const QuestionSection = () => {
         [question.id]: undefined
       }));
     }
-
-    // Update question state after answer change
-    const newState = getQuestionState(question);
-    updateQuestionState(question.id, newState);
   };
 
   /**
@@ -364,14 +372,7 @@ const QuestionSection = () => {
       }
     }
     
-    // Fallback to legacy format
-    const locationSection = sections.find(s => s.title === 'Location Information');
-    if (locationSection) {
-      const locationQuestion = locationSection.questions.find(q => q.id === 'LOCATION');
-      if (locationQuestion) {
-        return answers[locationQuestion.id] || '';
-      }
-    }
+    // Fallback to legacy format is removed as the structure is standardized.
     return '';
   };
 
@@ -496,35 +497,24 @@ const QuestionSection = () => {
       const data = await response.json();
 
       if (data.score !== undefined) {
-        setScores(prev => ({
-          ...prev,
-          [question.id]: data.score
-        }));
-
-        // Clear dependency warning on successful evaluation
-        if (depWarnings[question.id]) {
-          setDepWarnings(prev => ({
-            ...prev,
-            [question.id]: undefined
-          }));
-        }
-
-        // Apply calculations if any
-        if (calculations && calculations.length > 0) {
-          const newScores = applyCalculations(
-            { ...scores, [question.id]: data.score },
-            calculations
-          );
-          setScores(newScores);
-        }
+        const newScores = { ...scores, [question.id]: data.score };
+        
+        // Update scores and states
+        setScores(newScores);
 
         // Update question state and trigger cascade updates
-        const newState = getQuestionState(question);
+        const newState = getQuestionState(question, answers, newScores, questionStates);
         updateQuestionState(question.id, newState);
         
         // If this question just became fully answered, trigger cascade updates
         if (newState === 'fully_answered' && !isReevaluation) {
           await cascadeUpdateDependents(question.id);
+        }
+
+        // Apply calculations if any
+        if (calculations && calculations.length > 0) {
+          const calculatedScores = applyCalculations(newScores, calculations);
+          setScores(calculatedScores);
         }
       }
     } catch (error) {
