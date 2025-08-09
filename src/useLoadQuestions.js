@@ -41,7 +41,35 @@ const useLoadQuestions = () => {
         const data = await response.json();
         console.log('[useLoadQuestions] Data fetched successfully.', data);
 
-        setSections(data.sections || []);
+        // Group questions by cluster_name to create sections
+        const questions = data.questions || [];
+        const clusterOrder = new Map();
+        const groupedQuestions = questions.reduce((acc, question, index) => {
+          const clusterName = question.cluster_name || 'Other';
+          if (!acc[clusterName]) {
+            acc[clusterName] = [];
+            clusterOrder.set(clusterName, index); // Preserve original order of clusters
+          }
+          acc[clusterName].push(question);
+          return acc;
+        }, {});
+
+        // Sort questions within each cluster by position
+        Object.keys(groupedQuestions).forEach(clusterName => {
+          groupedQuestions[clusterName].sort((a, b) => 
+            (a.position_in_cluster || 0) - (b.position_in_cluster || 0)
+          );
+        });
+
+        // Create the final sections array, respecting the original order
+        const sectionsArray = Array.from(clusterOrder.entries())
+          .sort((a, b) => a[1] - b[1])
+          .map(([clusterName]) => ({
+            title: clusterName,
+            questions: groupedQuestions[clusterName]
+          }));
+
+        setSections(sectionsArray);
         setMetaQuestions(data.meta_questions || []);
         setCalculations(data.calculations || []);
         setAiPrompt(data.system_prompt || '');
