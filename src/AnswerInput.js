@@ -205,10 +205,10 @@ const AnswerInput = ({ q, value, onChange, onBlur, labels, answers, setAnswers }
             const newSelected = selectedOptions.includes(optionCode)
                 ? selectedOptions.filter(item => item !== optionCode)
                 : [...selectedOptions, optionCode];
-            onChange(newSelected, false);
+            onChange(newSelected, true); // Always submit on change for multi-choice
         };
         return (
-            <div onBlur={onBlur}>
+            <div>
                 {q.options?.map((option) => (
                     <label key={option.code} style={{ display: 'block', marginBottom: 8 }}>
                         <input

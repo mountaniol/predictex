@@ -59,6 +59,7 @@ const QuestionSection = () => {
   const [expandedExplanations, setExpandedExplanations] = useState({});
   const [submissionTrigger, setSubmissionTrigger] = useState(null);
   const startupCheckHasRun = useRef(false);
+  const [evaluating, setEvaluating] = useState({});
 
   // --- START: UTILITY AND HELPER FUNCTIONS ---
 
@@ -157,6 +158,9 @@ const QuestionSection = () => {
 
     let currentScores = { ...scores };
     let currentExplanations = { ...explanations };
+    
+    const evaluationIds = initialQuestions.map(({question}) => question.id);
+    setEvaluating(prev => ({ ...prev, ...evaluationIds.reduce((acc, id) => ({ ...acc, [id]: true }), {}) }));
 
     for(const {question} of initialQuestions) {
       const result = await evaluateAnswer(question);
@@ -165,6 +169,12 @@ const QuestionSection = () => {
         currentExplanations[question.id] = result.explanation;
       }
     }
+
+    setEvaluating(prev => {
+      const newEvaluating = { ...prev };
+      evaluationIds.forEach(id => delete newEvaluating[id]);
+      return newEvaluating;
+    });
 
     let currentStates = computeAllStates(currentScores, questionStates);
     let reevaluatedInPass = true;
@@ -177,7 +187,13 @@ const QuestionSection = () => {
 
       if (reevalInfo) {
         const { question: questionToReevaluate } = reevalInfo;
+        setEvaluating(prev => ({ ...prev, [questionToReevaluate.id]: true }));
         const result = await evaluateAnswer(questionToReevaluate);
+        setEvaluating(prev => {
+          const newEvaluating = { ...prev };
+          delete newEvaluating[questionToReevaluate.id];
+          return newEvaluating;
+        });
         if (result) {
           currentScores[questionToReevaluate.id] = result.score;
           currentExplanations[questionToReevaluate.id] = result.explanation;
@@ -248,7 +264,13 @@ const QuestionSection = () => {
 
       if (reevalInfo) {
         const { question: questionToReevaluate } = reevalInfo;
+        setEvaluating(prev => ({ ...prev, [questionToReevaluate.id]: true }));
         const result = await evaluateAnswer(questionToReevaluate);
+        setEvaluating(prev => {
+          const newEvaluating = { ...prev };
+          delete newEvaluating[questionToReevaluate.id];
+          return newEvaluating;
+        });
         if (result) {
           currentScores[questionToReevaluate.id] = result.score;
           currentStates = computeAllStates(currentScores, currentStates);
@@ -341,7 +363,20 @@ const QuestionSection = () => {
                   labels={labels} answers={answers} setAnswers={setAnswers}
                 />
                 <div style={{ display: 'flex', alignItems: 'center', marginTop: 16 }}>
-                  {scores[q.id] !== undefined && (
+                  {evaluating[q.id] ? (
+                    <div 
+                      style={{
+                        padding: '4px 10px',
+                        border: '1px solid transparent',
+                        boxShadow: '0 0 0 1px #ccc',
+                        borderRadius: '12px',
+                        fontSize: '14px',
+                        color: '#777'
+                      }}
+                    >
+                      Thinking...
+                    </div>
+                  ) : scores[q.id] !== undefined && (
                     <div style={{ marginLeft: 0, display: 'flex', alignItems: 'center' }}>
                       <div 
                         style={{
