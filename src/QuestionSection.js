@@ -7,7 +7,7 @@
  * @author Predictex AI
  */
 
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { AppContext } from './App';
 import AnswerInput from './AnswerInput';
 import MetaQuestionsSection from './MetaQuestionsSection';
@@ -83,6 +83,68 @@ const QuestionSection = () => {
 
   const [loading, setLoading] = useState({});
   const [depWarnings, setDepWarnings] = useState({});
+
+  /**
+   * @brief Effect to run a comprehensive check on component mount.
+   * @description This effect runs once after the initial render. It performs two key tasks:
+   * 1.  It recalculates the state of every single question based on the latest loaded data
+   *     to ensure consistency after a page reload or changes in logic.
+   * 2.  It then triggers re-evaluation for any questions that are 'partially_answered'
+   *     but now have all their dependencies met (i.e., are 'fully_answered').
+   * This ensures the application state is always consistent and up-to-date on startup.
+   */
+  useEffect(() => {
+    // Ensure this runs only once after initial data is loaded.
+    if (!sections || sections.length === 0 || contextLoading) {
+      return;
+    }
+
+    const runStartupCheck = async () => {
+      // Step 1: Recalculate all question states to ensure consistency.
+      const newStates = { ...questionStates };
+      let statesChanged = false;
+      sections.forEach(section => {
+        section.questions.forEach(question => {
+          const currentState = questionStates[question.id] || 'unanswered';
+          const correctState = getQuestionState(question, answers, scores, questionStates);
+          if (currentState !== correctState) {
+            newStates[question.id] = correctState;
+            statesChanged = true;
+          }
+        });
+      });
+
+      if (statesChanged) {
+        setQuestionStates(newStates);
+      }
+
+      // Step 2: Trigger re-evaluation for questions ready to be fully evaluated.
+      for (const section of sections) {
+        for (const question of section.questions) {
+          // Use the potentially updated states (newStates) for this check.
+          const state = newStates[question.id] || 'unanswered';
+          if (state === 'partially_answered') {
+            const dependencies = getQuestionDependencies(question);
+            const allDependenciesMet = dependencies.every(
+              depId => newStates[depId] === 'fully_answered'
+            );
+
+            if (allDependenciesMet) {
+              const si = sections.findIndex(s => s.title === section.title);
+              const qi = section.questions.findIndex(q => q.id === question.id);
+              if (si !== -1 && qi !== -1) {
+                // This question is ready for re-evaluation.
+                await evaluateAnswer(si, qi, true); // Pass true for isReevaluation
+              }
+            }
+          }
+        }
+      }
+    };
+
+    runStartupCheck();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contextLoading, sections]); // Rerun if sections or loading state changes.
 
   /**
    * @brief Generates unique key for question identification
