@@ -43,7 +43,7 @@ import AnswerInput from './AnswerInput';
  */
 const MetaQuestionsSection = () => {
   const context = useContext(AppContext);
-  const { metaQuestions, answers, setAnswers, labels, questionStates, setQuestionStates } = context || {};
+  const { metaQuestions, answers, setAnswers, labels, setQuestionStates } = context || {};
 
   if (!metaQuestions || metaQuestions.length === 0) {
     return null;

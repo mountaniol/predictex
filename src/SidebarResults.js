@@ -32,7 +32,7 @@ import { AppContext } from './App';
  * @role {Sidebar UI} - Provides fixed sidebar interface
  */
 const SidebarResults = () => {
-  const { sections, answers, scores, calculations } = useContext(AppContext);
+  const { sections, answers, scores, calculations, questionStates } = useContext(AppContext);
 
   // Apply calculation rules to get computed scores
   const computedScores = useMemo(() => {
@@ -96,6 +96,8 @@ const SidebarResults = () => {
         averageScore: 0,
         totalQuestions: 0,
         evaluatedQuestions: 0,
+        fullyEvaluated: 0,
+        partlyEvaluated: 0,
         riskLevel: 'Unknown',
         riskColor: '#999',
         riskDescription: 'No evaluations completed'
@@ -105,6 +107,10 @@ const SidebarResults = () => {
     const averageScore = allScores.reduce((sum, score) => sum + score, 0) / allScores.length;
     const totalQuestions = sections.reduce((sum, section) => sum + section.questions.length, 0);
     const evaluatedQuestions = allScores.length;
+    
+    // Calculate new metrics
+    const fullyEvaluated = Object.values(questionStates).filter(state => state === 'fully_answered').length;
+    const partlyEvaluated = Object.values(questionStates).filter(state => state === 'partially_answered').length;
 
     // Determine risk level
     let riskLevel, riskColor, riskDescription;
@@ -134,11 +140,13 @@ const SidebarResults = () => {
       averageScore: Math.round(averageScore * 10) / 10,
       totalQuestions,
       evaluatedQuestions,
+      fullyEvaluated,
+      partlyEvaluated,
       riskLevel,
       riskColor,
       riskDescription
     };
-  }, [computedScores, sections]);
+  }, [computedScores, sections, questionStates]);
 
   // Check if user has completed the evaluation
   const hasCompletedEvaluation = Object.keys(answers).length > 0 && 
@@ -151,7 +159,7 @@ const SidebarResults = () => {
   return (
     <div style={{
       position: 'sticky',
-      top: 20,
+      top: 164,
       width: 280,
       backgroundColor: 'white',
       borderRadius: 12,
@@ -159,7 +167,7 @@ const SidebarResults = () => {
       border: '1px solid #e9ecef',
       padding: 20,
       marginBottom: 20,
-      maxHeight: 'calc(100vh - 40px)',
+      maxHeight: 'calc(100vh - 184px)',
       overflowY: 'auto'
     }}>
       <h3 style={{
@@ -209,9 +217,35 @@ const SidebarResults = () => {
       <div style={{
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
-        gap: 12,
+        gap: 8,
         marginBottom: 20
       }}>
+        <div style={{
+          textAlign: 'center',
+          padding: 12,
+          backgroundColor: '#e8f5e8',
+          borderRadius: 6
+        }}>
+          <div style={{ fontSize: 18, fontWeight: 600, color: '#27ae60' }}>
+            {overallStats.fullyEvaluated}
+          </div>
+          <div style={{ fontSize: 12, color: '#6c757d' }}>
+            Fully
+          </div>
+        </div>
+        <div style={{
+          textAlign: 'center',
+          padding: 12,
+          backgroundColor: '#fff3cd',
+          borderRadius: 6
+        }}>
+          <div style={{ fontSize: 18, fontWeight: 600, color: '#f39c12' }}>
+            {overallStats.partlyEvaluated}
+          </div>
+          <div style={{ fontSize: 12, color: '#6c757d' }}>
+            Partly
+          </div>
+        </div>
         <div style={{
           textAlign: 'center',
           padding: 12,
