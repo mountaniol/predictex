@@ -288,9 +288,9 @@ const SidebarResults = () => {
           textAlign: 'center',
           marginBottom: 20,
           padding: 16,
-          backgroundColor: '#f8f9fa',
+          backgroundColor: 'transparent',
           borderRadius: 8,
-          border: `2px solid ${overallStats.riskColor}`,
+          border: '1px solid #e0e0e0',
           position: 'relative'
         }}
         onMouseEnter={() => handleMouseEnter("Overall risk score calculated from the average of all evaluated questions. The risk level (Low, Moderate, High) is determined based on this score.", 'overallRisk')}
@@ -299,14 +299,14 @@ const SidebarResults = () => {
         <div style={{
           fontSize: 20,
           fontWeight: 700,
-          color: overallStats.riskColor,
+          color: 'black',
           marginBottom: 4
         }}>
           {overallStats.riskLevel}
         </div>
         <div style={{
           fontSize: 14,
-          color: '#6c757d',
+          color: 'black',
           marginBottom: 8
         }}>
           {overallStats.riskDescription}
@@ -351,7 +351,8 @@ const SidebarResults = () => {
           style={{
             textAlign: 'center',
             padding: 12,
-            backgroundColor: '#e8f5e8',
+            backgroundColor: 'transparent',
+            border: '1px solid #e0e0e0',
             borderRadius: 6,
             position: 'relative'
           }}
@@ -389,7 +390,8 @@ const SidebarResults = () => {
           style={{
             textAlign: 'center',
             padding: 12,
-            backgroundColor: '#fff3cd',
+            backgroundColor: 'transparent',
+            border: '1px solid #e0e0e0',
             borderRadius: 6,
             position: 'relative'
           }}
@@ -427,7 +429,8 @@ const SidebarResults = () => {
           style={{
             textAlign: 'center',
             padding: 12,
-            backgroundColor: '#e3f2fd',
+            backgroundColor: 'transparent',
+            border: '1px solid #e0e0e0',
             borderRadius: 6,
             position: 'relative'
           }}
@@ -465,7 +468,8 @@ const SidebarResults = () => {
           style={{
             textAlign: 'center',
             padding: 12,
-            backgroundColor: '#f3e5f5',
+            backgroundColor: 'transparent',
+            border: '1px solid #e0e0e0',
             borderRadius: 6,
             position: 'relative'
           }}
@@ -526,9 +530,9 @@ const SidebarResults = () => {
             <div key={si} style={{
               marginBottom: 8,
               padding: 8,
-              backgroundColor: '#f8f9fa',
+              backgroundColor: 'transparent',
               borderRadius: 6,
-              border: `1px solid ${sectionRiskColor}`
+              border: '1px solid #e0e0e0'
             }}>
               <div style={{
                 display: 'flex',
@@ -546,7 +550,7 @@ const SidebarResults = () => {
                 <div style={{
                   fontSize: 16,
                   fontWeight: 700,
-                  color: sectionRiskColor,
+                  color: 'black',
                   marginLeft: 8
                 }}>
                   {Math.round(sectionAverage * 10) / 10}
@@ -562,9 +566,9 @@ const SidebarResults = () => {
         style={{
           marginTop: 16,
           padding: 12,
-          backgroundColor: '#fff3cd',
+          backgroundColor: 'transparent',
           borderRadius: 6,
-          border: '1px solid #ffeaa7',
+          border: '1px solid #e0e0e0',
           position: 'relative'
         }}
         onMouseEnter={() => handleMouseEnter("This is a preliminary recommendation based only on the questions answered so far. It should not be used for final decisions until the entire form is complete, as the overall score can change significantly.", 'recommendation')}
@@ -573,14 +577,14 @@ const SidebarResults = () => {
         <div style={{
           fontSize: 12,
           fontWeight: 600,
-          color: '#856404',
+          color: '#2c3e50',
           marginBottom: 6
         }}>
           Recommendation
         </div>
         <div style={{
           fontSize: 11,
-          color: '#856404',
+          color: '#2c3e50',
           lineHeight: 1.4
         }}>
           {overallStats.averageScore >= 80 ? (
@@ -641,18 +645,18 @@ const SidebarResults = () => {
           style={{
             padding: '6px 12px',
             fontSize: '11px',
-            backgroundColor: clearState > 0 ? '#ffc107' : '#dc3545',
-            color: clearState > 0 ? 'black' : 'white',
-            border: 'none',
-            borderRadius: '4px',
+            backgroundColor: 'white',
+            color: 'black',
+            border: '1px solid transparent',
+            boxShadow: '0 0 0 1px black',
+            borderRadius: '12px',
             cursor: 'pointer',
-            opacity: 0.8,
-            transition: 'opacity 0.2s, background-color 0.3s',
+            transition: 'background-color 0.2s',
             width: '100%',
             marginBottom: '8px'
           }}
-          onMouseEnter={(e) => e.target.style.opacity = '1'}
-          onMouseLeave={(e) => e.target.style.opacity = '0.8'}
+          onMouseEnter={(e) => { e.target.style.backgroundColor = '#f0f0f0'; }}
+          onMouseLeave={(e) => { e.target.style.backgroundColor = 'white'; }}
         >
           {clearState === 0 && 'Clear All Data'}
           {clearState === 1 && 'Press 2 more times'}
@@ -666,16 +670,18 @@ const SidebarResults = () => {
             style={{
               padding: '6px 12px',
               fontSize: '11px',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
+              backgroundColor: 'white',
+              color: 'black',
+              border: '1px solid transparent',
+              boxShadow: '0 0 0 1px black',
+              borderRadius: '12px',
               cursor: 'pointer',
-              opacity: 0.8,
-              transition: 'opacity 0.2s',
+              transition: 'background-color 0.2s',
               width: '100%',
               marginBottom: '8px'
             }}
+            onMouseEnter={(e) => { e.target.style.backgroundColor = '#f0f0f0'; }}
+            onMouseLeave={(e) => { e.target.style.backgroundColor = 'white'; }}
           >
             Save to File
           </button>
@@ -713,15 +719,17 @@ const SidebarResults = () => {
             style={{
               padding: '6px 12px',
               fontSize: '11px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
+              backgroundColor: 'white',
+              color: 'black',
+              border: '1px solid transparent',
+              boxShadow: '0 0 0 1px black',
+              borderRadius: '12px',
               cursor: 'pointer',
-              opacity: 0.8,
-              transition: 'opacity 0.2s',
+              transition: 'background-color 0.2s',
               width: '100%'
             }}
+            onMouseEnter={(e) => { e.target.style.backgroundColor = '#f0f0f0'; }}
+            onMouseLeave={(e) => { e.target.style.backgroundColor = 'white'; }}
           >
             Load from File
           </button>
