@@ -242,10 +242,6 @@ const SidebarResults = () => {
     };
   }, [computedScores, sections, questionStates]);
 
-  // Check if user has completed the evaluation
-  const hasCompletedEvaluation = Object.keys(answers).length > 0 && 
-    Object.keys(computedScores).length > 0;
-
   return (
     <div style={{
       backgroundColor: 'white',
@@ -264,16 +260,6 @@ const SidebarResults = () => {
         Evaluation Results
       </h3>
 
-      {!hasCompletedEvaluation ? (
-        <div style={{
-          textAlign: 'center',
-          padding: 20,
-          color: '#6c757d',
-          fontSize: 14
-        }}>
-          Start answering questions to see evaluation results here.
-        </div>
-      ) : (
         <>
           {/* Overall Risk Assessment */}
       <div style={{
@@ -551,7 +537,6 @@ const SidebarResults = () => {
         </button>
               </div>
         </>
-      )}
     </div>
   );
 };
