@@ -68,7 +68,6 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
    * @role {Format Handler} - Handles multiple follow-up data formats
    * @role {State Synchronizer} - Syncs local state with global data
    */
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (Array.isArray(value)) {
       const otherOption = value.find(v => typeof v === 'object' && v.code === 'other');
@@ -80,17 +79,20 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
       }
     }
     
-    // Initialize from global answers if available and not already set locally
+    // Initialize from global answers if available
     if (q.other_text_id && answers && answers[q.other_text_id]) {
-      const currentLocalValue = followUpAnswers[q.other_text_id];
-      if (!currentLocalValue || currentLocalValue === '') {
-        setFollowUpAnswers(prev => ({
-          ...prev,
-          [q.other_text_id]: answers[q.other_text_id]
-        }));
-      }
+      setFollowUpAnswers(prev => {
+        // Only update if not already set
+        if (!prev[q.other_text_id] || prev[q.other_text_id] === '') {
+          return {
+            ...prev,
+            [q.other_text_id]: answers[q.other_text_id]
+          };
+        }
+        return prev;
+      });
     }
-  }, [value, q.other_text_id, answers]); // Removed followUpAnswers from dependencies
+  }, [value, q.other_text_id, answers]);
 
   /**
    * @brief Handles follow-up question value changes
