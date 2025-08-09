@@ -132,7 +132,7 @@ const useLoadQuestions = (currentLanguage) => {
       
       try {
         // Try to load q3.json first (new format)
-        let fileName = 'q4.json';
+        let fileName = 'q3.json';
         if (currentLanguage !== 'en') {
           fileName = `q3.${currentLanguage}.json`;
         }
@@ -158,11 +158,13 @@ const useLoadQuestions = (currentLanguage) => {
           calculations = result.calculations || [];
         }
 
-        // Group questions by cluster_name
-        const groupedQuestions = questions.reduce((acc, question) => {
+        // Group questions by cluster_name and preserve order
+        const clusterOrder = new Map(); // To preserve cluster order
+        const groupedQuestions = questions.reduce((acc, question, index) => {
           const clusterName = question.cluster_name || 'Other';
           if (!acc[clusterName]) {
             acc[clusterName] = [];
+            clusterOrder.set(clusterName, index); // Store first occurrence order
           }
           acc[clusterName].push(question);
           return acc;
@@ -175,11 +177,13 @@ const useLoadQuestions = (currentLanguage) => {
           );
         });
 
-        // Convert to sections format
-        const sectionsArray = Object.keys(groupedQuestions).map(clusterName => ({
-          title: clusterName,
-          questions: groupedQuestions[clusterName]
-        }));
+        // Convert to sections format preserving cluster order
+        const sectionsArray = Array.from(clusterOrder.entries())
+          .sort((a, b) => a[1] - b[1]) // Sort by first occurrence order
+          .map(([clusterName]) => ({
+            title: clusterName,
+            questions: groupedQuestions[clusterName]
+          }));
 
         setSections(sectionsArray);
         setMetaQuestions(metaQuestions);
