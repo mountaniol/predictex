@@ -10,7 +10,7 @@ export const useLoadQuestions = (language) => {
       const fileName = language === 'en' ? 'questions2.json' : `questions2.${language}.json`;
       let questions;
       try {
-        const res = await fetch(`/${fileName}`);
+        const res = await fetch(`/questions/${fileName}`);
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
         }
@@ -24,7 +24,7 @@ export const useLoadQuestions = (language) => {
           setError(`Could not load translation file ${fileName}. Falling back to default questions.`);
         }
         console.warn(`Falling back to /questions2.json because ${fileName} failed to load:`, err);
-        const raw = await fetch('/questions2.json').then(r => r.json());
+        const raw = await fetch('/questions/questions2.json').then(r => r.json());
         const settings = Array.isArray(raw) ? {} : (raw.settings || {});
         questions = Array.isArray(raw) ? raw : (raw.questions || []);
         setLabels(settings.labels || { yes: 'Yes', no: 'No' });

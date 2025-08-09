@@ -32,7 +32,7 @@ import { useState, useEffect } from 'react';
  */
 const loadJson = async (fileName) => {
   try {
-    const response = await fetch(`/${fileName}`);
+    const response = await fetch(`/questions/${fileName}`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -82,7 +82,7 @@ const loadJson = async (fileName) => {
  * 
  * @state {Array} sections - Questions organized by cluster_name
  * @state {Array} metaQuestions - Meta questions from q3.json format
- * @state {string} aiPrompt - AI system prompt loaded from /ai-prompt.txt
+ * @state {string} aiPrompt - AI system prompt loaded from /questions/ai-prompt.txt
  * @state {string} apiKey - API endpoint URL (hardcoded to '/api/simple-evaluate.mjs')
  * @state {boolean} loading - Loading state for async operations
  * @state {string} error - Error message for failed operations
@@ -111,7 +111,7 @@ const loadJson = async (fileName) => {
  * @workflow {1} Attempts to load q3.{lang}.json (new format)
  * @workflow {2} Falls back to questions2.{lang}.json (legacy format)
  * @workflow {3} Groups questions by cluster_name into sections
- * @workflow {4} Loads AI prompt from /ai-prompt.txt
+ * @workflow {4} Loads AI prompt from /questions/ai-prompt.txt
  * @workflow {5} Sets API endpoint to Vercel function
  * @workflow {6} Updates state with loaded configuration
  */
@@ -189,7 +189,7 @@ const useLoadQuestions = (currentLanguage) => {
         
         // Load AI prompt
         try {
-          const promptResponse = await fetch('/ai-prompt.txt');
+          const promptResponse = await fetch('/questions/ai-prompt.txt');
           if (promptResponse.ok) {
             const promptText = await promptResponse.text();
             setAiPrompt(promptText.trim());
