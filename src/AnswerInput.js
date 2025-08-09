@@ -69,9 +69,18 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
    * @role {State Synchronizer} - Syncs local state with global data
    */
   useEffect(() => {
+    console.log('[AnswerInput] useEffect triggered:', {
+      qId: q.id,
+      value,
+      otherTextId: q.other_text_id,
+      answers,
+      currentFollowUpAnswers: followUpAnswers
+    });
+
     if (Array.isArray(value)) {
       const otherOption = value.find(v => typeof v === 'object' && v.code === 'other');
       if (otherOption && otherOption.text && q.other_text_id) {
+        console.log('[AnswerInput] Found legacy format other option:', otherOption);
         setFollowUpAnswers(prev => ({
           ...prev,
           [q.other_text_id]: otherOption.text
@@ -79,14 +88,18 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
       }
     }
     
-    // Only initialize from global answers if local state is empty
-    if (q.other_text_id && answers && answers[q.other_text_id] && !followUpAnswers[q.other_text_id]) {
-      setFollowUpAnswers(prev => ({
-        ...prev,
-        [q.other_text_id]: answers[q.other_text_id]
-      }));
+    // Initialize from global answers if available and not already set locally
+    if (q.other_text_id && answers && answers[q.other_text_id]) {
+      const currentLocalValue = followUpAnswers[q.other_text_id];
+      if (!currentLocalValue || currentLocalValue === '') {
+        console.log('[AnswerInput] Initializing from global answers:', answers[q.other_text_id]);
+        setFollowUpAnswers(prev => ({
+          ...prev,
+          [q.other_text_id]: answers[q.other_text_id]
+        }));
+      }
     }
-  }, [value, q.other_text_id, answers, followUpAnswers]);
+  }, [value, q.other_text_id, answers]); // Removed followUpAnswers from dependencies
 
   /**
    * @brief Handles follow-up question value changes
@@ -113,18 +126,39 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
    * @role {Data Formatter} - Formats follow-up data for parent consumption
    */
   const handleFollowUpChange = (followUpId, followUpValue) => {
+    console.log('[AnswerInput] handleFollowUpChange called:', {
+      followUpId,
+      followUpValue,
+      qId: q.id,
+      currentFollowUpAnswers: followUpAnswers
+    });
+
     // Update local state immediately for responsive UI
-    setFollowUpAnswers(prev => ({
-      ...prev,
-      [followUpId]: followUpValue
-    }));
+    setFollowUpAnswers(prev => {
+      const newState = {
+        ...prev,
+        [followUpId]: followUpValue
+      };
+      console.log('[AnswerInput] Updated followUpAnswers:', newState);
+      return newState;
+    });
     
     // Pass follow-up data to parent component
     if (q.other_text_id && followUpId === q.other_text_id) {
+      console.log('[AnswerInput] Calling onChange with follow-up data:', {
+        mainValue: value,
+        followUpData: { [followUpId]: followUpValue }
+      });
       // Call onChange with the follow-up data
       onChange({
         mainValue: value,
         followUpData: { [followUpId]: followUpValue }
+      });
+    } else {
+      console.log('[AnswerInput] Follow-up ID mismatch or no other_text_id:', {
+        followUpId,
+        otherTextId: q.other_text_id,
+        match: followUpId === q.other_text_id
       });
     }
   };
@@ -155,10 +189,23 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
    */
   const shouldShowFollowUp = (followUp) => {
     if (!followUp.when || !followUp.when.in) return false;
+    
+    let result = false;
     if (Array.isArray(value)) {
-      return value.some(v => followUp.when.in.includes(v));
+      result = value.some(v => followUp.when.in.includes(v));
+    } else {
+      result = followUp.when.in.includes(value);
     }
-    return followUp.when.in.includes(value);
+    
+    console.log('[AnswerInput] shouldShowFollowUp:', {
+      followUpId: followUp.ask.id,
+      when: followUp.when,
+      value,
+      isArray: Array.isArray(value),
+      result
+    });
+    
+    return result;
   };
 
   /**
@@ -186,15 +233,35 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
   const renderFollowUps = () => {
     if (!q.follow_ups) return null;
 
+    console.log('[AnswerInput] renderFollowUps called:', {
+      qId: q.id,
+      followUps: q.follow_ups,
+      value,
+      followUpAnswers
+    });
+
     return q.follow_ups.map((followUp, index) => {
-      if (!shouldShowFollowUp(followUp)) return null;
+      const shouldShow = shouldShowFollowUp(followUp);
+      console.log('[AnswerInput] Follow-up evaluation:', {
+        followUpId: followUp.ask.id,
+        shouldShow,
+        when: followUp.when,
+        currentValue: value
+      });
+
+      if (!shouldShow) return null;
+
+      // Create a wrapper function that passes the correct followUpId
+      const handleFollowUpWrapper = (followUpValue) => {
+        handleFollowUpChange(followUp.ask.id, followUpValue);
+      };
 
       return (
         <div key={index} style={{ marginLeft: 20, marginTop: 12, paddingLeft: 12, borderLeft: '2px solid #e1e8ed' }}>
           <div style={{ fontSize: '14px', color: '#7f8c8d', marginBottom: 8 }}>
             {followUp.ask.question_type === 'text' && followUp.ask.placeholder}
           </div>
-          {renderInput(followUp.ask, followUpAnswers[followUp.ask.id] || '', handleFollowUpChange)}
+          {renderInput(followUp.ask, followUpAnswers[followUp.ask.id] || '', handleFollowUpWrapper)}
         </div>
       );
     });
@@ -371,11 +438,23 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
 
       case 'text':
         if (ui === 'textarea') {
+          console.log('[AnswerInput] Rendering textarea:', {
+            questionId: question.id,
+            inputValue,
+            placeholder: question.placeholder,
+            followUpAnswers: followUpAnswers[question.id]
+          });
           return (
             <textarea
               rows={3}
               value={inputValue}
-              onChange={(e) => inputOnChange(e.target.value)}
+              onChange={(e) => {
+                console.log('[AnswerInput] Textarea onChange:', {
+                  value: e.target.value,
+                  questionId: question.id
+                });
+                inputOnChange(e.target.value);
+              }}
               placeholder={question.placeholder}
               maxLength={question.max_chars}
               style={{ 
@@ -388,11 +467,19 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
             />
           );
         } else {
+          console.log('[AnswerInput] Rendering text input:', {
+            questionId: question.id,
+            inputValue,
+            placeholder: question.placeholder
+          });
           return (
             <input
               type="text"
               value={inputValue}
-              onChange={(e) => inputOnChange(e.target.value)}
+              onChange={(e) => {
+                console.log('[AnswerInput] Text input onChange:', e.target.value);
+                inputOnChange(e.target.value);
+              }}
               placeholder={question.placeholder}
               maxLength={question.max_chars}
               style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ddd' }}

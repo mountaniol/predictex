@@ -117,20 +117,37 @@ const QuestionSection = () => {
     const question = sections[si]?.questions[qi];
     if (!question) return;
 
+    console.log('[QuestionSection] handleAnswerChange called:', {
+      questionId: question.id,
+      value,
+      valueType: typeof value,
+      hasFollowUpData: value && typeof value === 'object' && value.followUpData
+    });
+
     // Handle follow-up data
     if (value && typeof value === 'object' && value.followUpData) {
+      console.log('[QuestionSection] Processing follow-up data:', value.followUpData);
       // This is follow-up data, update both main answer and follow-up
-      setAnswers(prev => ({
-        ...prev,
-        [question.id]: value.mainValue,
-        ...value.followUpData
-      }));
+      setAnswers(prev => {
+        const newAnswers = {
+          ...prev,
+          [question.id]: value.mainValue,
+          ...value.followUpData
+        };
+        console.log('[QuestionSection] Updated answers with follow-up data:', newAnswers);
+        return newAnswers;
+      });
     } else {
+      console.log('[QuestionSection] Processing regular answer change');
       // Regular answer change
-      setAnswers(prev => ({
-        ...prev,
-        [question.id]: value
-      }));
+      setAnswers(prev => {
+        const newAnswers = {
+          ...prev,
+          [question.id]: value
+        };
+        console.log('[QuestionSection] Updated answers with regular change:', newAnswers);
+        return newAnswers;
+      });
     }
 
     // Clear dependency warning for this question when answer changes
