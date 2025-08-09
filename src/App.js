@@ -239,43 +239,50 @@ function App() {
         <div style={{
           maxWidth: 1200,
           margin: "0 auto",
-          padding: "32px 16px 0 16px",
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: '24px'
+          padding: "32px 16px 0 16px"
         }}>
-          {/* Column 1: Sticky Sidebar */}
-          <div style={{
-            width: '280px',
-            flexShrink: 0, // Prevents the sidebar from shrinking
-            position: 'sticky',
-            top: '20px'
-          }}>
-            <SidebarResults />
-          </div>
+          <Header />
+          <LanguageSelector
+            currentLanguage={currentLanguage}
+            onChange={setCurrentLanguage}
+            translating={loading}
+          />
 
-          {/* Column 2: Main Content */}
+          {metaQuestions && metaQuestions.length > 0 && (
+            <h2 style={{
+              fontSize: '24px',
+              fontWeight: 'bold',
+              marginTop: '20px',
+              marginBottom: '20px',
+              color: '#2c3e50',
+              // Position the title as if it's in the second column
+              marginLeft: '304px', // 280px (sidebar) + 24px (gap)
+            }}>
+              Basic Information
+            </h2>
+          )}
+
           <div style={{
-            flex: 1 // Takes up the remaining space
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '24px',
           }}>
-            <Header />
-            <LanguageSelector
-              currentLanguage={currentLanguage}
-              onChange={setCurrentLanguage}
-              translating={loading}
-            />
-            {metaQuestions && metaQuestions.length > 0 && (
-              <h2 style={{
-                fontSize: '24px',
-                fontWeight: 'bold',
-                marginTop: '20px', // Add some space above the title
-                marginBottom: '20px',
-                color: '#2c3e50',
-              }}>
-                Basic Information
-              </h2>
-            )}
-            <QuestionSection />
+            {/* Column 1: Sticky Sidebar */}
+            <div style={{
+              width: '280px',
+              flexShrink: 0, // Prevents the sidebar from shrinking
+              position: 'sticky',
+              top: '20px',
+            }}>
+              <SidebarResults />
+            </div>
+
+            {/* Column 2: Main Content */}
+            <div style={{
+              flex: 1 // Takes up the remaining space
+            }}>
+              <QuestionSection />
+            </div>
           </div>
         </div>
         <Footer />
