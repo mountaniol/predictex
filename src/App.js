@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import useLoadQuestions from "./useLoadQuestions";
 import LanguageSelector from "./LanguageSelector";
+import "./App.css";
 import QuestionSection from "./QuestionSection";
 import ResultsSummary from "./ResultsSummary";
+import SidebarResults from "./SidebarResults";
 import Header from "./Header";
 import Footer from "./Footer";
 
@@ -89,7 +91,7 @@ function App() {
         margin: 0
       }}>
         <div style={{
-          maxWidth: 700,
+          maxWidth: 1200,
           margin: "0 auto",
           padding: "32px 16px 0 16px"
         }}>
@@ -99,8 +101,36 @@ function App() {
             onChange={setCurrentLanguage}
             translating={loading}
           />
-          <QuestionSection />
-          <ResultsSummary />
+          
+          {/* Desktop Layout - Two Columns */}
+          <div style={{
+            display: 'flex',
+            gap: 24,
+            alignItems: 'flex-start'
+          }}>
+            {/* Left Sidebar - Results */}
+            <div style={{
+              flexShrink: 0,
+              display: 'none' // Hidden by default
+            }}
+            className="desktop-only">
+              <SidebarResults />
+            </div>
+            
+            {/* Main Content - Questions */}
+            <div style={{
+              flex: 1,
+              minWidth: 0
+            }}>
+              <QuestionSection />
+            </div>
+          </div>
+          
+          {/* Mobile Layout - Results at Bottom */}
+          <div className="mobile-only">
+            <ResultsSummary />
+          </div>
+          
           <Footer />
         </div>
       </div>

@@ -88,6 +88,46 @@ const QuestionSection = () => {
   const qKey = (si, qi) => `${si}-${qi}`;
 
   /**
+   * @brief Gets dependencies for a question
+   * 
+   * Extracts the list of question IDs that the current question depends on
+   * from the ai_context.include_answers field.
+   * 
+   * @function getQuestionDependencies
+   * @param {Object} question - Question object
+   * @returns {Array} Array of question IDs that this question depends on
+   * 
+   * @reads {question.ai_context.include_answers} - List of dependent question IDs
+   * 
+   * @role {Dependency Extractor} - Extracts dependency information from questions
+   */
+  const getQuestionDependencies = (question) => {
+    return question.ai_context?.include_answers || [];
+  };
+
+  /**
+   * @brief Formats question title with dependencies
+   * 
+   * Creates a formatted title that shows dependencies in square brackets
+   * before the question ID and text.
+   * 
+   * @function formatQuestionTitle
+   * @param {Object} question - Question object
+   * @returns {string} Formatted question title with dependencies
+   * 
+   * @uses {getQuestionDependencies} - Gets dependencies for the question
+   * 
+   * @role {Title Formatter} - Formats question titles with dependency information
+   */
+  const formatQuestionTitle = (question) => {
+    const dependencies = getQuestionDependencies(question);
+    if (dependencies.length > 0) {
+      return `${question.id} [${dependencies.join(', ')}]: ${question.text}`;
+    }
+    return `${question.id}: ${question.text}`;
+  };
+
+  /**
    * @brief Handles user answer changes and follow-up data
    * 
    * Processes answer changes from AnswerInput components, including both regular
@@ -396,7 +436,7 @@ const QuestionSection = () => {
                 }}
               >
                 <div>
-                  <strong>{q.id}:</strong> {q.text}
+                  <strong>{formatQuestionTitle(q)}</strong>
                 </div>
                 
                 {q.hint && (

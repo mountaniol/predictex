@@ -2,18 +2,17 @@ import React, { useContext, useMemo } from 'react';
 import { AppContext } from './App';
 
 /**
- * @brief Results summary component for completed evaluations
+ * @brief Sidebar results component for desktop layout
  * 
- * Displays comprehensive evaluation results including individual scores,
- * calculated scores, overall assessment, and risk categorization.
- * Shows when user has completed answering and evaluating all questions.
+ * Displays evaluation results in a compact sidebar format for desktop users.
+ * Shows overall risk assessment, key statistics, and section scores in a
+ * space-efficient layout that stays visible while scrolling through questions.
  * 
- * @function ResultsSummary
- * @returns {JSX.Element} Complete results summary interface
+ * @function SidebarResults
+ * @returns {JSX.Element} Compact sidebar results interface
  * 
  * @context {AppContext} - Global application state and functions
  * @context {Array} sections - Questions grouped by cluster/section
- * @context {Array} metaQuestions - Meta questions for basic information
  * @context {Object} answers - User answers to questions
  * @context {Object} scores - AI evaluation scores
  * @context {Array} calculations - Calculation rules for derived scores
@@ -22,18 +21,17 @@ import { AppContext } from './App';
  * @state {Object} overallStats - Overall statistics and risk assessment
  * 
  * @dependencies {AppContext} - Global state management
- * @dependencies {applyCalculations} - Function to apply calculation rules
  * 
- * @architecture {Component Hierarchy} - Results display component
+ * @architecture {Component Hierarchy} - Sidebar results display component
+ * @architecture {Responsive Design} - Desktop-only layout
  * @architecture {Data Processing} - Computes overall statistics and risk levels
- * @architecture {Visual Design} - Clean, informative results presentation
  * 
- * @role {Results Display} - Shows comprehensive evaluation results
+ * @role {Results Display} - Shows compact evaluation results
  * @role {Statistics Calculator} - Computes overall risk statistics
  * @role {Risk Assessor} - Categorizes overall risk level
- * @role {Data Visualizer} - Presents results in user-friendly format
+ * @role {Sidebar UI} - Provides fixed sidebar interface
  */
-const ResultsSummary = () => {
+const SidebarResults = () => {
   const { sections, answers, scores, calculations } = useContext(AppContext);
 
   // Apply calculation rules to get computed scores
@@ -113,23 +111,23 @@ const ResultsSummary = () => {
     if (averageScore >= 80) {
       riskLevel = 'Low Risk';
       riskColor = '#28a745';
-      riskDescription = 'Excellent condition, low risk';
+      riskDescription = 'Excellent condition';
     } else if (averageScore >= 60) {
       riskLevel = 'Moderate Risk';
       riskColor = '#ffc107';
-      riskDescription = 'Good condition with some concerns';
+      riskDescription = 'Good with concerns';
     } else if (averageScore >= 40) {
       riskLevel = 'High Risk';
       riskColor = '#fd7e14';
-      riskDescription = 'Significant concerns identified';
+      riskDescription = 'Significant concerns';
     } else if (averageScore >= 20) {
       riskLevel = 'Very High Risk';
       riskColor = '#dc3545';
-      riskDescription = 'Critical issues, proceed with extreme caution';
+      riskDescription = 'Critical issues';
     } else {
       riskLevel = 'Critical Risk';
       riskColor = '#721c24';
-      riskDescription = 'Extremely high risk, do not proceed';
+      riskDescription = 'Extremely high risk';
     }
 
     return {
@@ -150,129 +148,108 @@ const ResultsSummary = () => {
     return null;
   }
 
-  // Only show on mobile devices
-  const isMobile = window.innerWidth < 1024;
-  if (!isMobile) {
-    return null;
-  }
-
   return (
     <div style={{
-      marginTop: 40,
-      padding: 24,
+      position: 'sticky',
+      top: 20,
+      width: 280,
       backgroundColor: 'white',
       borderRadius: 12,
       boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      border: '1px solid #e9ecef'
+      border: '1px solid #e9ecef',
+      padding: 20,
+      marginBottom: 20,
+      maxHeight: 'calc(100vh - 40px)',
+      overflowY: 'auto'
     }}>
-      <h2 style={{
-        margin: '0 0 24px 0',
-        fontSize: 24,
+      <h3 style={{
+        margin: '0 0 16px 0',
+        fontSize: 18,
         fontWeight: 600,
         color: '#2c3e50',
         textAlign: 'center'
       }}>
-        Evaluation Results Summary
-      </h2>
+        Evaluation Results
+      </h3>
 
       {/* Overall Risk Assessment */}
       <div style={{
         textAlign: 'center',
-        marginBottom: 32,
-        padding: 20,
+        marginBottom: 20,
+        padding: 16,
         backgroundColor: '#f8f9fa',
         borderRadius: 8,
         border: `2px solid ${overallStats.riskColor}`
       }}>
         <div style={{
-          fontSize: 28,
+          fontSize: 20,
           fontWeight: 700,
           color: overallStats.riskColor,
-          marginBottom: 8
+          marginBottom: 4
         }}>
           {overallStats.riskLevel}
         </div>
         <div style={{
-          fontSize: 18,
+          fontSize: 14,
           color: '#6c757d',
-          marginBottom: 12
+          marginBottom: 8
         }}>
           {overallStats.riskDescription}
         </div>
         <div style={{
-          fontSize: 36,
+          fontSize: 28,
           fontWeight: 700,
           color: overallStats.riskColor
         }}>
           {overallStats.averageScore}/100
-        </div>
-        <div style={{
-          fontSize: 14,
-          color: '#6c757d',
-          marginTop: 8
-        }}>
-          Average Score
         </div>
       </div>
 
       {/* Statistics */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: 16,
-        marginBottom: 32
+        gridTemplateColumns: '1fr 1fr',
+        gap: 12,
+        marginBottom: 20
       }}>
         <div style={{
           textAlign: 'center',
-          padding: 16,
+          padding: 12,
           backgroundColor: '#e3f2fd',
-          borderRadius: 8
+          borderRadius: 6
         }}>
-          <div style={{ fontSize: 24, fontWeight: 600, color: '#1976d2' }}>
+          <div style={{ fontSize: 18, fontWeight: 600, color: '#1976d2' }}>
             {overallStats.evaluatedQuestions}
           </div>
-          <div style={{ fontSize: 14, color: '#6c757d' }}>
-            Questions Evaluated
+          <div style={{ fontSize: 12, color: '#6c757d' }}>
+            Evaluated
           </div>
         </div>
         <div style={{
           textAlign: 'center',
-          padding: 16,
+          padding: 12,
           backgroundColor: '#f3e5f5',
-          borderRadius: 8
+          borderRadius: 6
         }}>
-          <div style={{ fontSize: 24, fontWeight: 600, color: '#7b1fa2' }}>
+          <div style={{ fontSize: 18, fontWeight: 600, color: '#7b1fa2' }}>
             {overallStats.totalQuestions}
           </div>
-          <div style={{ fontSize: 14, color: '#6c757d' }}>
-            Total Questions
-          </div>
-        </div>
-        <div style={{
-          textAlign: 'center',
-          padding: 16,
-          backgroundColor: '#e8f5e8',
-          borderRadius: 8
-        }}>
-          <div style={{ fontSize: 24, fontWeight: 600, color: '#388e3c' }}>
-            {Math.round((overallStats.evaluatedQuestions / overallStats.totalQuestions) * 100)}%
-          </div>
-          <div style={{ fontSize: 14, color: '#6c757d' }}>
-            Completion Rate
+          <div style={{ fontSize: 12, color: '#6c757d' }}>
+            Total
           </div>
         </div>
       </div>
 
-      {/* Individual Scores by Section */}
+      {/* Section Scores */}
       <div>
-        <h3 style={{
-          margin: '0 0 16px 0',
-          fontSize: 18,
+        <h4 style={{
+          margin: '0 0 12px 0',
+          fontSize: 14,
           fontWeight: 600,
           color: '#2c3e50'
         }}>
           Scores by Section
-        </h3>
+        </h4>
         {sections.map((section, si) => {
           const sectionScores = section.questions
             .map(q => computedScores[q.id])
@@ -288,10 +265,10 @@ const ResultsSummary = () => {
 
           return (
             <div key={si} style={{
-              marginBottom: 16,
-              padding: 16,
+              marginBottom: 8,
+              padding: 8,
               backgroundColor: '#f8f9fa',
-              borderRadius: 8,
+              borderRadius: 6,
               border: `1px solid ${sectionRiskColor}`
             }}>
               <div style={{
@@ -299,25 +276,19 @@ const ResultsSummary = () => {
                 justifyContent: 'space-between',
                 alignItems: 'center'
               }}>
-                <div>
-                  <div style={{
-                    fontSize: 16,
-                    fontWeight: 600,
-                    color: '#2c3e50'
-                  }}>
-                    {section.title}
-                  </div>
-                  <div style={{
-                    fontSize: 14,
-                    color: '#6c757d'
-                  }}>
-                    {sectionScores.length} questions evaluated
-                  </div>
+                <div style={{
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: '#2c3e50',
+                  flex: 1
+                }}>
+                  {section.title}
                 </div>
                 <div style={{
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: 700,
-                  color: sectionRiskColor
+                  color: sectionRiskColor,
+                  marginLeft: 8
                 }}>
                   {Math.round(sectionAverage * 10) / 10}
                 </div>
@@ -327,37 +298,37 @@ const ResultsSummary = () => {
         })}
       </div>
 
-      {/* Recommendations */}
+      {/* Quick Recommendations */}
       <div style={{
-        marginTop: 32,
-        padding: 20,
+        marginTop: 16,
+        padding: 12,
         backgroundColor: '#fff3cd',
-        borderRadius: 8,
+        borderRadius: 6,
         border: '1px solid #ffeaa7'
       }}>
-        <h3 style={{
-          margin: '0 0 12px 0',
-          fontSize: 16,
-          fontWeight: 600,
-          color: '#856404'
-        }}>
-          Recommendations
-        </h3>
         <div style={{
-          fontSize: 14,
+          fontSize: 12,
+          fontWeight: 600,
           color: '#856404',
-          lineHeight: 1.5
+          marginBottom: 6
+        }}>
+          Recommendation
+        </div>
+        <div style={{
+          fontSize: 11,
+          color: '#856404',
+          lineHeight: 1.4
         }}>
           {overallStats.averageScore >= 80 ? (
-            <p>This business appears to be in excellent condition with low risk factors. Consider proceeding with standard due diligence procedures.</p>
+            'Proceed with standard due diligence.'
           ) : overallStats.averageScore >= 60 ? (
-            <p>This business shows good fundamentals with some areas of concern. Conduct thorough due diligence focusing on identified risk areas.</p>
+            'Conduct thorough due diligence on risk areas.'
           ) : overallStats.averageScore >= 40 ? (
-            <p>Significant risk factors have been identified. Consider additional investigation and risk mitigation strategies before proceeding.</p>
+            'Additional investigation recommended.'
           ) : overallStats.averageScore >= 20 ? (
-            <p>Critical risk factors present. Proceed with extreme caution and consider professional risk assessment before any investment.</p>
+            'Proceed with extreme caution.'
           ) : (
-            <p>Extremely high risk factors identified. Strongly recommend against proceeding without major risk mitigation and professional consultation.</p>
+            'Strongly recommend against proceeding.'
           )}
         </div>
       </div>
@@ -365,4 +336,4 @@ const ResultsSummary = () => {
   );
 };
 
-export default ResultsSummary;
+export default SidebarResults;

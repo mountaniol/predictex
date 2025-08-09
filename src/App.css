@@ -36,3 +36,27 @@
     transform: rotate(360deg);
   }
 }
+
+/* Responsive layout styles */
+
+/* Desktop styles */
+@media (min-width: 1024px) {
+  .desktop-only {
+    display: block !important;
+  }
+  
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+/* Mobile styles */
+@media (max-width: 1023px) {
+  .desktop-only {
+    display: none !important;
+  }
+  
+  .mobile-only {
+    display: block !important;
+  }
+}
