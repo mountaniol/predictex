@@ -99,6 +99,8 @@ const QuestionSection = () => {
     }
 
     const runStartupCheck = async () => {
+      console.log('--- Running Startup Check ---');
+
       // Use an iterative approach to resolve dependencies layer by layer.
       // This is more robust than a single or two-pass check.
       let changedInPass = true;
@@ -110,6 +112,7 @@ const QuestionSection = () => {
       while (changedInPass && passes < maxPasses) {
         changedInPass = false;
         passes++;
+        console.log(`\n[Startup Check] Pass ${passes}`);
 
         const nextStates = { ...currentStates };
 
@@ -119,6 +122,7 @@ const QuestionSection = () => {
             const newState = getQuestionState(question, answers, scores, currentStates);
 
             if (oldState !== newState) {
+              console.log(`[Startup Check] State change for ${question.id}: ${oldState} -> ${newState}`);
               nextStates[question.id] = newState;
               changedInPass = true;
             }
@@ -132,12 +136,15 @@ const QuestionSection = () => {
                 (depId) => statesSnapshot[depId] === 'fully_answered'
               );
 
+              console.log(`[Startup Check] Checking ${question.id}: Dependencies met? ${allDependenciesMet}`, dependencies.map(d => ({ [d]: statesSnapshot[d] })));
+
               if (allDependenciesMet) {
                 const si = sections.findIndex((s) => s.title === section.title);
                 const qi = section.questions.findIndex((q) => q.id === question.id);
                 if (si !== -1 && qi !== -1) {
                   // This question is ready, re-evaluate it.
                   // Note: This happens outside the state update loop to avoid side-effects within state calculation.
+                  console.log(`[Startup Check] ---> RE-EVALUATING ${question.id}`);
                   evaluateAnswer(si, qi, true);
                 }
               }
@@ -148,6 +155,7 @@ const QuestionSection = () => {
       }
 
       // After all iterations, update the global state.
+      console.log('--- Startup Check Finished ---');
       setQuestionStates(currentStates);
     };
 
