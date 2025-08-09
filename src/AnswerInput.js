@@ -42,99 +42,35 @@ import React, { useState, useEffect } from 'react';
  * @workflow {3} Renders follow-up questions if conditions are met
  * @workflow {4} Handles value changes and notifies parent component
  */
-const AnswerInput = ({ q, value, onChange, labels, answers }) => {
-  // Handle follow-up questions
-  const [followUpAnswers, setFollowUpAnswers] = useState({});
+const AnswerInput = ({ q, value, onChange, labels, answers, setAnswers }) => {
+  // This local state is only for the text in the "Other" field, if it exists.
+  const [otherText, setOtherText] = useState('');
 
   /**
-   * @brief Initializes follow-up answers from existing value and global answers
-   * 
-   * Sets up follow-up answer state when component mounts or when value/answers
-   * change. Handles both legacy format (object with text) and new format
-   * (separate follow-up data in global answers).
-   * 
-   * @function useEffect
-   * @param {Function} effect - Effect function for initialization
-   * @param {Array} deps - Dependencies array [value, q.other_text_id, answers]
-   * 
-   * @reads {value} - Checks for legacy format follow-up data
-   * @reads {answers} - Checks for new format follow-up data
-   * @writes {followUpAnswers} - Updates local follow-up answer state
-   * 
-   * @format {Legacy} - Follow-up data embedded in main value object
-   * @format {New} - Follow-up data stored separately in global answers
-   * 
-   * @role {Initializer} - Sets up initial follow-up answer state
-   * @role {Format Handler} - Handles multiple follow-up data formats
-   * @role {State Synchronizer} - Syncs local state with global data
+   * @brief Effect to initialize the text for the "Other" option.
+   * @description When the component loads, this checks if an answer for the "Other"
+   * text field already exists in the global 'answers' state and sets it locally.
    */
   useEffect(() => {
-    if (Array.isArray(value)) {
-      const otherOption = value.find(v => typeof v === 'object' && v.code === 'other');
-      if (otherOption && otherOption.text && q.other_text_id) {
-        setFollowUpAnswers(prev => ({
-          ...prev,
-          [q.other_text_id]: otherOption.text
-        }));
-      }
+    if (q.other_text_id && answers[q.other_text_id]) {
+      setOtherText(answers[q.other_text_id]);
     }
-    
-    // Initialize from global answers if available
-    if (q.other_text_id && answers && answers[q.other_text_id]) {
-      setFollowUpAnswers(prev => {
-        // Only update if not already set
-        if (!prev[q.other_text_id] || prev[q.other_text_id] === '') {
-          return {
-            ...prev,
-            [q.other_text_id]: answers[q.other_text_id]
-          };
-        }
-        return prev;
-      });
-    }
-  }, [value, q.other_text_id, answers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q.other_text_id, answers]);
 
   /**
-   * @brief Handles follow-up question value changes
-   * 
-   * Updates local follow-up answer state and notifies parent component
-   * of changes. For "Other" options, passes follow-up data to parent
-   * in a structured format.
-   * 
-   * @function handleFollowUpChange
-   * @param {string} followUpId - ID of the follow-up question
-   * @param {*} followUpValue - New value for the follow-up question
-   * 
-   * @input {string} followUpId - Unique identifier for follow-up question
-   * @input {*} followUpValue - New value (usually string for text inputs)
-   * 
-   * @writes {followUpAnswers} - Updates local follow-up answer state
-   * @writes {onChange} - Notifies parent component of follow-up changes
-   * 
-   * @dependencies {setFollowUpAnswers} - Function to update local state
-   * @dependencies {onChange} - Parent callback function
-   * 
-   * @role {State Updater} - Updates local follow-up answer state
-   * @role {Parent Notifier} - Notifies parent of follow-up changes
-   * @role {Data Formatter} - Formats follow-up data for parent consumption
+   * @brief Handles changes for follow-up text fields directly.
+   * @description This function directly updates the global 'answers' state when the user
+   * types into a follow-up text field. This is a much simpler and more robust
+   * approach than passing complex objects up to the parent.
+   * @param {string} followUpId - The unique ID of the follow-up question.
+   * @param {string} followUpValue - The text value from the input field.
    */
   const handleFollowUpChange = (followUpId, followUpValue) => {
-    // Update local state immediately for responsive UI
-    setFollowUpAnswers(prev => {
-      const newState = {
-        ...prev,
-        [followUpId]: followUpValue
-      };
-      return newState;
-    });
-    
-    // Pass follow-up data to parent component
-    // It's crucial to pass the mainValue along with the follow-up data
-    // so the parent component has the full context of the answer.
-    onChange({
-      mainValue: value, // The main answer (e.g., 'yes')
-      followUpData: { [followUpId]: followUpValue } // The text from the follow-up field
-    });
+    setAnswers(prevAnswers => ({
+      ...prevAnswers,
+      [followUpId]: followUpValue
+    }));
   };
 
   /**

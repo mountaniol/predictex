@@ -203,6 +203,7 @@ const MetaQuestionsSection = () => {
               onChange={(value) => handleAnswerChange(question.id, value)}
               labels={labels}
               answers={answers}
+              setAnswers={setAnswers} // Pass setAnswers directly
             />
           </div>
         );

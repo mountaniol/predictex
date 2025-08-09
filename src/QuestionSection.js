@@ -349,41 +349,17 @@ const QuestionSection = () => {
    * @function handleAnswerChange
    * @param {number} si - Section index
    * @param {number} qi - Question index within section
-   * @param {*} value - New answer value or follow-up data object
-   * 
-   * @input {*} value - Can be regular answer value or object with followUpData
-   * @input {Object} value.followUpData - Follow-up data for "Other" options
-   * @input {*} value.mainValue - Main answer value when follow-up data is present
-   * 
-   * @writes {AppContext.answers} - Updates global answers state
-   * @writes {depWarnings} - Clears dependency warnings for changed questions
-   * 
-   * @dependencies {setAnswers} - Function to update global answers state
-   * @dependencies {setDepWarnings} - Function to update dependency warnings
-   * 
-   * @role {Answer Processor} - Processes and validates user answers
-   * @role {State Updater} - Updates global and local state
-   * @role {Warning Manager} - Manages dependency warnings
+   * @param {*} value - The new answer value.
    */
   const handleAnswerChange = (si, qi, value) => {
     const question = sections[si]?.questions[qi];
     if (!question) return;
 
-    let newAnswers = { ...answers };
-
-    if (value && typeof value === 'object' && value.followUpData) {
-      // This is an object containing both the main answer and follow-up data.
-      // Merge both into the answers state.
-      newAnswers = {
-        ...newAnswers,
-        [question.id]: value.mainValue,
-        ...value.followUpData
-      };
-    } else {
-      // This is a direct answer (e.g., from a text input or simple radio).
-      newAnswers[question.id] = value;
-    }
-    
+    // The main answer is updated directly. Follow-up answers are handled by AnswerInput.
+    const newAnswers = {
+      ...answers,
+      [question.id]: value,
+    };
     setAnswers(newAnswers);
 
     // Clear dependency warning for this question when answer changes.
@@ -400,7 +376,7 @@ const QuestionSection = () => {
   };
 
   /**
-   * @brief Retrieves location answer from meta questions or legacy format
+   * @brief Retrieves the location answer from meta questions.
    * 
    * Extracts location information from either the new meta questions format
    * (MET.LOC) or the legacy format (LOCATION question). Used to provide
@@ -691,6 +667,7 @@ const QuestionSection = () => {
                   onChange={v => handleAnswerChange(si, qi, v)}
                   labels={labels}
                   answers={answers}
+                  setAnswers={setAnswers} // Pass setAnswers directly
                 />
                 
                 <button
