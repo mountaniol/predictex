@@ -18,25 +18,26 @@ import { useState, useEffect } from 'react';
  *   labels: Object
  * }}
  */
-const useLoadQuestions = () => {
+const useLoadQuestions = (initialQuestionSetId) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [questionSetId, setQuestionSetId] = useState('');
+  const [questionSetId, setQuestionSetId] = useState(initialQuestionSetId);
   const [sections, setSections] = useState([]);
   const [metaQuestions, setMetaQuestions] = useState([]);
   const [calculations, setCalculations] = useState([]);
   const [labels, setLabels] = useState({});
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const qId = params.get('q') || 'q4';
-    setQuestionSetId(qId);
+    if (!questionSetId) {
+      setLoading(false);
+      return;
+    }
 
     const loadData = async () => {
-      console.log(`[useLoadQuestions] Starting data load for ${qId}...`);
+      console.log(`[useLoadQuestions] Starting data load for ${questionSetId}...`);
       setLoading(true);
       try {
-        const response = await fetch(`/questions/${qId}.json`);
+        const response = await fetch(`/questions/${questionSetId}.json`);
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
@@ -61,7 +62,11 @@ const useLoadQuestions = () => {
         sections.sort((a, b) => a.position - b.position);
         sections.forEach(s => s.questions.sort((a,b) => a.position_in_cluster - b.position_in_cluster));
         
-        setQuestionSetId(data.version || 'unknown');
+        // This was the source of the infinite loop. The hook should not
+        // change its own trigger ID based on the content of the loaded file.
+        // The questionSetId is the source of truth for which file to load.
+        // setQuestionSetId(data.version || 'unknown'); 
+        
         setSections(sections);
         setMetaQuestions(data.meta_questions || []);
         setCalculations(data.calculations || []);
@@ -77,9 +82,9 @@ const useLoadQuestions = () => {
     };
 
     loadData();
-  }, []);
+  }, [questionSetId]);
 
-  return { loading, error, questionSetId, sections, metaQuestions, calculations, labels };
+  return { loading, error, questionSetId, setQuestionSetId, sections, metaQuestions, calculations, labels };
 };
 
 export default useLoadQuestions;

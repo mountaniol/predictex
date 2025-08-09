@@ -32,7 +32,7 @@ import { AppContext } from './App';
  * @role {Sidebar UI} - Provides fixed sidebar interface
  */
 const SidebarResults = () => {
-  const { questionSetId, sections, answers, scores, calculations, questionStates, setAnswers, setScores, setQuestionStates, explanations, setExplanations } = useContext(AppContext);
+  const { questionSetId, sections, answers, scores, calculations, questionStates, setAnswers, setScores, setQuestionStates, explanations, setExplanations, loadAndApplyState } = useContext(AppContext);
   const [clearState, setClearState] = useState(0); // 0: idle, 1: first press, 2: second press
   const [clearTimer, setClearTimer] = useState(null);
   const [tooltip, setTooltip] = useState({ visible: false, text: '', id: null });
@@ -76,19 +76,22 @@ const SidebarResults = () => {
     reader.onload = (e) => {
       try {
         const data = JSON.parse(e.target.result);
+
         if (data.questionSetId !== questionSetId) {
-          alert(`Error: This save file is for the question set "${data.questionSetId}", but you are currently viewing "${questionSetId}". Please switch to the correct question set to load this file.`);
-          return;
-        }
-        if (data.answers && data.scores && data.questionStates) {
-          setAnswers(data.answers);
-          setScores(data.scores);
-          setQuestionStates(data.questionStates);
-          // Explanations might not exist in older save files, so handle this gracefully
-          setExplanations(data.explanations || {});
-          alert('Successfully loaded data from file!');
+          // If the question set is different, use the new central function
+          // to load the correct question set and then apply the state.
+          console.log(`Switching from question set ${questionSetId} to ${data.questionSetId}`);
+          loadAndApplyState(data);
         } else {
-          throw new Error('Invalid file format.');
+          // If it's the same question set, just update the state directly.
+          if (data.answers && data.scores && data.questionStates) {
+            setAnswers(data.answers);
+            setScores(data.scores);
+            setQuestionStates(data.questionStates);
+            setExplanations(data.explanations || {});
+          } else {
+            throw new Error('Invalid file format.');
+          }
         }
       } catch (error) {
         alert(`Error loading file: ${error.message}`);

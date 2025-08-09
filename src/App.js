@@ -7,6 +7,7 @@ import QuestionSection from "./QuestionSection";
 import SidebarResults from "./SidebarResults";
 import Header from "./Header";
 import Footer from "./Footer";
+import { useCallback } from "react";
 
 /**
  * @brief React Context for global application state management
@@ -63,65 +64,61 @@ export const AppContext = React.createContext(null);
  */
 function App() {
   const [currentLanguage, setCurrentLanguage] = useState("en");
-  const { 
-    loading, error, questionSetId, sections, metaQuestions, calculations, labels
-  } = useLoadQuestions();
   
-  // Load saved data from localStorage on component mount
-  const [answers, setAnswers] = useState(() => {
-    if (!questionSetId) return {};
+  const initialQuestionSetId = new URLSearchParams(window.location.search).get('q') || 'q4';
+  const { 
+    loading, error, questionSetId, setQuestionSetId, sections, metaQuestions, calculations, labels
+  } = useLoadQuestions(initialQuestionSetId);
+  
+  const [answers, setAnswers] = useState({});
+  const [scores, setScores] = useState({});
+  const [questionStates, setQuestionStates] = useState({});
+  const [explanations, setExplanations] = useState({});
+  const [metaSummaries, setMetaSummaries] = useState({});
+
+  useEffect(() => {
+    if (!questionSetId) return;
     try {
       const savedAnswers = localStorage.getItem(`qna-evaluator-answers-${questionSetId}`);
-      return savedAnswers ? JSON.parse(savedAnswers) : {};
-    } catch (error) {
-      console.warn('Failed to load answers from localStorage:', error);
-      return {};
-    }
-  });
-  
-  const [scores, setScores] = useState(() => {
-    if (!questionSetId) return {};
-    try {
+      setAnswers(savedAnswers ? JSON.parse(savedAnswers) : {});
+
       const savedScores = localStorage.getItem(`qna-evaluator-scores-${questionSetId}`);
-      return savedScores ? JSON.parse(savedScores) : {};
-    } catch (error) {
-      console.warn('Failed to load scores from localStorage:', error);
-      return {};
-    }
-  });
-  
-  const [questionStates, setQuestionStates] = useState(() => {
-    if (!questionSetId) return {};
-    try {
+      setScores(savedScores ? JSON.parse(savedScores) : {});
+
       const storedStates = localStorage.getItem(`qna-evaluator-questionStates-${questionSetId}`);
-      return storedStates ? JSON.parse(storedStates) : {};
-    } catch (e) {
-      console.error("Failed to parse question states from localStorage", e);
-      return {};
-    }
-  });
+      setQuestionStates(storedStates ? JSON.parse(storedStates) : {});
 
-  const [explanations, setExplanations] = useState(() => {
-    if (!questionSetId) return {};
-    try {
       const savedExplanations = localStorage.getItem(`qna-evaluator-explanations-${questionSetId}`);
-      return savedExplanations ? JSON.parse(savedExplanations) : {};
-    } catch (error) {
-      console.warn('Failed to load explanations from localStorage:', error);
-      return {};
-    }
-  });
+      setExplanations(savedExplanations ? JSON.parse(savedExplanations) : {});
 
-  const [metaSummaries, setMetaSummaries] = useState(() => {
-    if (!questionSetId) return {};
-    try {
       const savedSummaries = localStorage.getItem(`qna-evaluator-metaSummaries-${questionSetId}`);
-      return savedSummaries ? JSON.parse(savedSummaries) : {};
+      setMetaSummaries(savedSummaries ? JSON.parse(savedSummaries) : {});
+
     } catch (error) {
-      console.warn('Failed to load metaSummaries from localStorage:', error);
-      return {};
+      console.warn('Failed to load data from localStorage on question set change:', error);
     }
-  });
+  }, [questionSetId]);
+
+  // A new function to dynamically load a question set and apply new state
+  const loadAndApplyState = useCallback((newState) => {
+    if (newState.questionSetId) {
+      // Trigger the data load for the new question set
+      setQuestionSetId(newState.questionSetId);
+      
+      // We need a way to apply the state AFTER the new questions are loaded.
+      // A simple (but not perfect) way is to use a timeout. A better way would
+      // be a more robust state machine, but this is a good first step.
+      setTimeout(() => {
+        setAnswers(newState.answers || {});
+        setScores(newState.scores || {});
+        setQuestionStates(newState.questionStates || {});
+        setExplanations(newState.explanations || {});
+        setMetaSummaries(newState.metaSummaries || {});
+        console.log(`State for ${newState.questionSetId} has been applied.`);
+      }, 500); // Wait 500ms for questions to load
+    }
+  }, [setQuestionSetId]);
+
 
   // Log context values
   useEffect(() => {
@@ -228,6 +225,7 @@ function App() {
       metaSummaries,
       setMetaSummaries,
       labels,
+      loadAndApplyState // Expose the new function
     }}>
       <div style={{
         minHeight: "100vh",
