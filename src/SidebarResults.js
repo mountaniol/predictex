@@ -32,7 +32,18 @@ import { AppContext } from './App';
  * @role {Sidebar UI} - Provides fixed sidebar interface
  */
 const SidebarResults = () => {
-  const { sections, answers, scores, calculations, questionStates } = useContext(AppContext);
+  const { sections, answers, scores, calculations, questionStates, setAnswers, setScores, setQuestionStates } = useContext(AppContext);
+
+  const handleClearData = () => {
+    if (window.confirm('Are you sure you want to clear all saved data? This action cannot be undone.')) {
+      setAnswers({});
+      setScores({});
+      setQuestionStates({});
+      localStorage.removeItem('qna-evaluator-answers');
+      localStorage.removeItem('qna-evaluator-scores');
+      localStorage.removeItem('qna-evaluator-questionStates');
+    }
+  };
 
   // Apply calculation rules to get computed scores
   const computedScores = useMemo(() => {
@@ -365,6 +376,46 @@ const SidebarResults = () => {
             'Strongly recommend against proceeding.'
           )}
         </div>
+      </div>
+
+      {/* Data Management */}
+      <div style={{
+        marginTop: 20,
+        paddingTop: 16,
+        borderTop: '1px solid #e9ecef'
+      }}>
+        {Object.keys(answers).length > 0 && (
+          <div style={{
+            fontSize: '11px',
+            color: '#28a745',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            marginBottom: 8
+          }}>
+            <span style={{ fontSize: '12px' }}>✓</span>
+            Saved {Object.keys(answers).length} / {sections.reduce((sum, section) => sum + section.questions.length, 0)} questions
+          </div>
+        )}
+        <button
+          onClick={handleClearData}
+          style={{
+            padding: '6px 12px',
+            fontSize: '11px',
+            backgroundColor: '#dc3545',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            opacity: 0.8,
+            transition: 'opacity 0.2s',
+            width: '100%'
+          }}
+          onMouseEnter={(e) => e.target.style.opacity = '1'}
+          onMouseLeave={(e) => e.target.style.opacity = '0.8'}
+        >
+          Clear All Data
+        </button>
       </div>
     </div>
   );
