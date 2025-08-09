@@ -1713,5 +1713,8 @@
       ],
       "prompt_add": "Good: risk-based checks. Red: no/unknown with concentrated suppliers (SG22); scale by MET.RISKCTX."
     }
+  ],
+  "calculations": [
+    "OVERALL=(SG01+SG02+SG03A+SG03B+SG04+SG05+SG06+SG07+SG08+SG09+SG10+SG11+SG12+SG13+SG14+SG15+SG16+SG17+SG18+SG19+SG20+SG21+SG22+SG23+SG24+SG25+SG26+SG27+SG28+SG29+SG30+SG31+SG32+SG33+SG34+SG35+SG36)/37"
   ]
 }

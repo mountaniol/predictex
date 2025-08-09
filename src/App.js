@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import useLoadQuestions from "./useLoadQuestions";
 import LanguageSelector from "./LanguageSelector";
 import QuestionSection from "./QuestionSection";
+import ResultsSummary from "./ResultsSummary";
 import Header from "./Header";
 import Footer from "./Footer";
 
@@ -99,6 +100,7 @@ function App() {
             translating={loading}
           />
           <QuestionSection />
+          <ResultsSummary />
           <Footer />
         </div>
       </div>
