@@ -130,11 +130,11 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
     
     // Pass follow-up data to parent component
     if (q.other_text_id && followUpId === q.other_text_id) {
-      // Call onChange with the follow-up data
-      onChange({
-        mainValue: value,
-        followUpData: { [followUpId]: followUpValue }
-      });
+      // For "Other" text fields, we only need to pass the follow-up data
+      onChange({ followUpData: { [followUpId]: followUpValue } });
+    } else {
+      // For regular follow-ups, we can just update the follow-up answer
+      onChange({ followUpData: { [followUpId]: followUpValue } });
     }
   };
 

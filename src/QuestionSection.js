@@ -94,57 +94,55 @@ const QuestionSection = () => {
    * This ensures the application state is always consistent and up-to-date on startup.
    */
   useEffect(() => {
-    // Ensure this runs only once after initial data is loaded.
     if (!sections || sections.length === 0 || contextLoading) {
       return;
     }
 
     const runStartupCheck = async () => {
-      // Step 1: Recalculate all question states to ensure consistency.
+      // Create a fresh copy of states to work with.
       const newStates = { ...questionStates };
-      let statesChanged = false;
+
+      // First pass: Update states for all questions without dependencies.
       sections.forEach(section => {
         section.questions.forEach(question => {
-          const currentState = questionStates[question.id] || 'unanswered';
-          const correctState = getQuestionState(question, answers, scores, questionStates);
-          if (currentState !== correctState) {
-            newStates[question.id] = correctState;
-            statesChanged = true;
+          const dependencies = getQuestionDependencies(question);
+          if (dependencies.length === 0) {
+            const correctState = getQuestionState(question, answers, scores, newStates);
+            if (newStates[question.id] !== correctState) {
+              newStates[question.id] = correctState;
+            }
           }
         });
       });
-
-      if (statesChanged) {
-        setQuestionStates(newStates);
-      }
-
-      // Step 2: Trigger re-evaluation for questions ready to be fully evaluated.
+      
+      // Second pass: Re-evaluate dependent questions that are now ready.
       for (const section of sections) {
         for (const question of section.questions) {
-          // Use the potentially updated states (newStates) for this check.
-          const state = newStates[question.id] || 'unanswered';
-          if (state === 'partially_answered') {
-            const dependencies = getQuestionDependencies(question);
+          const dependencies = getQuestionDependencies(question);
+          if (dependencies.length > 0) {
+            const currentState = newStates[question.id] || 'unanswered';
             const allDependenciesMet = dependencies.every(
               depId => newStates[depId] === 'fully_answered'
             );
 
-            if (allDependenciesMet) {
+            if (currentState === 'partially_answered' && allDependenciesMet) {
               const si = sections.findIndex(s => s.title === section.title);
               const qi = section.questions.findIndex(q => q.id === question.id);
               if (si !== -1 && qi !== -1) {
-                // This question is ready for re-evaluation.
-                await evaluateAnswer(si, qi, true); // Pass true for isReevaluation
+                await evaluateAnswer(si, qi, true);
               }
             }
           }
         }
       }
+      
+      // Final state update.
+      setQuestionStates(newStates);
     };
 
     runStartupCheck();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contextLoading, sections]); // Rerun if sections or loading state changes.
+  }, [contextLoading, sections]);
 
   /**
    * @brief Generates unique key for question identification
@@ -371,37 +369,32 @@ const QuestionSection = () => {
     const question = sections[si]?.questions[qi];
     if (!question) return;
 
-    // Handle follow-up data
+    // Create a mutable copy of the current answers.
+    const newAnswers = { ...answers };
+
+    // Handle incoming data: it could be a direct answer or an object with follow-up data.
     if (value && typeof value === 'object' && value.followUpData) {
-      // This is follow-up data, update both main answer and follow-up
-      const newAnswers = {
-        ...answers,
-        [question.id]: value.mainValue,
-        ...value.followUpData
-      };
-      setAnswers(newAnswers);
-      // Update question state after answer change
-      const newState = getQuestionState(question, newAnswers, scores, questionStates);
-      updateQuestionState(question.id, newState);
+      // This is follow-up data. Merge it into our newAnswers object.
+      Object.assign(newAnswers, value.followUpData);
     } else {
-      // Regular answer change
-      const newAnswers = {
-        ...answers,
-        [question.id]: value
-      };
-      setAnswers(newAnswers);
-      // Update question state after answer change
-      const newState = getQuestionState(question, newAnswers, scores, questionStates);
-      updateQuestionState(question.id, newState);
+      // This is a regular answer change for the main question.
+      newAnswers[question.id] = value;
     }
 
-    // Clear dependency warning for this question when answer changes
+    // Update the global state with the new answers.
+    setAnswers(newAnswers);
+
+    // Clear dependency warning for this question when answer changes.
     if (depWarnings[question.id]) {
       setDepWarnings(prev => ({
         ...prev,
         [question.id]: undefined
       }));
     }
+
+    // Update the question's state based on the latest answers.
+    const newState = getQuestionState(question, newAnswers, scores, questionStates);
+    updateQuestionState(question.id, newState);
   };
 
   /**
