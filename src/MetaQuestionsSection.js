@@ -150,24 +150,6 @@ const MetaQuestionsSection = ({ onMetaChange }) => {
     }
   };
 
-  /**
-   * @brief Gets dependencies for a question
-   * 
-   * Extracts the list of question IDs that the current question depends on
-   * from the ai_context.include_answers field.
-   * 
-   * @function getQuestionDependencies
-   * @param {Object} question - Question object
-   * @returns {Array} Array of question IDs that this question depends on
-   * 
-   * @reads {question.ai_context.include_answers} - List of dependent question IDs
-   * 
-   * @role {Dependency Extractor} - Extracts dependency information from questions
-   */
-  const getQuestionDependencies = (question) => {
-    return question.ai_context?.include_answers || [];
-  };
-
   return (
     <div style={{ marginBottom: 32 }}>
       {metaQuestions.filter(q => q.question_type !== 'internal').map((q) => (
