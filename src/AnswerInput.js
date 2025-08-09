@@ -150,7 +150,7 @@ const AnswerInput = ({ q, value, onChange, labels, answers, setAnswers }) => {
           <div style={{ fontSize: '14px', color: '#7f8c8d', marginBottom: 8 }}>
             {followUp.ask.question_type === 'text' && followUp.ask.placeholder}
           </div>
-          {renderInput(followUp.ask, followUpAnswers[followUp.ask.id] || '', handleFollowUpWrapper)}
+          {renderInput(followUp.ask, answers[followUp.ask.id] || '', handleFollowUpWrapper)}
         </div>
       );
     });
