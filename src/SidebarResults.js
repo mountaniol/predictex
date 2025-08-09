@@ -53,10 +53,10 @@ const SidebarResults = () => {
       return scores;
     }
 
-    // Import applyCalculations function logic
+    // This function is defined inside useMemo to re-run only when scores/calculations change.
     const applyCalculations = (base, calcArr) => {
       const res = { ...base };
-      const idRegex = /\b([A-Z][0-9]+)\b/g;
+      const idRegex = /\b([A-Z]{2,3}\d{2,3})\b/g; // Regex for question IDs like SG01, MET.LOC01 etc.
 
       calcArr.forEach(line => {
         if (!line || typeof line !== 'string') return;
