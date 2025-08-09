@@ -239,57 +239,46 @@ function App() {
         <div style={{
           maxWidth: 1200,
           margin: "0 auto",
-          padding: "32px 16px 0 16px"
+          padding: "32px 16px 0 16px",
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '24px'
         }}>
-          <Header />
-          <LanguageSelector
-            currentLanguage={currentLanguage}
-            onChange={setCurrentLanguage}
-            translating={loading}
-          />
-          
-          {/* Layout - 2x2 CSS Grid for perfect alignment */}
+          {/* Column 1: Sticky Sidebar */}
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: '280px 1fr',
-            gridTemplateRows: 'auto 1fr',
-            gap: '0 24px', // 0px row gap, 24px column gap
-            alignItems: 'start',
+            width: '280px',
+            flexShrink: 0, // Prevents the sidebar from shrinking
+            position: 'sticky',
+            top: '20px'
           }}>
-            {/* Top-left cell (empty) */}
-            <div></div>
-
-            {/* Top-right cell (Basic Information Title) */}
-            <div>
-              {metaQuestions && metaQuestions.length > 0 && (
-                <h2 style={{
-                  fontSize: '24px',
-                  fontWeight: 'bold',
-                  marginBottom: '20px',
-                  color: '#2c3e50',
-                  marginTop: 0 // Align with top
-                }}>
-                  Basic Information
-                </h2>
-              )}
-            </div>
-            
-            {/* Bottom-left cell (Sidebar) */}
-            <div style={{
-              position: 'sticky',
-              top: '20px',
-            }}>
-              <SidebarResults />
-            </div>
-
-            {/* Bottom-right cell (Questions) */}
-            <div>
-              <QuestionSection />
-            </div>
+            <SidebarResults />
           </div>
-          
-          <Footer />
+
+          {/* Column 2: Main Content */}
+          <div style={{
+            flex: 1 // Takes up the remaining space
+          }}>
+            <Header />
+            <LanguageSelector
+              currentLanguage={currentLanguage}
+              onChange={setCurrentLanguage}
+              translating={loading}
+            />
+            {metaQuestions && metaQuestions.length > 0 && (
+              <h2 style={{
+                fontSize: '24px',
+                fontWeight: 'bold',
+                marginTop: '20px', // Add some space above the title
+                marginBottom: '20px',
+                color: '#2c3e50',
+              }}>
+                Basic Information
+              </h2>
+            )}
+            <QuestionSection />
+          </div>
         </div>
+        <Footer />
       </div>
     </AppContext.Provider>
   );
