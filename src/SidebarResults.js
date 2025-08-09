@@ -553,7 +553,7 @@ const SidebarResults = () => {
                 <div style={{
                   fontSize: 16,
                   fontWeight: 700,
-                  color: 'black',
+                  color: sectionRiskColor,
                   marginLeft: 8
                 }}>
                   {Math.round(sectionAverage * 10) / 10}
@@ -668,7 +668,6 @@ const SidebarResults = () => {
         <div style={{ position: 'relative' }}>
           <button
             onClick={handleSaveToFile}
-            onMouseEnter={() => handleMouseEnter('Save current form state to file, to restore later from this file', 'saveBtn')}
             onMouseLeave={handleMouseLeave}
             style={{
               padding: '6px 12px',
@@ -683,8 +682,10 @@ const SidebarResults = () => {
               width: '100%',
               marginBottom: '8px'
             }}
-            onMouseEnter={(e) => { e.target.style.backgroundColor = '#f0f0f0'; }}
-            onMouseLeave={(e) => { e.target.style.backgroundColor = 'white'; }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#f0f0f0';
+              handleMouseEnter('Save current form state to file, to restore later from this file', 'saveBtn');
+            }}
           >
             Save to File
           </button>
@@ -717,7 +718,6 @@ const SidebarResults = () => {
         <div style={{ position: 'relative' }}>
           <button
             onClick={() => document.getElementById('loadFile').click()}
-            onMouseEnter={() => handleMouseEnter('Load the form from saved file', 'loadBtn')}
             onMouseLeave={handleMouseLeave}
             style={{
               padding: '6px 12px',
@@ -731,8 +731,10 @@ const SidebarResults = () => {
               transition: 'background-color 0.2s',
               width: '100%'
             }}
-            onMouseEnter={(e) => { e.target.style.backgroundColor = '#f0f0f0'; }}
-            onMouseLeave={(e) => { e.target.style.backgroundColor = 'white'; }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#f0f0f0';
+              handleMouseEnter('Load the form from saved file', 'loadBtn');
+            }}
           >
             Load from File
           </button>
