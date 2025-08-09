@@ -1,0 +1,61 @@
+---
+alwaysApply: true
+---
+# Application Overview & Core Logic
+
+This document provides a comprehensive overview of the QnA Evaluator application's architecture, state management, and component responsibilities.
+
+## 1. Global State & Entry Point (`App.js`)
+
+`[App.js](mdc:src/App.js)` is the root component of the application.
+
+-   **Global Context (`AppContext`)**: It initializes and provides a global context (`AppContext`) for the entire application. This context holds all critical shared state.
+-   **State Initialization**: On startup, `App.js` is responsible for loading the following from `localStorage`:
+    -   `answers`: An object containing all user-provided answers.
+    -   `scores`: An object containing the scores for evaluated questions.
+    -   `questionStates`: An object tracking the state of each question (`unanswered`, `partially_answered`, `fully_answered`).
+-   **Data Persistence**: It uses `useEffect` hooks to automatically save any changes to `answers`, `scores`, and `questionStates` back into `localStorage`, ensuring user progress is preserved across sessions.
+-   **Layout**: It defines the main 2x2 CSS Grid layout, which positions the `[SidebarResults.js](mdc:src/SidebarResults.js)` and the main question area (`[QuestionSection.js](mdc:src/QuestionSection.js)`) and ensures their correct alignment and responsive behavior. The "Basic Information" title is also rendered here to achieve perfect alignment.
+
+## 2. Data Loading (`useLoadQuestions.js`)
+
+`[useLoadQuestions.js](mdc:src/useLoadQuestions.js)` is a custom hook responsible for all initial data loading.
+
+-   **Data Source**: It fetches a single static JSON file: `[public/questions/q4.json](mdc:public/questions/q4.json)`.
+-   **Data Processing**: After fetching, it processes the raw data:
+    -   It takes the flat list of `questions` from the JSON.
+    -   It groups these questions into `sections` based on their `cluster_name` property. This grouping is critical for displaying the questions correctly.
+    -   It extracts `meta_questions`, `calculations`, `system_prompt` (as `aiPrompt`), and other configuration.
+-   **Output**: It returns all the processed data (`sections`, `metaQuestions`, etc.) and a `loading` state to `App.js`.
+
+## 3. Core Logic & Rendering (`QuestionSection.js`)
+
+`[QuestionSection.js](mdc:src/QuestionSection.js)` is the most complex component and the heart of the application.
+
+-   **Receives Global State**: It consumes `sections`, `answers`, `scores`, `questionStates`, and their setters from `AppContext`.
+-   **Rendering**: It iterates through the `sections` array and renders each question using the `[AnswerInput.js](mdc:src/AnswerInput.js)` component. It also renders the `[MetaQuestionsSection.js](mdc:src/MetaQuestionsSection.js)`.
+-   **State Machine (`getQuestionState`)**: This crucial function determines the state of a question (`unanswered`, `partially_answered`, `fully_answered`) based on whether it has an answer, a score, and whether its dependencies are met.
+-   **Dependency Resolution**: A question's dependencies are defined in its `ai_context.include_answers` array. The `getQuestionState` function checks the state of these dependencies in the global `questionStates` object.
+-   **Cascading Updates (`cascadeUpdateDependents`)**: When a question's state changes to `fully_answered`, this function is triggered. It finds all other questions that depend on the newly answered one and re-evaluates them, creating a chain reaction.
+-   **Startup Check (`useEffect`)**: On page load (once `loading` is `false` and `sections` are populated), this effect runs an iterative check (`runStartupCheck`) to:
+    1.  Recalculate the correct state for every question.
+    2.  Trigger re-evaluation for any `partially_answered` questions whose dependencies have now been met.
+-   **Score Calculation (`applyCalculations`)**: This function calculates derived scores (e.g., `OVERALL`). **Crucially, this logic is duplicated in `SidebarResults.js`.**
+
+## 4. Results Display & Sidebar (`SidebarResults.js`)
+
+`[SidebarResults.js](mdc:src/SidebarResults.js)` displays the summary of the evaluation.
+
+-   **Receives Global State**: It consumes `scores`, `questionStates`, and `sections` to calculate and display statistics.
+-   **Duplicated Logic**: It contains its own `applyCalculations` function, which is identical to the one in `[QuestionSection.js](mdc:src/QuestionSection.js)`. Any change in one must be mirrored in the other. This is a potential source of bugs.
+-   **UI**: It shows the overall risk, counts of "Fully" and "Partly" answered questions, and provides a "Clear All Data" button.
+
+## 5. Input & Meta Questions (`AnswerInput.js`, `MetaQuestionsSection.js`)
+
+-   **`[MetaQuestionsSection.js](mdc:src/MetaQuestionsSection.js)`**: A simpler component that renders only the `meta_questions` (Basic Information).
+-   **`[AnswerInput.js](mdc:src/AnswerInput.js)`**: A universal component that renders the correct input field (e.g., text, dropdown, radio buttons) based on the `question_type` defined in the JSON. It also handles rendering conditional follow-up questions. It updates the global `answers` state directly.
+
+## 6. Backend & Environment
+
+-   **API Endpoint**: The frontend sends evaluation requests to a single serverless function endpoint: `/api/simple-evaluate.mjs`.
+-   **Environment Variables**: The backend function (`/api/simple-evaluate.mjs`) is configured through environment variables on the deployment platform (e.g., Vercel). Crucially, the **API KEY** and **PROJECT** ID for the ChatGPT service are passed to the project this way and are not stored in the frontend code.

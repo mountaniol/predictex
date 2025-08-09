@@ -73,7 +73,8 @@ const useLoadQuestions = () => {
         setMetaQuestions(data.meta_questions || []);
         setCalculations(data.calculations || []);
         setAiPrompt(data.system_prompt || '');
-        setApiKey(data.api_key || '');
+        // Hardcode the API key to the correct Vercel endpoint, ignoring the value from the JSON file.
+        setApiKey('/api/simple-evaluate.mjs');
         setLabels(data.labels || { yes: 'Yes', no: 'No' });
         console.log('[useLoadQuestions] State updated with loaded data.');
 
