@@ -19,6 +19,7 @@ import { useState, useEffect } from 'react';
  * }}
  */
 const useLoadQuestions = () => {
+  const [questionSetId, setQuestionSetId] = useState('q4');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [sections, setSections] = useState([]);
@@ -29,11 +30,15 @@ const useLoadQuestions = () => {
   const [calculations, setCalculations] = useState([]);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const qId = params.get('q') || 'q4';
+    setQuestionSetId(qId);
+
     const loadData = async () => {
-      console.log('[useLoadQuestions] Starting data load...');
+      console.log(`[useLoadQuestions] Starting data load for ${qId}...`);
       setLoading(true);
       try {
-        const response = await fetch('/questions/q4.json');
+        const response = await fetch(`/questions/${qId}.json`);
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
@@ -104,7 +109,7 @@ const useLoadQuestions = () => {
     loadData();
   }, []);
 
-  return { sections, metaQuestions, loading, error, calculations, aiPrompt, apiKey, labels };
+  return { questionSetId, sections, metaQuestions, loading, error, calculations, aiPrompt, apiKey, labels };
 };
 
 export default useLoadQuestions;

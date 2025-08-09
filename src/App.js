@@ -63,12 +63,12 @@ export const AppContext = React.createContext(null);
  */
 function App() {
   const [currentLanguage, setCurrentLanguage] = useState("en");
-  const { sections, metaQuestions, loading, error, calculations, aiPrompt, apiKey, labels } = useLoadQuestions();
+  const { questionSetId, sections, metaQuestions, loading, error, calculations, aiPrompt, apiKey, labels } = useLoadQuestions();
   
   // Load saved data from localStorage on component mount
   const [answers, setAnswers] = useState(() => {
     try {
-      const savedAnswers = localStorage.getItem('qna-evaluator-answers');
+      const savedAnswers = localStorage.getItem(`qna-evaluator-answers-${questionSetId}`);
       return savedAnswers ? JSON.parse(savedAnswers) : {};
     } catch (error) {
       console.warn('Failed to load answers from localStorage:', error);
@@ -78,7 +78,7 @@ function App() {
   
   const [scores, setScores] = useState(() => {
     try {
-      const savedScores = localStorage.getItem('qna-evaluator-scores');
+      const savedScores = localStorage.getItem(`qna-evaluator-scores-${questionSetId}`);
       return savedScores ? JSON.parse(savedScores) : {};
     } catch (error) {
       console.warn('Failed to load scores from localStorage:', error);
@@ -88,7 +88,7 @@ function App() {
   
   const [questionStates, setQuestionStates] = useState(() => {
     try {
-      const storedStates = localStorage.getItem('qna-evaluator-questionStates');
+      const storedStates = localStorage.getItem(`qna-evaluator-questionStates-${questionSetId}`);
       return storedStates ? JSON.parse(storedStates) : {};
     } catch (e) {
       console.error("Failed to parse question states from localStorage", e);
@@ -110,44 +110,52 @@ function App() {
 
   // Save data to localStorage whenever it changes
   useEffect(() => {
-    try {
-      localStorage.setItem('qna-evaluator-answers', JSON.stringify(answers));
-    } catch (error) {
-      console.warn('Failed to save answers to localStorage:', error);
+    if (questionSetId) {
+      try {
+        localStorage.setItem(`qna-evaluator-answers-${questionSetId}`, JSON.stringify(answers));
+      } catch (error) {
+        console.warn('Failed to save answers to localStorage:', error);
+      }
     }
-  }, [answers]);
+  }, [answers, questionSetId]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('qna-evaluator-scores', JSON.stringify(scores));
-    } catch (error) {
-      console.warn('Failed to save scores to localStorage:', error);
+    if (questionSetId) {
+      try {
+        localStorage.setItem(`qna-evaluator-scores-${questionSetId}`, JSON.stringify(scores));
+      } catch (error) {
+        console.warn('Failed to save scores to localStorage:', error);
+      }
     }
-  }, [scores]);
+  }, [scores, questionSetId]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('qna-evaluator-questionStates', JSON.stringify(questionStates));
-    } catch (error) {
-      console.warn('Failed to save question states to localStorage:', error);
+    if (questionSetId) {
+      try {
+        localStorage.setItem(`qna-evaluator-questionStates-${questionSetId}`, JSON.stringify(questionStates));
+      } catch (error) {
+        console.warn('Failed to save question states to localStorage:', error);
+      }
     }
-  }, [questionStates]);
+  }, [questionStates, questionSetId]);
 
   // Add event listener to save data before page unload
   useEffect(() => {
     const handleBeforeUnload = () => {
-      try {
-        localStorage.setItem('qna-evaluator-answers', JSON.stringify(answers));
-        localStorage.setItem('qna-evaluator-scores', JSON.stringify(scores));
-        localStorage.setItem('qna-evaluator-questionStates', JSON.stringify(questionStates));
-      } catch (error) {
-        console.warn('Failed to save data before unload:', error);
+      if (questionSetId) {
+        try {
+          localStorage.setItem(`qna-evaluator-answers-${questionSetId}`, JSON.stringify(answers));
+          localStorage.setItem(`qna-evaluator-scores-${questionSetId}`, JSON.stringify(scores));
+          localStorage.setItem(`qna-evaluator-questionStates-${questionSetId}`, JSON.stringify(questionStates));
+        } catch (error) {
+          console.warn('Failed to save data before unload:', error);
+        }
       }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [answers, scores, questionStates]);
+  }, [answers, scores, questionStates, questionSetId]);
 
   return (
     <AppContext.Provider value={{

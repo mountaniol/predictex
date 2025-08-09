@@ -141,7 +141,8 @@ const QuestionSection = () => {
             
             if (hasAnswer && state !== 'fully_answered') {
               const dependencies = getQuestionDependencies(q);
-              const allDepsMet = dependencies.every(depId => currentStates[depId] === 'fully_answered');
+              const statesSnapshot = currentStates; // Create a snapshot for the closure
+              const allDepsMet = dependencies.every(depId => statesSnapshot[depId] === 'fully_answered');
               if (allDepsMet) {
                 questionToReevaluate = q;
                 reeval_si = i;
@@ -511,7 +512,8 @@ const QuestionSection = () => {
           
           if (hasAnswer && state !== 'fully_answered') {
             const dependencies = getQuestionDependencies(q);
-            const allDepsMet = dependencies.every(depId => currentStates[depId] === 'fully_answered');
+            const statesSnapshot = currentStates; // Create a snapshot for the closure
+            const allDepsMet = dependencies.every(depId => statesSnapshot[depId] === 'fully_answered');
             if (allDepsMet) {
               questionToReevaluate = q;
               reeval_si = i;
