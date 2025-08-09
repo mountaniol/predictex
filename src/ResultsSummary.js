@@ -34,7 +34,7 @@ import { AppContext } from './App';
  * @role {Data Visualizer} - Presents results in user-friendly format
  */
 const ResultsSummary = () => {
-  const { sections, answers, scores, calculations } = useContext(AppContext);
+  const { sections, answers, scores, calculations, questionStates } = useContext(AppContext);
 
   // Apply calculation rules to get computed scores
   const computedScores = useMemo(() => {
@@ -98,6 +98,8 @@ const ResultsSummary = () => {
         averageScore: 0,
         totalQuestions: 0,
         evaluatedQuestions: 0,
+        fullyEvaluated: 0,
+        partlyEvaluated: 0,
         riskLevel: 'Unknown',
         riskColor: '#999',
         riskDescription: 'No evaluations completed'
@@ -107,6 +109,10 @@ const ResultsSummary = () => {
     const averageScore = allScores.reduce((sum, score) => sum + score, 0) / allScores.length;
     const totalQuestions = sections.reduce((sum, section) => sum + section.questions.length, 0);
     const evaluatedQuestions = allScores.length;
+    
+    // Calculate new metrics
+    const fullyEvaluated = Object.values(questionStates).filter(state => state === 'fully_answered').length;
+    const partlyEvaluated = Object.values(questionStates).filter(state => state === 'partially_answered').length;
 
     // Determine risk level
     let riskLevel, riskColor, riskDescription;
@@ -136,11 +142,13 @@ const ResultsSummary = () => {
       averageScore: Math.round(averageScore * 10) / 10,
       totalQuestions,
       evaluatedQuestions,
+      fullyEvaluated,
+      partlyEvaluated,
       riskLevel,
       riskColor,
       riskDescription
     };
-  }, [computedScores, sections]);
+  }, [computedScores, sections, questionStates]);
 
   // Check if user has completed the evaluation
   const hasCompletedEvaluation = Object.keys(answers).length > 0 && 
@@ -254,11 +262,37 @@ const ResultsSummary = () => {
           backgroundColor: '#e8f5e8',
           borderRadius: 8
         }}>
+          <div style={{ fontSize: 24, fontWeight: 600, color: '#27ae60' }}>
+            {overallStats.fullyEvaluated}
+          </div>
+          <div style={{ fontSize: 14, color: '#6c757d' }}>
+            Fully Evaluated
+          </div>
+        </div>
+        <div style={{
+          textAlign: 'center',
+          padding: 16,
+          backgroundColor: '#fff3cd',
+          borderRadius: 8
+        }}>
+          <div style={{ fontSize: 24, fontWeight: 600, color: '#f39c12' }}>
+            {overallStats.partlyEvaluated}
+          </div>
+          <div style={{ fontSize: 14, color: '#6c757d' }}>
+            Partly Evaluated
+          </div>
+        </div>
+        <div style={{
+          textAlign: 'center',
+          padding: 16,
+          backgroundColor: '#e8f5e8',
+          borderRadius: 8
+        }}>
           <div style={{ fontSize: 24, fontWeight: 600, color: '#388e3c' }}>
             {Math.round((overallStats.evaluatedQuestions / overallStats.totalQuestions) * 100)}%
           </div>
           <div style={{ fontSize: 14, color: '#6c757d' }}>
-            Completion Rate
+            Completion Range
           </div>
         </div>
       </div>

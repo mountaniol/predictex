@@ -43,7 +43,7 @@ import AnswerInput from './AnswerInput';
  */
 const MetaQuestionsSection = () => {
   const context = useContext(AppContext);
-  const { metaQuestions, answers, setAnswers, labels } = context || {};
+  const { metaQuestions, answers, setAnswers, labels, questionStates, setQuestionStates } = context || {};
 
   if (!metaQuestions || metaQuestions.length === 0) {
     return null;
@@ -110,11 +110,35 @@ const MetaQuestionsSection = () => {
     return `${question.id}: ${question.text}`;
   };
 
+  /**
+   * @brief Updates the state of a question
+   * 
+   * Updates the questionStates state with the new state for the given question.
+   * 
+   * @function updateQuestionState
+   * @param {string} questionId - Question ID
+   * @param {string} state - New state: 'unanswered', 'partially_answered', or 'fully_answered'
+   * 
+   * @writes {questionStates} - Updates question state
+   * 
+   * @role {State Updater} - Updates question state
+   */
+  const updateQuestionState = (questionId, state) => {
+    setQuestionStates(prev => ({
+      ...prev,
+      [questionId]: state
+    }));
+  };
+
   const handleAnswerChange = (questionId, value) => {
     setAnswers(prev => ({
       ...prev,
       [questionId]: value
     }));
+    
+    // Update question state after answer change
+    const newState = value && value !== '' ? 'partially_answered' : 'unanswered';
+    updateQuestionState(questionId, newState);
   };
 
   return (

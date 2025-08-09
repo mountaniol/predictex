@@ -66,7 +66,9 @@ const QuestionSection = () => {
     answers,
     setAnswers,
     scores,
-    setScores
+    setScores,
+    questionStates,
+    setQuestionStates
   } = context || {};
 
   const [loading, setLoading] = useState({});
@@ -128,6 +130,146 @@ const QuestionSection = () => {
   };
 
   /**
+   * @brief Determines the current state of a question
+   * 
+   * Checks if a question is unanswered, partially answered, or fully answered
+   * based on whether it has an answer and whether all its dependencies are fully answered.
+   * 
+   * @function getQuestionState
+   * @param {Object} question - Question object
+   * @returns {string} Question state: 'unanswered', 'partially_answered', or 'fully_answered'
+   * 
+   * @reads {answers} - Checks if question has an answer
+   * @reads {scores} - Checks if question has been evaluated
+   * @reads {questionStates} - Checks current state of dependencies
+   * 
+   * @role {State Determiner} - Determines current state of a question
+   */
+  const getQuestionState = (question) => {
+    const hasAnswer = answers[question.id] && answers[question.id] !== '';
+    const hasScore = scores[question.id] !== undefined;
+    const dependencies = getQuestionDependencies(question);
+    
+    if (!hasAnswer) {
+      return 'unanswered';
+    }
+    
+    if (dependencies.length === 0) {
+      // No dependencies, so if it has a score, it's fully answered
+      return hasScore ? 'fully_answered' : 'partially_answered';
+    }
+    
+    // Check if all dependencies are fully answered
+    const allDependenciesFullyAnswered = dependencies.every(depId => 
+      questionStates[depId] === 'fully_answered'
+    );
+    
+    if (allDependenciesFullyAnswered && hasScore) {
+      return 'fully_answered';
+    }
+    
+    return 'partially_answered';
+  };
+
+  /**
+   * @brief Updates the state of a question
+   * 
+   * Updates the questionStates state with the new state for the given question.
+   * 
+   * @function updateQuestionState
+   * @param {string} questionId - Question ID
+   * @param {string} state - New state: 'unanswered', 'partially_answered', or 'fully_answered'
+   * 
+   * @writes {questionStates} - Updates question state
+   * 
+   * @role {State Updater} - Updates question state
+   */
+  const updateQuestionState = (questionId, state) => {
+    setQuestionStates(prev => ({
+      ...prev,
+      [questionId]: state
+    }));
+  };
+
+  /**
+   * @brief Finds all questions that depend on a given question
+   * 
+   * Searches through all sections to find questions that have the given question
+   * in their ai_context.include_answers array.
+   * 
+   * @function findDependentQuestions
+   * @param {string} questionId - Question ID to find dependents for
+   * @returns {Array} Array of question objects that depend on the given question
+   * 
+   * @reads {sections} - Searches through all sections and questions
+   * 
+   * @role {Dependency Finder} - Finds questions that depend on a given question
+   */
+  const findDependentQuestions = (questionId) => {
+    const dependents = [];
+    sections.forEach(section => {
+      section.questions.forEach(question => {
+        const dependencies = getQuestionDependencies(question);
+        if (dependencies.includes(questionId)) {
+          dependents.push(question);
+        }
+      });
+    });
+    return dependents;
+  };
+
+  /**
+   * @brief Recursively updates dependent questions when a question becomes fully answered
+   * 
+   * When a question becomes fully answered, this function finds all questions that depend on it
+   * and checks if they should be re-evaluated. This creates a cascade of updates.
+   * 
+   * @function cascadeUpdateDependents
+   * @param {string} questionId - Question ID that just became fully answered
+   * 
+   * @uses {findDependentQuestions} - Finds questions that depend on the given question
+   * @uses {getQuestionState} - Determines current state of dependent questions
+   * @uses {evaluateAnswer} - Re-evaluates questions that are ready
+   * 
+   * @role {Cascade Manager} - Manages cascade updates of dependent questions
+   */
+  const cascadeUpdateDependents = async (questionId) => {
+    const dependents = findDependentQuestions(questionId);
+    
+    for (const dependent of dependents) {
+      const currentState = getQuestionState(dependent);
+      
+      if (currentState === 'partially_answered') {
+        // Check if all dependencies are now fully answered
+        const dependencies = getQuestionDependencies(dependent);
+        const allDependenciesFullyAnswered = dependencies.every(depId => 
+          questionStates[depId] === 'fully_answered'
+        );
+        
+        if (allDependenciesFullyAnswered) {
+          // Find the section and question indices for this dependent
+          let foundSectionIndex = -1;
+          let foundQuestionIndex = -1;
+          
+          sections.forEach((section, si) => {
+            section.questions.forEach((q, qi) => {
+              if (q.id === dependent.id) {
+                foundSectionIndex = si;
+                foundQuestionIndex = qi;
+              }
+            });
+          });
+          
+          if (foundSectionIndex !== -1 && foundQuestionIndex !== -1) {
+            // Re-evaluate this dependent question
+            await evaluateAnswer(foundSectionIndex, foundQuestionIndex, true); // true = isReevaluation
+          }
+        }
+      }
+    }
+  };
+
+  /**
    * @brief Handles user answer changes and follow-up data
    * 
    * Processes answer changes from AnswerInput components, including both regular
@@ -186,6 +328,10 @@ const QuestionSection = () => {
         [question.id]: undefined
       }));
     }
+
+    // Update question state after answer change
+    const newState = getQuestionState(question);
+    updateQuestionState(question.id, newState);
   };
 
   /**
@@ -277,7 +423,7 @@ const QuestionSection = () => {
    * @role {Score Manager} - Updates and manages evaluation scores
    * @role {Error Handler} - Manages evaluation errors and user feedback
    */
-  const evaluateAnswer = async (si, qi) => {
+  const evaluateAnswer = async (si, qi, isReevaluation = false) => {
     const question = sections[si]?.questions[qi];
     if (!question) return;
 
@@ -285,21 +431,12 @@ const QuestionSection = () => {
     setLoading(prev => ({ ...prev, [key]: true }));
 
     try {
-      // Check dependencies first
-      if (question.ai_context?.include_answers && question.ai_context.include_answers.length > 0) {
-        const missingDeps = question.ai_context.include_answers.filter(depId => 
-          !answers[depId] || answers[depId] === ''
-        );
-        
-        if (missingDeps.length > 0) {
-          const depNames = missingDeps.map(id => id).join(', ');
-          setDepWarnings(prev => ({
-            ...prev,
-            [question.id]: `Please answer questions: ${depNames} first.`
-          }));
-          setLoading(prev => ({ ...prev, [key]: false }));
-          return;
-        }
+      // Remove dependency warnings - we now allow evaluation without dependencies
+      if (depWarnings[question.id]) {
+        setDepWarnings(prev => ({
+          ...prev,
+          [question.id]: undefined
+        }));
       }
 
       // Build the payload according to the new AI spec
@@ -379,6 +516,15 @@ const QuestionSection = () => {
             calculations
           );
           setScores(newScores);
+        }
+
+        // Update question state and trigger cascade updates
+        const newState = getQuestionState(question);
+        updateQuestionState(question.id, newState);
+        
+        // If this question just became fully answered, trigger cascade updates
+        if (newState === 'fully_answered' && !isReevaluation) {
+          await cascadeUpdateDependents(question.id);
         }
       }
     } catch (error) {
@@ -522,6 +668,16 @@ const QuestionSection = () => {
                 {scores[q.id] !== undefined && (
                   <span style={{ marginLeft: 16 }}>
                     Score: {scores[q.id]}
+                    <span style={{ 
+                      marginLeft: 8, 
+                      fontSize: '12px',
+                      padding: '2px 6px',
+                      borderRadius: '3px',
+                      backgroundColor: questionStates[q.id] === 'fully_answered' ? '#27ae60' : '#f39c12',
+                      color: 'white'
+                    }}>
+                      {questionStates[q.id] === 'fully_answered' ? '✓ Fully' : '⚠ Partly'}
+                    </span>
                   </span>
                 )}
               </div>

@@ -66,6 +66,7 @@ function App() {
   const { sections, metaQuestions, aiPrompt, apiKey, loading, error, labels, calculations } = useLoadQuestions(currentLanguage);
   const [answers, setAnswers] = useState({});
   const [scores, setScores] = useState({});
+  const [questionStates, setQuestionStates] = useState({});
 
   return (
     <AppContext.Provider value={{
@@ -81,7 +82,9 @@ function App() {
       answers,
       setAnswers,
       scores,
-      setScores
+      setScores,
+      questionStates,
+      setQuestionStates
     }}>
       <div style={{
         minHeight: "100vh",
