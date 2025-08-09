@@ -159,6 +159,7 @@ function App() {
 
   return (
     <AppContext.Provider value={{
+      questionSetId,
       sections,
       metaQuestions,
       aiPrompt,

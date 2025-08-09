@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from 'react';
+import React, { useContext, useMemo, useState, useEffect } from 'react';
 import { AppContext } from './App';
 
 /**
@@ -32,20 +32,101 @@ import { AppContext } from './App';
  * @role {Sidebar UI} - Provides fixed sidebar interface
  */
 const SidebarResults = () => {
-  const { sections, answers, scores, calculations, questionStates, setAnswers, setScores, setQuestionStates } = useContext(AppContext);
+  const { questionSetId, sections, answers, scores, calculations, questionStates, setAnswers, setScores, setQuestionStates } = useContext(AppContext);
+  const [clearState, setClearState] = useState(0); // 0: idle, 1: first press, 2: second press
+  const [clearTimer, setClearTimer] = useState(null);
 
+  // Effect to clear the timer if the component unmounts
+  useEffect(() => {
+    return () => {
+      if (clearTimer) {
+        clearTimeout(clearTimer);
+      }
+    };
+  }, [clearTimer]);
 
+  const handleSaveToFile = () => {
+    const dataToSave = {
+      questionSetId,
+      answers,
+      scores,
+      questionStates,
+      savedAt: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(dataToSave, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `qna-evaluator-state-${questionSetId}-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleLoadFromFile = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data.questionSetId !== questionSetId) {
+          alert(`Error: This save file is for the question set "${data.questionSetId}", but you are currently viewing "${questionSetId}". Please switch to the correct question set to load this file.`);
+          return;
+        }
+        if (data.answers && data.scores && data.questionStates) {
+          setAnswers(data.answers);
+          setScores(data.scores);
+          setQuestionStates(data.questionStates);
+          alert('Successfully loaded data from file!');
+        } else {
+          throw new Error('Invalid file format.');
+        }
+      } catch (error) {
+        alert(`Error loading file: ${error.message}`);
+      }
+    };
+    reader.readAsText(file);
+    // Reset the input value to allow loading the same file again
+    event.target.value = null;
+  };
 
   const handleClearData = () => {
-    if (window.confirm('Are you sure you want to clear all saved data? This action cannot be undone.')) {
+    if (clearTimer) {
+      clearTimeout(clearTimer);
+    }
+
+    if (clearState === 0) {
+      setClearState(1);
+      const timer = setTimeout(() => {
+        setClearState(0);
+        console.log('Clear data confirmation timed out.');
+      }, 5000);
+      setClearTimer(timer);
+    } else if (clearState === 1) {
+      setClearState(2);
+      const timer = setTimeout(() => {
+        setClearState(0);
+        console.log('Clear data confirmation timed out.');
+      }, 5000);
+      setClearTimer(timer);
+    } else if (clearState === 2) {
+      console.log('Clearing all data.');
       setAnswers({});
       setScores({});
       setQuestionStates({});
-      localStorage.removeItem('qna-evaluator-answers');
-      localStorage.removeItem('qna-evaluator-scores');
-      localStorage.removeItem('qna-evaluator-questionStates');
+      if (questionSetId) {
+        localStorage.removeItem(`qna-evaluator-answers-${questionSetId}`);
+        localStorage.removeItem(`qna-evaluator-scores-${questionSetId}`);
+        localStorage.removeItem(`qna-evaluator-questionStates-${questionSetId}`);
+      }
+      setClearState(0);
+      setClearTimer(null);
     }
   };
+
 
   // Apply calculation rules to get computed scores
   const computedScores = useMemo(() => {
@@ -405,7 +486,56 @@ const SidebarResults = () => {
           style={{
             padding: '6px 12px',
             fontSize: '11px',
-            backgroundColor: '#dc3545',
+            backgroundColor: clearState > 0 ? '#ffc107' : '#dc3545',
+            color: clearState > 0 ? 'black' : 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            opacity: 0.8,
+            transition: 'opacity 0.2s, background-color 0.3s',
+            width: '100%',
+            marginBottom: '8px'
+          }}
+          onMouseEnter={(e) => e.target.style.opacity = '1'}
+          onMouseLeave={(e) => e.target.style.opacity = '0.8'}
+        >
+          {clearState === 0 && 'Clear All Data'}
+          {clearState === 1 && 'Press 2 more times'}
+          {clearState === 2 && 'Press 1 more time'}
+        </button>
+        <button
+          onClick={handleSaveToFile}
+          style={{
+            padding: '6px 12px',
+            fontSize: '11px',
+            backgroundColor: '#007bff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            opacity: 0.8,
+            transition: 'opacity 0.2s',
+            width: '100%',
+            marginBottom: '8px'
+          }}
+          onMouseEnter={(e) => e.target.style.opacity = '1'}
+          onMouseLeave={(e) => e.target.style.opacity = '0.8'}
+        >
+          Save to File
+        </button>
+        <input
+          type="file"
+          id="loadFile"
+          style={{ display: 'none' }}
+          onChange={handleLoadFromFile}
+          accept=".json"
+        />
+        <button
+          onClick={() => document.getElementById('loadFile').click()}
+          style={{
+            padding: '6px 12px',
+            fontSize: '11px',
+            backgroundColor: '#6c757d',
             color: 'white',
             border: 'none',
             borderRadius: '4px',
@@ -417,7 +547,7 @@ const SidebarResults = () => {
           onMouseEnter={(e) => e.target.style.opacity = '1'}
           onMouseLeave={(e) => e.target.style.opacity = '0.8'}
         >
-          Clear All Data
+          Load from File
         </button>
               </div>
         </>
