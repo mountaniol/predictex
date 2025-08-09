@@ -130,7 +130,6 @@
         }
       ],
       "ai_context": { "include_meta": ["MET.LOC","MET.IND","MET.SIZE","MET.HC"], "include_answers": [] },
-      "related_to": ["SG02","SG04"],
       "prompt_add": "Score intent of sale. Good: planned retirement/move/strategic refocus. Red: urgent cash need, lawsuits/tax issues, sale due to heavy losses. Penalize contradictions with SG02/SG04. Bands: 0–19 critical; 20–49 high; 50–79 moderate; 80–100 low."
     },
     {
@@ -150,7 +149,6 @@
         { "code": "deals_withdrawn", "label": "Deals withdrawn" }
       ],
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG01"] },
-      "related_to": ["SG01","SG04"],
       "prompt_add": "Good: fresh listing or LOI/DD activity with credible reasons. Red: long time on market without serious interest or multiple withdrawn deals without clear cause. Cross-check SG01 (motive) and SG04 (trend)."
     },
     {
@@ -170,7 +168,6 @@
         { "code": "age_gt20", "label": "Over 20 years" }
       ],
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": [] },
-      "related_to": ["SG04","SG05"],
       "prompt_add": "Good: 5–20 years with consistent ops. Red: <2 years (unproven) unless strong backlog/margins. Adjust tolerance by MET.IND."
     },
     {
@@ -190,7 +187,6 @@
         { "code": "rm_gt7", "label": "Over 7 years" }
       ],
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": [] },
-      "related_to": ["SG04","SG05"],
       "prompt_add": "Good: model 3–7y+. Red: <1y without strong backlog or margins; penalize volatility per SG04/SG05."
     },
     {
@@ -215,7 +211,6 @@
         }
       ],
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG03A","SG03B"] },
-      "related_to": ["SG05","SG06","SG12","SG13"],
       "prompt_add": "Good: up/flat with plausible context. Red: down ≥20% without credible reason or conflicting with SG05/SG12/SG13. Weigh industry cyclicality (MET.IND)."
     },
     {
@@ -233,7 +228,6 @@
         }
       ],
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG04"] },
-      "related_to": ["SG04"],
       "prompt_add": "Good: no large dips or dips explained by seasonality. Red: unexplained dips conflicting with SG04 trend."
     },
     {
@@ -245,7 +239,6 @@
       "position_in_cluster": 3,
       "question_type": "yes-no",
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG04"] },
-      "related_to": ["SG04","SG23"],
       "prompt_add": "Good: no exceptional WC strain or well-planned financing. Red: heavy seasonal WC strain without plan; weigh with SG23 (inventory) and SG04."
     },
     {
@@ -264,7 +257,6 @@
         { "code": "gt40", "label": "Above 40%" }
       ],
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": [] },
-      "related_to": ["SG08"],
       "prompt_add": "Good: 20–40%+ stable. Red: <20% with discounting (SG08) or price pressure. Consider MET.IND norms."
     },
     {
@@ -282,7 +274,6 @@
         { "code": "rare_or_no", "label": "Rarely or no" }
       ],
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG07","SG04"] },
-      "related_to": ["SG07","SG04"],
       "prompt_add": "Good: rare/no discounting with healthy margins (SG07). Red: frequent deep discounting, esp. if margins low or revenue flat/down."
     },
     {
@@ -301,7 +292,6 @@
         { "code": "gt35", "label": "Above 35%" }
       ],
       "ai_context": { "include_meta": ["MET.IND","MET.SIZE"], "include_answers": [] },
-      "related_to": ["SG10","SG11","SG32"],
       "prompt_add": "Good: <20% for most sizes; tolerate higher for micro (MET.SIZE). Red: >35% with weak transferability (SG11) or no seller support (SG32)."
     },
     {
@@ -320,7 +310,6 @@
         { "code": "gt60", "label": "Above 60%" }
       ],
       "ai_context": { "include_meta": ["MET.IND","MET.SIZE"], "include_answers": ["SG09"] },
-      "related_to": ["SG09","SG11"],
       "prompt_add": "Good: diversified <40–60% depending on size. Red: >60% with weak contracts (SG11)."
     },
     {
@@ -340,7 +329,6 @@
         { "code": "unknown", "label": "I'm not sure" }
       ],
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG09","SG10"] },
-      "related_to": ["SG09","SG10","SG33"],
       "prompt_add": "Good: all transferable. Red: non-transferable or unknown without protections (SG33) and high concentration (SG09/SG10)."
     },
     {
@@ -358,7 +346,6 @@
         { "code": "backlog_lt_3m", "label": "No / <3 months" }
       ],
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG04"] },
-      "related_to": ["SG04","SG12"],
       "prompt_add": "Good: ≥3 months coverage. Red: <3 months, esp. with revenue down (SG04) or recent churn (SG12)."
     },
     {
@@ -376,7 +363,6 @@
         }
       ],
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG04","SG13"] },
-      "related_to": ["SG04","SG13"],
       "prompt_add": "Good: no material churn or replaced quickly. Red: >10% churn conflicting with SG04 up/flat or SG13 ≥3m."
     },
     {
@@ -396,7 +382,6 @@
         { "code": "unknown", "label": "I'm not sure" }
       ],
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": [] },
-      "related_to": ["SG23"],
       "prompt_add": "Good: diversified or viable alternative. Red: concentrated with no alternative; penalize unknown if inventory issues exist (SG23)."
     },
     {
@@ -415,7 +400,6 @@
         { "code": "balanced", "label": "Neither is common" }
       ],
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG22","SG06"] },
-      "related_to": ["SG22","SG06"],
       "prompt_add": "Good: balanced/controlled. Red: chronic aging or stockouts; weigh with supplier concentration (SG22) and seasonality (SG06)."
     },
     {
@@ -434,7 +418,6 @@
         { "code": "major_issues", "label": "Major issues" }
       ],
       "ai_context": { "include_meta": [], "include_answers": [] },
-      "related_to": ["SG29"],
       "prompt_add": "Good: all transfer. Red: major gaps; penalize mismatch if SG29 claims documentation but assets not transferable."
     },
     {
@@ -453,7 +436,6 @@
         { "code": "not_documented", "label": "Not documented" }
       ],
       "ai_context": { "include_meta": [], "include_answers": ["SG35"] },
-      "related_to": ["SG35"],
       "prompt_add": "Good: all documented & transferable. Red: not documented; penalize if digital assets also problematic (SG35)."
     },
     {
@@ -472,7 +454,6 @@
         { "code": "service_none", "label": "None" }
       ],
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": [] },
-      "related_to": ["SG25","SG18"],
       "prompt_add": "Good: full coverage, low downtime. Red: none plus downtime (SG25) and encumbrances (SG18)."
     },
     {
@@ -490,7 +471,6 @@
         }
       ],
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG24"] },
-      "related_to": ["SG24"],
       "prompt_add": "Good: no outages or well-managed rare incident. Red: repeated or long outages with poor service cover (SG24)."
     },
     {
@@ -508,7 +488,6 @@
         { "code": "some", "label": "Yes (some)" }
       ],
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG24","SG25"] },
-      "related_to": ["SG24","SG25"],
       "prompt_add": "Good: no encumbrances or clear payoff plan. Red: encumbered critical assets plus downtime (SG25) or no service (SG24)."
     },
     {
@@ -527,7 +506,6 @@
         { "code": "lease_lt_2y", "label": "Leased, <2 years left" }
       ],
       "ai_context": { "include_meta": ["MET.LOC"], "include_answers": [] },
-      "related_to": ["SG20","SG13"],
       "prompt_add": "Good: owned or ≥2y lease. Red: <2y and weak landlord stance (SG20), esp. with backlog exposure (SG13)."
     },
     {
@@ -547,7 +525,6 @@
         { "code": "unknown", "label": "I'm not sure" }
       ],
       "ai_context": { "include_meta": ["MET.LOC"], "include_answers": ["SG19"] },
-      "related_to": ["SG19","SG33","SG34"],
       "prompt_add": "Good: transferable with consent. Red: no/unknown without protections (SG33) or pilot (SG34)."
     },
     {
@@ -567,7 +544,6 @@
         { "code": "unknown", "label": "I'm not sure" }
       ],
       "ai_context": { "include_meta": ["MET.LOC","MET.IND"], "include_answers": [] },
-      "related_to": ["SG33"],
       "prompt_add": "Good: all valid & transferable. Red: major issues or unknown without protections (SG33/SG34)."
     },
     {
@@ -586,7 +562,6 @@
         { "code": "no", "label": "No" }
       ],
       "ai_context": { "include_meta": [], "include_answers": ["SG11","SG20","SG21"] },
-      "related_to": ["SG11","SG20","SG21"],
       "prompt_add": "Good: escrow/conditional/reversal accepted. Red: refuses protections while transfer risks exist (SG11/SG20/SG21)."
     },
     {
@@ -605,7 +580,6 @@
         { "code": "no", "label": "No" }
       ],
       "ai_context": { "include_meta": [], "include_answers": ["SG20","SG21"] },
-      "related_to": ["SG20","SG21"],
       "prompt_add": "Good: pilot allowed. Red: refuses pilot where transfer/licensing risk exists (SG20/SG21)."
     },
     {
@@ -624,7 +598,6 @@
         { "code": "gt45", "label": "Above 45 days" }
       ],
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": [] },
-      "related_to": ["SG15"],
       "prompt_add": "Good: DSO aligned with industry norms; <45 days for most SMB B2B. Red: >45 without explanation or with low write-offs (SG15) inconsistency."
     },
     {
@@ -636,7 +609,6 @@
       "position_in_cluster": 6,
       "question_type": "yes-no",
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG14"] },
-      "related_to": ["SG14"],
       "prompt_add": "Good: ≤1% write-offs with reasonable DSO. Red: high write-offs and long DSO; check mismatch if DSO long but write-offs claimed low. Also, try to search information regarding this type of business in the given place, and condinsider it in your scoring. In your answer expand explanation, explain what is normal for this type of business in this area."
     },
     {
@@ -648,7 +620,6 @@
       "position_in_cluster": 7,
       "question_type": "yes-no",
       "ai_context": { "include_meta": ["MET.LOC"], "include_answers": ["SG04"] },
-      "related_to": ["SG17","SG04"],
       "prompt_add": "Good: no arrears. Red: current arrears or installment plans; amplify if revenue is down (SG04)."
     },
     {
@@ -660,7 +631,6 @@
       "position_in_cluster": 1,
       "question_type": "yes-no",
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG16","SG04"] },
-      "related_to": ["SG16","SG04"],
       "prompt_add": "Good: no delays. Red: delays, especially with revenue down (SG04) or tax arrears (SG16)."
     },
     {
@@ -679,7 +649,6 @@
         { "code": "open_now", "label": "Open now" }
       ],
       "ai_context": { "include_meta": ["MET.LOC","MET.IND"], "include_answers": ["SG04","SG13"] },
-      "related_to": ["SG04","SG13"],
       "prompt_add": "Good: none or closed minor items. Red: open cases; penalize if inconsistent with claimed stability (SG04 up/flat and SG13 ≥3m)."
     },
     {
@@ -698,7 +667,6 @@
         { "code": "no_coverage", "label": "No coverage" }
       ],
       "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG30"] },
-      "related_to": ["SG30"],
       "prompt_add": "Good: coverage in place; occasional claims ok. Red: no coverage or many claims linked to open issues (SG30)."
     },
     {
@@ -717,7 +685,6 @@
         { "code": "open_now", "label": "Open now" }
       ],
       "ai_context": { "include_meta": ["MET.LOC","MET.IND"], "include_answers": ["SG21","SG30"] },
-      "related_to": ["SG21","SG30"],
       "prompt_add": "Good: none or closed. Red: open violations, especially if licenses are problematic (SG21)."
     },
     {
@@ -736,7 +703,6 @@
         { "code": "gt30h", "label": ">30 h/week" }
       ],
       "ai_context": { "include_meta": ["MET.HC"], "include_answers": [] },
-      "related_to": ["SG27","SG28"],
       "prompt_add": "Good: ≤10–30h with delegation (SG27) and survivability (SG28). Red: >30h plus many owner-only tasks."
     },
     {
@@ -755,7 +721,6 @@
         { "code": "many", "label": "Many tasks owner-only" }
       ],
       "ai_context": { "include_meta": ["MET.HC"], "include_answers": ["SG26"] },
-      "related_to": ["SG26","SG28"],
       "prompt_add": "Good: none/some with cover. Red: many owner-only tasks, esp. if SG26 is high hours."
     },
     {
@@ -767,7 +732,6 @@
       "position_in_cluster": 3,
       "question_type": "yes-no",
       "ai_context": { "include_meta": ["MET.HC"], "include_answers": ["SG26","SG27"] },
-      "related_to": ["SG26","SG27","SG32"],
       "prompt_add": "Good: yes, with processes and team , score 100. Red: no, esp. with many owner-only tasks and high hours, score from 0 to 40"
     },
     {
@@ -786,7 +750,6 @@
         { "code": "no", "label": "No" }
       ],
       "ai_context": { "include_meta": [], "include_answers": ["SG28","SG09","SG10"] },
-      "related_to": ["SG28","SG09","SG10"],
       "prompt_add": "Good: structured support & intros, esp. with client concentration (SG09/SG10). Red: no support while owner-dependency is high."
     }
   ],
@@ -809,7 +772,6 @@
         { "code": "unknown", "label": "I'm not sure" }
       ],
       "ai_context": { "include_meta": ["MET.LOC","MET.IND","MET.PUBLIC","MET.RISKCTX"], "include_answers": ["SG09","SG10"] },
-      "related_to": ["SG11","SG33"],
       "prompt_add": "Higher inherent risk with agents/public sales; weigh need for ABC controls (SGA02/SGA03) and deal protections (SG33). Scale by MET.RISKCTX."
     },
     {
@@ -829,7 +791,6 @@
         { "code": "unknown", "label": "I'm not sure" }
       ],
       "ai_context": { "include_meta": ["MET.RISKCTX"], "include_answers": [] },
-      "related_to": ["SGA01"],
       "prompt_add": "Good: both present. Red: none/unknown in higher-risk context (MET.RISKCTX)."
     },
     {
@@ -848,7 +809,6 @@
         { "code": "unknown", "label": "I'm not sure" }
       ],
       "ai_context": { "include_meta": ["MET.RISKCTX"], "include_answers": ["SGA01"] },
-      "related_to": ["SGA01","SG08"],
       "prompt_add": "Good: normal commissions. Red: >10% without justification; scale by MET.RISKCTX."
     },
     {
@@ -868,7 +828,6 @@
         { "code": "unknown", "label": "I'm not sure" }
       ],
       "ai_context": { "include_meta": ["MET.LOC","MET.RISKCTX"], "include_answers": [] },
-      "related_to": ["SG21","SG22"],
       "prompt_add": "Good: none/rare. Red: often, esp. alongside license issues (SG21) or supplier choke points (SG22); scale by MET.RISKCTX."
     },
     {
@@ -888,7 +847,6 @@
         { "code": "unknown", "label": "I'm not sure" }
       ],
       "ai_context": { "include_meta": ["MET.LOC","MET.RISKCTX"], "include_answers": ["SG30","SG31"] },
-      "related_to": ["SG30","SG31"],
       "prompt_add": "Good: none or past closed with remediation. Red: open now; scale by MET.RISKCTX."
     },
     {
@@ -908,7 +866,6 @@
         { "code": "unknown", "label": "I'm not sure" }
       ],
       "ai_context": { "include_meta": ["MET.RISKCTX"], "include_answers": ["SG22"] },
-      "related_to": ["SG22"],
       "prompt_add": "Good: risk-based checks. Red: no/unknown with concentrated suppliers (SG22); scale by MET.RISKCTX."
     }
   ]
