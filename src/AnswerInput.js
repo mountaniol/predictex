@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 /**
  * @brief Universal input component for rendering different question types
@@ -43,21 +43,6 @@ import React, { useState, useEffect } from 'react';
  * @workflow {4} Handles value changes and notifies parent component
  */
 const AnswerInput = ({ q, value, onChange, labels, answers, setAnswers }) => {
-  // This local state is only for the text in the "Other" field, if it exists.
-  const [otherText, setOtherText] = useState('');
-
-  /**
-   * @brief Effect to initialize the text for the "Other" option.
-   * @description When the component loads, this checks if an answer for the "Other"
-   * text field already exists in the global 'answers' state and sets it locally.
-   */
-  useEffect(() => {
-    if (q.other_text_id && answers[q.other_text_id]) {
-      setOtherText(answers[q.other_text_id]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q.other_text_id, answers]);
-
   /**
    * @brief Handles changes for follow-up text fields directly.
    * @description This function directly updates the global 'answers' state when the user
