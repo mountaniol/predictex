@@ -142,16 +142,7 @@ const MetaQuestionsSection = () => {
   };
 
   return (
-    <div style={{ marginBottom: 32 }}>
-      <h2 style={{
-        fontSize: '24px',
-        fontWeight: 'bold',
-        marginBottom: '20px',
-        color: '#2c3e50'
-      }}>
-        Basic Information
-      </h2>
-      
+    <div>
       {metaQuestions.map((question) => {
         if (question.question_type === 'internal') {
           return null; // Skip internal questions

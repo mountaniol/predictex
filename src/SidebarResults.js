@@ -34,6 +34,8 @@ import { AppContext } from './App';
 const SidebarResults = () => {
   const { sections, answers, scores, calculations, questionStates, setAnswers, setScores, setQuestionStates } = useContext(AppContext);
 
+
+
   const handleClearData = () => {
     if (window.confirm('Are you sure you want to clear all saved data? This action cannot be undone.')) {
       setAnswers({});
@@ -165,17 +167,11 @@ const SidebarResults = () => {
 
   return (
     <div style={{
-      position: 'sticky',
-      top: 120,
-      width: 280,
       backgroundColor: 'white',
       borderRadius: 12,
       boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
       border: '1px solid #e9ecef',
       padding: 20,
-      marginBottom: 20,
-      maxHeight: 'calc(100vh - 140px)',
-      overflowY: 'auto'
     }}>
       <h3 style={{
         margin: '0 0 16px 0',

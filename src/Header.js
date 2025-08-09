@@ -4,7 +4,10 @@ import React from "react";
 const Header = () => {
 
   return (
-    <div style={{ textAlign: "center", marginBottom: 8 }}>
+    <div style={{ 
+      textAlign: "center", 
+      marginBottom: 8
+    }}>
       <div
         style={{
           fontSize: 36,

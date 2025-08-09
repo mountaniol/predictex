@@ -553,8 +553,10 @@ const QuestionSection = () => {
 
   return (
     <div>
-      {/* Meta Questions Section */}
-      <MetaQuestionsSection />
+      {/* Meta Questions Section is now rendered without its own title */}
+      {metaQuestions && metaQuestions.length > 0 && (
+        <MetaQuestionsSection />
+      )}
       
       {/* Regular Questions Sections */}
       {sections.map((section, si) => (
@@ -702,7 +704,7 @@ const QuestionSection = () => {
  * @returns {Object} Updated scores object with calculated values
  * 
  * @input {Object} base - Current scores with question IDs as keys
- * @input {Array} calcArr - Calculation rules in format "target=expression"
+ * @input {Array} calcArr - Calculation rules in format "TARGET=EXPRESSION"
  * 
  * @returns {Object} res - Updated scores object with calculated values
  * 

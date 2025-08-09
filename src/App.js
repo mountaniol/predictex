@@ -174,27 +174,42 @@ function App() {
             translating={loading}
           />
           
-          {/* Layout - Two Columns on Desktop, Single Column on Mobile */}
+          {/* Layout - 2x2 CSS Grid for perfect alignment */}
           <div style={{
-            display: 'flex',
-            gap: 24,
-            alignItems: 'flex-start',
-            flexDirection: window.innerWidth < 1024 ? 'column' : 'row'
+            display: 'grid',
+            gridTemplateColumns: '280px 1fr',
+            gridTemplateRows: 'auto 1fr',
+            gap: '0 24px', // 0px row gap, 24px column gap
+            alignItems: 'start',
           }}>
-            {/* Left Sidebar - Results */}
+            {/* Top-left cell (empty) */}
+            <div></div>
+
+            {/* Top-right cell (Basic Information Title) */}
+            <div>
+              {metaQuestions && metaQuestions.length > 0 && (
+                <h2 style={{
+                  fontSize: '24px',
+                  fontWeight: 'bold',
+                  marginBottom: '20px',
+                  color: '#2c3e50',
+                  marginTop: 0 // Align with top
+                }}>
+                  Basic Information
+                </h2>
+              )}
+            </div>
+            
+            {/* Bottom-left cell (Sidebar) */}
             <div style={{
-              flexShrink: 0,
-              width: window.innerWidth < 1024 ? '100%' : 280,
-              display: 'block'
+              position: 'sticky',
+              top: '20px',
             }}>
               <SidebarResults />
             </div>
-            
-            {/* Main Content - Questions */}
-            <div style={{
-              flex: 1,
-              minWidth: 0
-            }}>
+
+            {/* Bottom-right cell (Questions) */}
+            <div>
               <QuestionSection />
             </div>
           </div>
