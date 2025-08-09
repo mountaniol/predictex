@@ -132,7 +132,7 @@ const useLoadQuestions = (currentLanguage) => {
       
       try {
         // Try to load q3.json first (new format)
-        let fileName = 'q3.json';
+        let fileName = 'q4.json';
         if (currentLanguage !== 'en') {
           fileName = `q3.${currentLanguage}.json`;
         }
