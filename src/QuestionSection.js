@@ -117,16 +117,8 @@ const QuestionSection = () => {
     const question = sections[si]?.questions[qi];
     if (!question) return;
 
-    console.log('[QuestionSection] handleAnswerChange called:', {
-      questionId: question.id,
-      value,
-      valueType: typeof value,
-      hasFollowUpData: value && typeof value === 'object' && value.followUpData
-    });
-
     // Handle follow-up data
     if (value && typeof value === 'object' && value.followUpData) {
-      console.log('[QuestionSection] Processing follow-up data:', value.followUpData);
       // This is follow-up data, update both main answer and follow-up
       setAnswers(prev => {
         const newAnswers = {
@@ -134,18 +126,15 @@ const QuestionSection = () => {
           [question.id]: value.mainValue,
           ...value.followUpData
         };
-        console.log('[QuestionSection] Updated answers with follow-up data:', newAnswers);
         return newAnswers;
       });
     } else {
-      console.log('[QuestionSection] Processing regular answer change');
       // Regular answer change
       setAnswers(prev => {
         const newAnswers = {
           ...prev,
           [question.id]: value
         };
-        console.log('[QuestionSection] Updated answers with regular change:', newAnswers);
         return newAnswers;
       });
     }
@@ -315,8 +304,6 @@ const QuestionSection = () => {
         payload.meta['MET.LOC'] = locationAnswer;
       }
 
-      console.log('Sending payload to AI:', payload);
-
       const response = await fetch(apiKey, {
         method: 'POST',
         headers: {
@@ -330,7 +317,6 @@ const QuestionSection = () => {
       }
 
       const data = await response.json();
-      console.log('AI response:', data);
 
       if (data.score !== undefined) {
         setScores(prev => ({

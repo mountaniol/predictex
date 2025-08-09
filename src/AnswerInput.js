@@ -68,19 +68,11 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
    * @role {Format Handler} - Handles multiple follow-up data formats
    * @role {State Synchronizer} - Syncs local state with global data
    */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    console.log('[AnswerInput] useEffect triggered:', {
-      qId: q.id,
-      value,
-      otherTextId: q.other_text_id,
-      answers,
-      currentFollowUpAnswers: followUpAnswers
-    });
-
     if (Array.isArray(value)) {
       const otherOption = value.find(v => typeof v === 'object' && v.code === 'other');
       if (otherOption && otherOption.text && q.other_text_id) {
-        console.log('[AnswerInput] Found legacy format other option:', otherOption);
         setFollowUpAnswers(prev => ({
           ...prev,
           [q.other_text_id]: otherOption.text
@@ -92,7 +84,6 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
     if (q.other_text_id && answers && answers[q.other_text_id]) {
       const currentLocalValue = followUpAnswers[q.other_text_id];
       if (!currentLocalValue || currentLocalValue === '') {
-        console.log('[AnswerInput] Initializing from global answers:', answers[q.other_text_id]);
         setFollowUpAnswers(prev => ({
           ...prev,
           [q.other_text_id]: answers[q.other_text_id]
@@ -126,39 +117,21 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
    * @role {Data Formatter} - Formats follow-up data for parent consumption
    */
   const handleFollowUpChange = (followUpId, followUpValue) => {
-    console.log('[AnswerInput] handleFollowUpChange called:', {
-      followUpId,
-      followUpValue,
-      qId: q.id,
-      currentFollowUpAnswers: followUpAnswers
-    });
-
     // Update local state immediately for responsive UI
     setFollowUpAnswers(prev => {
       const newState = {
         ...prev,
         [followUpId]: followUpValue
       };
-      console.log('[AnswerInput] Updated followUpAnswers:', newState);
       return newState;
     });
     
     // Pass follow-up data to parent component
     if (q.other_text_id && followUpId === q.other_text_id) {
-      console.log('[AnswerInput] Calling onChange with follow-up data:', {
-        mainValue: value,
-        followUpData: { [followUpId]: followUpValue }
-      });
       // Call onChange with the follow-up data
       onChange({
         mainValue: value,
         followUpData: { [followUpId]: followUpValue }
-      });
-    } else {
-      console.log('[AnswerInput] Follow-up ID mismatch or no other_text_id:', {
-        followUpId,
-        otherTextId: q.other_text_id,
-        match: followUpId === q.other_text_id
       });
     }
   };
@@ -197,14 +170,6 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
       result = followUp.when.in.includes(value);
     }
     
-    console.log('[AnswerInput] shouldShowFollowUp:', {
-      followUpId: followUp.ask.id,
-      when: followUp.when,
-      value,
-      isArray: Array.isArray(value),
-      result
-    });
-    
     return result;
   };
 
@@ -233,21 +198,8 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
   const renderFollowUps = () => {
     if (!q.follow_ups) return null;
 
-    console.log('[AnswerInput] renderFollowUps called:', {
-      qId: q.id,
-      followUps: q.follow_ups,
-      value,
-      followUpAnswers
-    });
-
     return q.follow_ups.map((followUp, index) => {
       const shouldShow = shouldShowFollowUp(followUp);
-      console.log('[AnswerInput] Follow-up evaluation:', {
-        followUpId: followUp.ask.id,
-        shouldShow,
-        when: followUp.when,
-        currentValue: value
-      });
 
       if (!shouldShow) return null;
 
@@ -438,21 +390,11 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
 
       case 'text':
         if (ui === 'textarea') {
-          console.log('[AnswerInput] Rendering textarea:', {
-            questionId: question.id,
-            inputValue,
-            placeholder: question.placeholder,
-            followUpAnswers: followUpAnswers[question.id]
-          });
           return (
             <textarea
               rows={3}
               value={inputValue}
               onChange={(e) => {
-                console.log('[AnswerInput] Textarea onChange:', {
-                  value: e.target.value,
-                  questionId: question.id
-                });
                 inputOnChange(e.target.value);
               }}
               placeholder={question.placeholder}
@@ -467,17 +409,11 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
             />
           );
         } else {
-          console.log('[AnswerInput] Rendering text input:', {
-            questionId: question.id,
-            inputValue,
-            placeholder: question.placeholder
-          });
           return (
             <input
               type="text"
               value={inputValue}
               onChange={(e) => {
-                console.log('[AnswerInput] Text input onChange:', e.target.value);
                 inputOnChange(e.target.value);
               }}
               placeholder={question.placeholder}
