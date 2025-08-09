@@ -126,8 +126,10 @@ const QuestionSection = () => {
             // Check if a partially answered question is now ready for re-evaluation.
             if (newState === 'partially_answered') {
               const dependencies = getQuestionDependencies(question);
+              // Create a snapshot of the states for this specific check to avoid unsafe references in the loop.
+              const statesSnapshot = { ...currentStates };
               const allDependenciesMet = dependencies.every(
-                (depId) => currentStates[depId] === 'fully_answered'
+                (depId) => statesSnapshot[depId] === 'fully_answered'
               );
 
               if (allDependenciesMet) {
