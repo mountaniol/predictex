@@ -79,14 +79,14 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
       }
     }
     
-    // Also check if follow-up data exists in answers context
-    if (q.other_text_id && answers && answers[q.other_text_id]) {
+    // Only initialize from global answers if local state is empty
+    if (q.other_text_id && answers && answers[q.other_text_id] && !followUpAnswers[q.other_text_id]) {
       setFollowUpAnswers(prev => ({
         ...prev,
         [q.other_text_id]: answers[q.other_text_id]
       }));
     }
-  }, [value, q.other_text_id, answers]);
+  }, [value, q.other_text_id, answers, followUpAnswers]);
 
   /**
    * @brief Handles follow-up question value changes
@@ -113,6 +113,7 @@ const AnswerInput = ({ q, value, onChange, labels, answers }) => {
    * @role {Data Formatter} - Formats follow-up data for parent consumption
    */
   const handleFollowUpChange = (followUpId, followUpValue) => {
+    // Update local state immediately for responsive UI
     setFollowUpAnswers(prev => ({
       ...prev,
       [followUpId]: followUpValue
