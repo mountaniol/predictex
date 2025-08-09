@@ -63,7 +63,7 @@ export const AppContext = React.createContext(null);
  */
 function App() {
   const [currentLanguage, setCurrentLanguage] = useState("en");
-  const { sections, metaQuestions, aiPrompt, apiKey, loading, error, labels, calculations } = useLoadQuestions(currentLanguage);
+  const { sections, metaQuestions, loading, error, calculations, aiPrompt, apiKey, labels } = useLoadQuestions();
   
   // Load saved data from localStorage on component mount
   const [answers, setAnswers] = useState(() => {
@@ -95,6 +95,18 @@ function App() {
       return {};
     }
   });
+
+  // Log context values
+  useEffect(() => {
+    console.log('[App.js] Context Provider value updated:', {
+      loading,
+      sectionsCount: sections?.length,
+      metaQuestionsCount: metaQuestions?.length,
+      answersCount: Object.keys(answers).length,
+      scoresCount: Object.keys(scores).length,
+      statesCount: Object.keys(questionStates).length,
+    });
+  }, [loading, sections, metaQuestions, answers, scores, questionStates]);
 
   // Save data to localStorage whenever it changes
   useEffect(() => {

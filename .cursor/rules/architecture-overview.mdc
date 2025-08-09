@@ -1,0 +1,34 @@
+---
+alwaysApply: true
+---
+# Application Architecture & Core Logic
+
+This document outlines the core architecture of the QnA Evaluator application.
+
+## 1. Entry Point & State Management
+
+The main application entry point is `[App.js](mdc:src/App.js)`. It establishes the global state management using React's Context API.
+
+-   **`AppContext`**: Defined within `App.js`, this context provides global access to `answers`, `scores`, `questionStates`, and their setter functions.
+-   **Data Persistence**: `App.js` is responsible for initializing state from `localStorage` on startup and saving any changes back to `localStorage` to preserve user progress across sessions.
+
+## 2. Data Loading
+
+Question data, including dependencies and AI context, is loaded from a static JSON file.
+
+-   **Hook**: The `[useLoadQuestions.js](mdc:src/useLoadQuestions.js)` hook manages the asynchronous loading of the question set.
+-   **Data Source**: The primary data source is `[public/questions/q4.json](mdc:public/questions/q4.json)`.
+
+## 3. Core Question Logic
+
+The most critical application logic resides in `[QuestionSection.js](mdc:src/QuestionSection.js)`. This component manages:
+
+-   **Rendering**: Displays all meta and standard questions.
+-   **State Machine**: Manages the state of each question (`unanswered`, `partially_answered`, `fully_answered`). The logic for this is in the `getQuestionState` function.
+-   **Dependency Resolution**: A question's dependencies are defined in its `ai_context.include_answers` array in the JSON data.
+-   **Cascading Updates**: When a question becomes `fully_answered`, the `cascadeUpdateDependents` function is triggered to find and re-evaluate other questions that depend on it.
+-   **Startup Check**: On page load, a `useEffect` hook runs a `runStartupCheck` function to re-evaluate the state of all questions and trigger any pending re-evaluations, ensuring the state is consistent.
+
+## 4. UI Layout
+
+The main responsive layout, including the sticky sidebar, is defined in `[App.js](mdc:src/App.js)` using a 2x2 CSS Grid. See the "UI Layout" rule for more details.

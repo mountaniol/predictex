@@ -127,6 +127,7 @@ const useLoadQuestions = (currentLanguage) => {
 
   useEffect(() => {
     const loadQuestions = async () => {
+      console.log('[useLoadQuestions] Starting data load...');
       setLoading(true);
       setError(null);
       
@@ -212,6 +213,7 @@ const useLoadQuestions = (currentLanguage) => {
         setError(err.message);
       } finally {
         setLoading(false);
+        console.log('[useLoadQuestions] Loading finished.');
       }
     };
 

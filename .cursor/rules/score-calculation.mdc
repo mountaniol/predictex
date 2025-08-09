@@ -1,0 +1,16 @@
+---
+globs: src/QuestionSection.js,src/SidebarResults.js
+---
+# Score Calculation Logic
+
+The logic for calculating derived scores (like the `OVERALL` score) is duplicated in two files:
+1.  `[QuestionSection.js](mdc:src/QuestionSection.js)`: The `applyCalculations` function is called when a user clicks the "Submit" or "Re-evaluate" button.
+2.  `[SidebarResults.js](mdc:src/SidebarResults.js)`: The same logic is used within a `useMemo` hook to display the results in the sidebar.
+
+**Key Implementation Detail:**
+
+The calculation formulas can reference question IDs with different formats (e.g., `SG01`, `SG03A`). A regular expression is used to parse these IDs from the formula string.
+
+**Correct Regex**: `/\b([A-Z]+[0-9]+[A-Z]?)\b/g`
+
+Ensure that if this logic is modified in one file, it is also updated in the other to prevent inconsistencies, as was previously an issue. The `[QuestionSection.js](mdc:src/QuestionSection.js)` file should contain `console.log` statements for debugging calculation issues.
