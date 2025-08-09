@@ -35,6 +35,9 @@ const SidebarResults = () => {
   const { questionSetId, sections, answers, scores, calculations, questionStates, setAnswers, setScores, setQuestionStates, explanations, setExplanations } = useContext(AppContext);
   const [clearState, setClearState] = useState(0); // 0: idle, 1: first press, 2: second press
   const [clearTimer, setClearTimer] = useState(null);
+  const [tooltip, setTooltip] = useState({ visible: false, text: '', id: null });
+  const [tooltipTimer, setTooltipTimer] = useState(null);
+
 
   // Effect to clear the timer if the component unmounts
   useEffect(() => {
@@ -94,6 +97,19 @@ const SidebarResults = () => {
     reader.readAsText(file);
     // Reset the input value to allow loading the same file again
     event.target.value = null;
+  };
+
+  const handleMouseEnter = (text, id) => {
+    if (tooltipTimer) clearTimeout(tooltipTimer);
+    const timer = setTimeout(() => {
+      setTooltip({ visible: true, text, id });
+    }, 1000);
+    setTooltipTimer(timer);
+  };
+
+  const handleMouseLeave = () => {
+    if (tooltipTimer) clearTimeout(tooltipTimer);
+    setTooltip({ visible: false, text: '', id: null });
   };
 
   const handleClearData = () => {
@@ -267,14 +283,19 @@ const SidebarResults = () => {
 
         <>
           {/* Overall Risk Assessment */}
-      <div style={{
-        textAlign: 'center',
-        marginBottom: 20,
-        padding: 16,
-        backgroundColor: '#f8f9fa',
-        borderRadius: 8,
-        border: `2px solid ${overallStats.riskColor}`
-      }}>
+      <div 
+        style={{
+          textAlign: 'center',
+          marginBottom: 20,
+          padding: 16,
+          backgroundColor: '#f8f9fa',
+          borderRadius: 8,
+          border: `2px solid ${overallStats.riskColor}`,
+          position: 'relative'
+        }}
+        onMouseEnter={() => handleMouseEnter("Overall risk score calculated from the average of all evaluated questions. The risk level (Low, Moderate, High) is determined based on this score.", 'overallRisk')}
+        onMouseLeave={handleMouseLeave}
+      >
         <div style={{
           fontSize: 20,
           fontWeight: 700,
@@ -297,6 +318,26 @@ const SidebarResults = () => {
         }}>
           {overallStats.averageScore}/100
         </div>
+        {tooltip.visible && tooltip.id === 'overallRisk' && (
+          <div style={{
+            position: 'absolute',
+            bottom: '100%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            marginBottom: '5px',
+            padding: '8px 12px',
+            backgroundColor: '#343a40',
+            color: 'white',
+            borderRadius: '4px',
+            fontSize: '12px',
+            width: '250px',
+            whiteSpace: 'normal',
+            zIndex: 10,
+            textAlign: 'center'
+          }}>
+            {tooltip.text}
+          </div>
+        )}
       </div>
 
       {/* Statistics */}
@@ -306,57 +347,155 @@ const SidebarResults = () => {
         gap: 8,
         marginBottom: 20
       }}>
-        <div style={{
-          textAlign: 'center',
-          padding: 12,
-          backgroundColor: '#e8f5e8',
-          borderRadius: 6
-        }}>
+        <div 
+          style={{
+            textAlign: 'center',
+            padding: 12,
+            backgroundColor: '#e8f5e8',
+            borderRadius: 6,
+            position: 'relative'
+          }}
+          onMouseEnter={() => handleMouseEnter("This is the number of questions that are fully scored. Sometimes, a question's score can change as you answer other related questions. 'Fully' means the score for this question is now final.", 'fully')}
+          onMouseLeave={handleMouseLeave}
+        >
           <div style={{ fontSize: 18, fontWeight: 600, color: '#27ae60' }}>
             {overallStats.fullyEvaluated}
           </div>
           <div style={{ fontSize: 12, color: '#6c757d' }}>
             Fully
           </div>
+          {tooltip.visible && tooltip.id === 'fully' && (
+            <div style={{
+              position: 'absolute',
+              bottom: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              marginBottom: '5px',
+              padding: '8px 12px',
+              backgroundColor: '#343a40',
+              color: 'white',
+              borderRadius: '4px',
+              fontSize: '12px',
+              width: '250px',
+              whiteSpace: 'normal',
+              zIndex: 10,
+              textAlign: 'center'
+            }}>
+              {tooltip.text}
+            </div>
+          )}
         </div>
-        <div style={{
-          textAlign: 'center',
-          padding: 12,
-          backgroundColor: '#fff3cd',
-          borderRadius: 6
-        }}>
+        <div 
+          style={{
+            textAlign: 'center',
+            padding: 12,
+            backgroundColor: '#fff3cd',
+            borderRadius: 6,
+            position: 'relative'
+          }}
+          onMouseEnter={() => handleMouseEnter("These are questions you've answered, but their score isn't final yet. It might be updated as you answer other related questions. The system will do this automatically.", 'partly')}
+          onMouseLeave={handleMouseLeave}
+        >
           <div style={{ fontSize: 18, fontWeight: 600, color: '#f39c12' }}>
             {overallStats.partlyEvaluated}
           </div>
           <div style={{ fontSize: 12, color: '#6c757d' }}>
             Partly
           </div>
+          {tooltip.visible && tooltip.id === 'partly' && (
+            <div style={{
+              position: 'absolute',
+              bottom: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              marginBottom: '5px',
+              padding: '8px 12px',
+              backgroundColor: '#343a40',
+              color: 'white',
+              borderRadius: '4px',
+              fontSize: '12px',
+              width: '250px',
+              whiteSpace: 'normal',
+              zIndex: 10,
+              textAlign: 'center'
+            }}>
+              {tooltip.text}
+            </div>
+          )}
         </div>
-        <div style={{
-          textAlign: 'center',
-          padding: 12,
-          backgroundColor: '#e3f2fd',
-          borderRadius: 6
-        }}>
+        <div 
+          style={{
+            textAlign: 'center',
+            padding: 12,
+            backgroundColor: '#e3f2fd',
+            borderRadius: 6,
+            position: 'relative'
+          }}
+          onMouseEnter={() => handleMouseEnter("The total number of questions that have received a score from the AI, regardless of their dependency status.", 'evaluated')}
+          onMouseLeave={handleMouseLeave}
+        >
           <div style={{ fontSize: 18, fontWeight: 600, color: '#1976d2' }}>
             {overallStats.evaluatedQuestions}
           </div>
           <div style={{ fontSize: 12, color: '#6c757d' }}>
             Evaluated
           </div>
+          {tooltip.visible && tooltip.id === 'evaluated' && (
+            <div style={{
+              position: 'absolute',
+              bottom: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              marginBottom: '5px',
+              padding: '8px 12px',
+              backgroundColor: '#343a40',
+              color: 'white',
+              borderRadius: '4px',
+              fontSize: '12px',
+              width: '250px',
+              whiteSpace: 'normal',
+              zIndex: 10,
+              textAlign: 'center'
+            }}>
+              {tooltip.text}
+            </div>
+          )}
         </div>
-        <div style={{
-          textAlign: 'center',
-          padding: 12,
-          backgroundColor: '#f3e5f5',
-          borderRadius: 6
-        }}>
+        <div 
+          style={{
+            textAlign: 'center',
+            padding: 12,
+            backgroundColor: '#f3e5f5',
+            borderRadius: 6,
+            position: 'relative'
+          }}
+          onMouseEnter={() => handleMouseEnter("The total number of questions in the current evaluation set.", 'total')}
+          onMouseLeave={handleMouseLeave}
+        >
           <div style={{ fontSize: 18, fontWeight: 600, color: '#7b1fa2' }}>
             {overallStats.totalQuestions}
           </div>
           <div style={{ fontSize: 12, color: '#6c757d' }}>
             Total
           </div>
+          {tooltip.visible && tooltip.id === 'total' && (
+            <div style={{
+              position: 'absolute',
+              bottom: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              marginBottom: '5px',
+              padding: '8px 12px',
+              backgroundColor: '#343a40',
+              color: 'white',
+              borderRadius: '4px',
+              fontSize: '12px',
+              whiteSpace: 'nowrap',
+              zIndex: 10
+            }}>
+              {tooltip.text}
+            </div>
+          )}
         </div>
       </div>
 
@@ -419,13 +558,18 @@ const SidebarResults = () => {
       </div>
 
       {/* Quick Recommendations */}
-      <div style={{
-        marginTop: 16,
-        padding: 12,
-        backgroundColor: '#fff3cd',
-        borderRadius: 6,
-        border: '1px solid #ffeaa7'
-      }}>
+      <div 
+        style={{
+          marginTop: 16,
+          padding: 12,
+          backgroundColor: '#fff3cd',
+          borderRadius: 6,
+          border: '1px solid #ffeaa7',
+          position: 'relative'
+        }}
+        onMouseEnter={() => handleMouseEnter("This is a preliminary recommendation based only on the questions answered so far. It should not be used for final decisions until the entire form is complete, as the overall score can change significantly.", 'recommendation')}
+        onMouseLeave={handleMouseLeave}
+      >
         <div style={{
           fontSize: 12,
           fontWeight: 600,
@@ -451,6 +595,26 @@ const SidebarResults = () => {
             'Strongly recommend against proceeding.'
           )}
         </div>
+        {tooltip.visible && tooltip.id === 'recommendation' && (
+          <div style={{
+            position: 'absolute',
+            bottom: '100%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            marginBottom: '5px',
+            padding: '8px 12px',
+            backgroundColor: '#343a40',
+            color: 'white',
+            borderRadius: '4px',
+            fontSize: '12px',
+            width: '250px',
+            whiteSpace: 'normal',
+            zIndex: 10,
+            textAlign: 'center'
+          }}>
+            {tooltip.text}
+          </div>
+        )}
       </div>
 
       {/* Data Management */}
@@ -494,26 +658,46 @@ const SidebarResults = () => {
           {clearState === 1 && 'Press 2 more times'}
           {clearState === 2 && 'Press 1 more time'}
         </button>
-        <button
-          onClick={handleSaveToFile}
-          style={{
-            padding: '6px 12px',
-            fontSize: '11px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            opacity: 0.8,
-            transition: 'opacity 0.2s',
-            width: '100%',
-            marginBottom: '8px'
-          }}
-          onMouseEnter={(e) => e.target.style.opacity = '1'}
-          onMouseLeave={(e) => e.target.style.opacity = '0.8'}
-        >
-          Save to File
-        </button>
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={handleSaveToFile}
+            onMouseEnter={() => handleMouseEnter('Save current form state to file, to restore later from this file', 'saveBtn')}
+            onMouseLeave={handleMouseLeave}
+            style={{
+              padding: '6px 12px',
+              fontSize: '11px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              opacity: 0.8,
+              transition: 'opacity 0.2s',
+              width: '100%',
+              marginBottom: '8px'
+            }}
+          >
+            Save to File
+          </button>
+          {tooltip.visible && tooltip.id === 'saveBtn' && (
+            <div style={{
+              position: 'absolute',
+              bottom: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              marginBottom: '5px',
+              padding: '8px 12px',
+              backgroundColor: '#343a40',
+              color: 'white',
+              borderRadius: '4px',
+              fontSize: '12px',
+              whiteSpace: 'nowrap',
+              zIndex: 10
+            }}>
+              {tooltip.text}
+            </div>
+          )}
+        </div>
         <input
           type="file"
           id="loadFile"
@@ -521,27 +705,47 @@ const SidebarResults = () => {
           onChange={handleLoadFromFile}
           accept=".json"
         />
-        <button
-          onClick={() => document.getElementById('loadFile').click()}
-          style={{
-            padding: '6px 12px',
-            fontSize: '11px',
-            backgroundColor: '#6c757d',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            opacity: 0.8,
-            transition: 'opacity 0.2s',
-            width: '100%'
-          }}
-          onMouseEnter={(e) => e.target.style.opacity = '1'}
-          onMouseLeave={(e) => e.target.style.opacity = '0.8'}
-        >
-          Load from File
-        </button>
-              </div>
-        </>
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => document.getElementById('loadFile').click()}
+            onMouseEnter={() => handleMouseEnter('Load the form from saved file', 'loadBtn')}
+            onMouseLeave={handleMouseLeave}
+            style={{
+              padding: '6px 12px',
+              fontSize: '11px',
+              backgroundColor: '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              opacity: 0.8,
+              transition: 'opacity 0.2s',
+              width: '100%'
+            }}
+          >
+            Load from File
+          </button>
+          {tooltip.visible && tooltip.id === 'loadBtn' && (
+            <div style={{
+              position: 'absolute',
+              bottom: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              marginBottom: '5px',
+              padding: '8px 12px',
+              backgroundColor: '#343a40',
+              color: 'white',
+              borderRadius: '4px',
+              fontSize: '12px',
+              whiteSpace: 'nowrap',
+              zIndex: 10
+            }}>
+              {tooltip.text}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
     </div>
   );
 };

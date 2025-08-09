@@ -745,18 +745,20 @@ const QuestionSection = () => {
                   
                   {scores[q.id] !== undefined && (
                     <div style={{ marginLeft: 16, display: 'flex', alignItems: 'center' }}>
-                      <span>
-                        Score: {scores[q.id]}
-                      </span>
-                      <span style={{ 
-                        marginLeft: 8, 
-                        fontSize: '12px',
-                        padding: '2px 6px',
-                        borderRadius: '3px',
-                        backgroundColor: questionStates[q.id] === 'fully_answered' ? '#27ae60' : '#f39c12',
-                        color: 'white'
-                      }}>
-                        {questionStates[q.id] === 'fully_answered' ? '✓ Fully' : '⚠ Partly'}
+                      <span style={{ marginRight: '5px' }}>Score:</span>
+                      <span
+                        style={{
+                          fontWeight: 'bold',
+                          color: questionStates[q.id] === 'fully_answered' ? '#27ae60' : '#3498db', // Green for fully, blue for partly
+                          cursor: 'help'
+                        }}
+                        title={
+                          questionStates[q.id] === 'fully_answered'
+                          ? "This score is final, and all related factors have been taken into account."
+                          : "This score is preliminary and might change as you answer other related questions."
+                        }
+                      >
+                        {scores[q.id]}
                       </span>
                       {explanations[q.id] && (
                         <button 
