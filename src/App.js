@@ -3,7 +3,7 @@ import useLoadQuestions from "./useLoadQuestions";
 import LanguageSelector from "./LanguageSelector";
 import "./App.css";
 import QuestionSection from "./QuestionSection";
-import ResultsSummary from "./ResultsSummary";
+
 import SidebarResults from "./SidebarResults";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -174,18 +174,19 @@ function App() {
             translating={loading}
           />
           
-          {/* Desktop Layout - Two Columns */}
+          {/* Layout - Two Columns on Desktop, Single Column on Mobile */}
           <div style={{
             display: 'flex',
             gap: 24,
-            alignItems: 'flex-start'
+            alignItems: 'flex-start',
+            flexDirection: window.innerWidth < 1024 ? 'column' : 'row'
           }}>
             {/* Left Sidebar - Results */}
             <div style={{
               flexShrink: 0,
-              width: 280
-            }}
-            className="desktop-only">
+              width: window.innerWidth < 1024 ? '100%' : 280,
+              display: 'block'
+            }}>
               <SidebarResults />
             </div>
             
@@ -196,11 +197,6 @@ function App() {
             }}>
               <QuestionSection />
             </div>
-          </div>
-          
-          {/* Mobile Layout - Results at Bottom */}
-          <div className="mobile-only">
-            <ResultsSummary />
           </div>
           
           <Footer />

@@ -163,14 +163,10 @@ const SidebarResults = () => {
   const hasCompletedEvaluation = Object.keys(answers).length > 0 && 
     Object.keys(computedScores).length > 0;
 
-  if (!hasCompletedEvaluation) {
-    return null;
-  }
-
   return (
     <div style={{
       position: 'sticky',
-      top: 164,
+      top: 120,
       width: 280,
       backgroundColor: 'white',
       borderRadius: 12,
@@ -178,7 +174,7 @@ const SidebarResults = () => {
       border: '1px solid #e9ecef',
       padding: 20,
       marginBottom: 20,
-      maxHeight: 'calc(100vh - 184px)',
+      maxHeight: 'calc(100vh - 140px)',
       overflowY: 'auto'
     }}>
       <h3 style={{
@@ -191,7 +187,18 @@ const SidebarResults = () => {
         Evaluation Results
       </h3>
 
-      {/* Overall Risk Assessment */}
+      {!hasCompletedEvaluation ? (
+        <div style={{
+          textAlign: 'center',
+          padding: 20,
+          color: '#6c757d',
+          fontSize: 14
+        }}>
+          Start answering questions to see evaluation results here.
+        </div>
+      ) : (
+        <>
+          {/* Overall Risk Assessment */}
       <div style={{
         textAlign: 'center',
         marginBottom: 20,
@@ -416,7 +423,9 @@ const SidebarResults = () => {
         >
           Clear All Data
         </button>
-      </div>
+              </div>
+        </>
+      )}
     </div>
   );
 };

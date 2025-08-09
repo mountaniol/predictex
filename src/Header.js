@@ -22,18 +22,6 @@ const Header = () => {
           fontWeight: 400,
           color: "#3a4668",
           marginTop: 4,
-          marginBottom: 16,
-          letterSpacing: 0.5,
-        }}
-      >
-        SOHO Business Evaluation
-      </div>
-      <div
-        style={{
-          fontSize: 20,
-          fontWeight: 400,
-          color: "#3a4668",
-          marginTop: 4,
           marginBottom: 32,
           letterSpacing: 0.5,
         }}
