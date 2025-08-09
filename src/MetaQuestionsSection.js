@@ -2,6 +2,45 @@ import React, { useContext } from 'react';
 import { AppContext } from './App';
 import AnswerInput from './AnswerInput';
 
+/**
+ * @brief Component for rendering meta questions (basic information)
+ * 
+ * Renders a dedicated section for meta questions that collect basic information
+ * before the main evaluation questions. These questions are typically used for
+ * context and demographic information. Filters out internal questions and
+ * provides a consistent UI with the main questions.
+ * 
+ * @function MetaQuestionsSection
+ * @returns {JSX.Element|null} Meta questions section or null if no meta questions
+ * 
+ * @context {AppContext} - Global application state and functions
+ * @context {Array} metaQuestions - Array of meta question configurations
+ * @context {Object} answers - Current user answers
+ * @context {Function} setAnswers - Function to update answers
+ * @context {Object} labels - UI labels for yes/no options
+ * 
+ * @dependencies {AppContext} - Global state management
+ * @dependencies {AnswerInput} - Universal input component for questions
+ * 
+ * @architecture {Component Hierarchy} - Specialized section component
+ * @architecture {State Management} - Uses AppContext for global state
+ * @architecture {UI Rendering} - Consistent styling with main questions
+ * @architecture {Question Filtering} - Filters out internal questions
+ * 
+ * @role {Meta Renderer} - Renders basic information questions
+ * @role {Question Filter} - Filters out internal/system questions
+ * @role {UI Organizer} - Provides organized section for meta questions
+ * @role {Context Provider} - Collects context information for evaluation
+ * 
+ * @workflow {1} Checks if meta questions exist
+ * @workflow {2} Filters out internal questions
+ * @workflow {3} Renders each meta question with AnswerInput
+ * @workflow {4} Handles answer changes through global state
+ * 
+ * @section {Basic Information} - Section title for meta questions
+ * @section {Question Rendering} - Individual question rendering with hints and info
+ * @section {Answer Handling} - Global state management for answers
+ */
 const MetaQuestionsSection = () => {
   const context = useContext(AppContext);
   const { metaQuestions, answers, setAnswers, labels } = context || {};
@@ -10,6 +49,27 @@ const MetaQuestionsSection = () => {
     return null;
   }
 
+  /**
+   * @brief Handles meta question answer changes
+   * 
+   * Updates the global answers state when a meta question answer changes.
+   * Uses the same pattern as main questions for consistency in state management.
+   * 
+   * @function handleAnswerChange
+   * @param {string} questionId - Unique identifier for the meta question
+   * @param {*} value - New answer value for the question
+   * 
+   * @input {string} questionId - Unique identifier for the meta question
+   * @input {*} value - New answer value (string, array, or object)
+   * 
+   * @writes {AppContext.answers} - Updates global answers state
+   * 
+   * @dependencies {setAnswers} - Function to update global answers state
+   * 
+   * @role {State Updater} - Updates global answers state
+   * @role {Event Handler} - Processes meta question answer changes
+   * @role {Consistency Manager} - Maintains consistent state management
+   */
   const handleAnswerChange = (questionId, value) => {
     setAnswers(prev => ({
       ...prev,

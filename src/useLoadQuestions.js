@@ -1,6 +1,35 @@
 
 import { useState, useEffect } from 'react';
 
+/**
+ * @brief Loads and parses JSON configuration files for questions and settings
+ * 
+ * Fetches JSON files from the public directory and handles both new q3.json format
+ * and legacy questions2.json format. Supports internationalization by loading
+ * language-specific files (e.g., q3.ru.json, questions2.de.json).
+ * 
+ * @function loadJson
+ * @param {string} fileName - Name of the JSON file to load (e.g., 'q3.json', 'q3.ru.json')
+ * @returns {Promise<Object>} Parsed configuration object
+ * @returns {Array} meta_questions - Meta questions for basic information
+ * @returns {Array} questions - Main questions grouped by cluster
+ * @returns {Object} settings - UI settings and labels
+ * @returns {Array} calculations - Calculation rules for derived scores
+ * 
+ * @throws {Error} HTTP error if file cannot be loaded
+ * @throws {Error} JSON parsing error if file is malformed
+ * 
+ * @environment {Public Directory} - Reads from /public/ directory
+ * @environment {File System} - Accesses static JSON files
+ * 
+ * @format {q3.json} - New format with meta_questions, questions, settings, calculations
+ * @format {questions2.json} - Legacy format with questions array and optional settings
+ * @format {Internationalization} - Language-specific files with .{lang}.json suffix
+ * 
+ * @role {Data Loader} - Fetches configuration data from static files
+ * @role {Format Handler} - Handles multiple JSON formats and versions
+ * @role {Internationalization} - Supports multi-language configuration files
+ */
 const loadJson = async (fileName) => {
   try {
     const response = await fetch(`/${fileName}`);
@@ -32,6 +61,60 @@ const loadJson = async (fileName) => {
   }
 };
 
+/**
+ * @brief Custom React hook for loading and managing questions configuration
+ * 
+ * Main data loading hook that orchestrates the loading of questions, settings,
+ * AI prompts, and API configuration. Handles internationalization, format
+ * detection, and fallback mechanisms. Manages loading states and error handling.
+ * 
+ * @function useLoadQuestions
+ * @param {string} currentLanguage - Current language setting (en/ru/de)
+ * @returns {Object} Configuration and state object
+ * @returns {Array} sections - Questions grouped by cluster/section
+ * @returns {Array} metaQuestions - Meta questions for basic information
+ * @returns {string} aiPrompt - System prompt for AI evaluation
+ * @returns {string} apiKey - API endpoint URL for evaluation
+ * @returns {boolean} loading - Loading state indicator
+ * @returns {string} error - Error message if loading fails
+ * @returns {Object} labels - UI labels for yes/no options
+ * @returns {Array} calculations - Calculation rules for derived scores
+ * 
+ * @state {Array} sections - Questions organized by cluster_name
+ * @state {Array} metaQuestions - Meta questions from q3.json format
+ * @state {string} aiPrompt - AI system prompt loaded from /ai-prompt.txt
+ * @state {string} apiKey - API endpoint URL (hardcoded to '/api/simple-evaluate.mjs')
+ * @state {boolean} loading - Loading state for async operations
+ * @state {string} error - Error message for failed operations
+ * @state {Object} labels - UI labels from settings
+ * @state {Array} calculations - Calculation rules from configuration
+ * 
+ * @environment {File System} - Reads JSON files and text files from /public/
+ * @environment {Network} - Fetches configuration files via HTTP
+ * @environment {Vercel} - Uses Vercel API endpoint for evaluation
+ * 
+ * @dependencies {loadJson} - Function to load and parse JSON files
+ * @dependencies {fetch} - Browser API for loading files
+ * @dependencies {useState} - React hook for state management
+ * @dependencies {useEffect} - React hook for side effects
+ * 
+ * @architecture {Data Loading} - Hierarchical loading with fallbacks
+ * @architecture {Internationalization} - Language-specific file loading
+ * @architecture {Format Compatibility} - Supports multiple JSON formats
+ * @architecture {Error Handling} - Graceful degradation with fallbacks
+ * 
+ * @role {Data Orchestrator} - Coordinates loading of all configuration data
+ * @role {State Manager} - Manages loading states and error handling
+ * @role {Format Handler} - Handles multiple configuration formats
+ * @role {Internationalization} - Supports multi-language configuration
+ * 
+ * @workflow {1} Attempts to load q3.{lang}.json (new format)
+ * @workflow {2} Falls back to questions2.{lang}.json (legacy format)
+ * @workflow {3} Groups questions by cluster_name into sections
+ * @workflow {4} Loads AI prompt from /ai-prompt.txt
+ * @workflow {5} Sets API endpoint to Vercel function
+ * @workflow {6} Updates state with loaded configuration
+ */
 const useLoadQuestions = (currentLanguage) => {
   const [sections, setSections] = useState([]);
   const [metaQuestions, setMetaQuestions] = useState([]);
