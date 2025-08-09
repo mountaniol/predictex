@@ -88,10 +88,10 @@ function App() {
   
   const [questionStates, setQuestionStates] = useState(() => {
     try {
-      const savedStates = localStorage.getItem('qna-evaluator-questionStates');
-      return savedStates ? JSON.parse(savedStates) : {};
-    } catch (error) {
-      console.warn('Failed to load question states from localStorage:', error);
+      const storedStates = localStorage.getItem('qna-evaluator-questionStates');
+      return storedStates ? JSON.parse(storedStates) : {};
+    } catch (e) {
+      console.error("Failed to parse question states from localStorage", e);
       return {};
     }
   });

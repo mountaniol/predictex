@@ -45,11 +45,6 @@ const MetaQuestionsSection = () => {
   const context = useContext(AppContext);
   const { metaQuestions, answers, setAnswers, labels, setQuestionStates } = context || {};
 
-  console.log('[MetaQuestionsSection] Rendering. Received props:', {
-    metaQuestionsCount: metaQuestions?.length,
-    answersCount: Object.keys(answers || {}).length,
-  });
-
   if (!metaQuestions || metaQuestions.length === 0) {
     return null;
   }
