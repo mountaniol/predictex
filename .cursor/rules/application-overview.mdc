@@ -25,7 +25,8 @@ This document provides a comprehensive overview of the QnA Evaluator application
 -   **Data Processing**: After fetching, it processes the raw data:
     -   It takes the flat list of `questions` from the JSON.
     -   It groups these questions into `sections` based on their `cluster_name` property. This grouping is critical for displaying the questions correctly.
-    -   It extracts `meta_questions`, `calculations`, `system_prompt` (as `aiPrompt`), and other configuration.
+    -   It extracts `meta_questions`, `calculations`, and other configuration.
+    -   It separately fetches the system prompt from `[public/questions/ai-prompt.txt](mdc:public/questions/ai-prompt.txt)`.
 -   **Output**: It returns all the processed data (`sections`, `metaQuestions`, etc.) and a `loading` state to `App.js`.
 
 ## 3. Core Logic & Rendering (`QuestionSection.js`)

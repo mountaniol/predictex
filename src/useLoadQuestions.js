@@ -72,7 +72,21 @@ const useLoadQuestions = () => {
         setSections(sectionsArray);
         setMetaQuestions(data.meta_questions || []);
         setCalculations(data.calculations || []);
-        setAiPrompt(data.system_prompt || '');
+        
+        // Load AI prompt from text file with a fallback
+        try {
+          const promptResponse = await fetch('/questions/ai-prompt.txt');
+          if (promptResponse.ok) {
+            const promptText = await promptResponse.text();
+            setAiPrompt(promptText.trim());
+          } else {
+            throw new Error('Failed to fetch ai-prompt.txt');
+          }
+        } catch (promptError) {
+          console.warn('Could not load prompt from file, using fallback:', promptError);
+          setAiPrompt('You are an expert business evaluator. Analyze the provided information and return a score from 0 to 100, where 0 is extremely high risk and 100 is extremely low risk. Return only a JSON object with a "score" field.');
+        }
+
         // Hardcode the API key to the correct Vercel endpoint, ignoring the value from the JSON file.
         setApiKey('/api/simple-evaluate.mjs');
         setLabels(data.labels || { yes: 'Yes', no: 'No' });

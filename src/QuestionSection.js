@@ -534,8 +534,6 @@ const QuestionSection = () => {
         payload.meta['MET.LOC'] = locationAnswer;
       }
 
-      console.log('[QuestionSection] Sending payload to API:', JSON.stringify(payload, null, 2));
-
       const response = await fetch(apiKey, {
         method: 'POST',
         headers: {
