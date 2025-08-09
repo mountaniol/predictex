@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { AppContext } from './App';
 import AnswerInput from './AnswerInput';
 
@@ -18,6 +18,8 @@ import AnswerInput from './AnswerInput';
  * @context {Object} answers - Current user answers
  * @context {Function} setAnswers - Function to update answers
  * @context {Object} labels - UI labels for yes/no options
+ * @context {Object} metaSummaries - State to store AI-generated summaries for meta questions
+ * @context {Function} setMetaSummaries - Function to update metaSummaries
  * 
  * @dependencies {AppContext} - Global state management
  * @dependencies {AnswerInput} - Universal input component for questions
@@ -41,9 +43,14 @@ import AnswerInput from './AnswerInput';
  * @section {Question Rendering} - Individual question rendering with hints and info
  * @section {Answer Handling} - Global state management for answers
  */
-const MetaQuestionsSection = () => {
-  const context = useContext(AppContext);
-  const { metaQuestions, answers, setAnswers, labels, setQuestionStates } = context || {};
+const MetaQuestionsSection = ({ onMetaChange }) => {
+  const { metaQuestions, answers, setAnswers, metaSummaries, setMetaSummaries } = useContext(AppContext);
+  const [loadingSummary, setLoadingSummary] = useState({});
+
+  console.log('[MetaQuestionsSection] Rendering. Received props:', {
+    metaQuestionsCount: metaQuestions?.length,
+    answersCount: Object.keys(answers || {}).length,
+  });
 
   if (!metaQuestions || metaQuestions.length === 0) {
     return null;
@@ -70,6 +77,79 @@ const MetaQuestionsSection = () => {
    * @role {Event Handler} - Processes meta question answer changes
    * @role {Consistency Manager} - Maintains consistent state management
    */
+  const handleAnswerChange = (questionId, value) => {
+    setAnswers(prev => ({ ...prev, [questionId]: value }));
+    // If user clears the input, also clear the summary
+    if (!value) {
+      setMetaSummaries(prev => {
+        const newSummaries = { ...prev };
+        delete newSummaries[questionId];
+        return newSummaries;
+      });
+    }
+  };
+
+  /**
+   * @brief Handles blur event for meta questions
+   * 
+   * Triggers the AI validation endpoint when the user blurs the input.
+   * Updates the global metaSummaries state with the AI-generated summary.
+   * 
+   * @function handleBlur
+   * @param {Object} question - Question object
+   * 
+   * @input {Object} question - Question object
+   * 
+   * @writes {AppContext.metaSummaries} - Updates global summaries state
+   * 
+   * @dependencies {setMetaSummaries} - Function to update global summaries state
+   * 
+   * @role {State Updater} - Updates global summaries state
+   * @role {Event Handler} - Processes blur event for AI validation
+   * @role {Consistency Manager} - Maintains consistent state management
+   */
+  const handleBlur = async (question) => {
+    const answer = answers[question.id];
+    if (!question.ai_validate_prompt || !answer) {
+      return;
+    }
+
+    setLoadingSummary(prev => ({ ...prev, [question.id]: true }));
+
+    try {
+      const payload = {
+        validation_prompt: question.ai_validate_prompt,
+        answer: answer,
+      };
+
+      const response = await fetch('/api/simple-validate.mjs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.summary) {
+        setMetaSummaries(prev => ({ ...prev, [question.id]: data.summary }));
+      }
+
+      // After successful validation and summary, trigger re-evaluation of dependent questions
+      if (onMetaChange) {
+        onMetaChange(question.id);
+      }
+
+    } catch (error) {
+      console.error('Error fetching AI validation:', error);
+      // Optionally, set an error message in the state to show the user
+    } finally {
+      setLoadingSummary(prev => ({ ...prev, [question.id]: false }));
+    }
+  };
+
   /**
    * @brief Gets dependencies for a question
    * 
@@ -88,126 +168,54 @@ const MetaQuestionsSection = () => {
     return question.ai_context?.include_answers || [];
   };
 
-  /**
-   * @brief Formats question title with dependencies
-   * 
-   * Creates a formatted title that shows dependencies in square brackets
-   * before the question ID and text.
-   * 
-   * @function formatQuestionTitle
-   * @param {Object} question - Question object
-   * @returns {string} Formatted question title with dependencies
-   * 
-   * @uses {getQuestionDependencies} - Gets dependencies for the question
-   * 
-   * @role {Title Formatter} - Formats question titles with dependency information
-   */
-  const formatQuestionTitle = (question) => {
-    const dependencies = getQuestionDependencies(question);
-    if (dependencies.length > 0) {
-      return `${question.id} [${dependencies.join(', ')}]: ${question.text}`;
-    }
-    return `${question.id}: ${question.text}`;
-  };
-
-  /**
-   * @brief Updates the state of a question
-   * 
-   * Updates the questionStates state with the new state for the given question.
-   * 
-   * @function updateQuestionState
-   * @param {string} questionId - Question ID
-   * @param {string} state - New state: 'unanswered', 'partially_answered', or 'fully_answered'
-   * 
-   * @writes {questionStates} - Updates question state
-   * 
-   * @role {State Updater} - Updates question state
-   */
-  const updateQuestionState = (questionId, state) => {
-    setQuestionStates(prev => ({
-      ...prev,
-      [questionId]: state
-    }));
-  };
-
-  const handleAnswerChange = (questionId, value) => {
-    setAnswers(prev => ({
-      ...prev,
-      [questionId]: value
-    }));
-    
-    // Update question state after answer change
-    const newState = value && value !== '' ? 'partially_answered' : 'unanswered';
-    updateQuestionState(questionId, newState);
-  };
-
   return (
-    <div>
-      {metaQuestions.map((question) => {
-        if (question.question_type === 'internal') {
-          return null; // Skip internal questions
-        }
-
-        return (
-          <div
-            key={question.id}
-            style={{
-              background: '#fff',
-              padding: 24,
-              marginBottom: 20,
-              borderRadius: 12,
-              border: '1px solid #e1e8ed'
-            }}
-          >
-            <div style={{ marginBottom: 16 }}>
-              <strong style={{ color: '#2c3e50' }}>{formatQuestionTitle(question)}</strong>
-            </div>
-            
-            {question.hint && (
-              <div style={{
-                fontSize: '14px',
-                color: '#7f8c8d',
-                marginBottom: 12,
-                fontStyle: 'italic'
-              }}>
-                💡 {question.hint}
-              </div>
-            )}
-            
-            {question.info && (
-              <details style={{ marginBottom: 12 }}>
-                <summary style={{
-                  cursor: 'pointer',
-                  color: '#3498db',
-                  fontSize: '14px',
-                  fontWeight: '500'
-                }}>
-                  Learn more
-                </summary>
-                <div style={{
-                  marginTop: 8,
-                  padding: 12,
-                  background: '#f8f9fa',
-                  borderRadius: 6,
-                  fontSize: '14px',
-                  color: '#2c3e50'
-                }}>
-                  {question.info}
-                </div>
-              </details>
-            )}
-            
-            <AnswerInput
-              q={question}
-              value={answers[question.id] || ''}
-              onChange={(value) => handleAnswerChange(question.id, value)}
-              labels={labels}
-              answers={answers}
-              setAnswers={setAnswers} // Pass setAnswers directly
-            />
+    <div style={{ marginBottom: 32 }}>
+      {metaQuestions.filter(q => q.question_type !== 'internal').map((q) => (
+        <div
+          key={q.id}
+          style={{
+            background: '#fff',
+            padding: 24,
+            marginBottom: 28,
+            borderRadius: 12,
+          }}
+        >
+          <div>
+            <strong>{q.text}</strong>
           </div>
-        );
-      })}
+          {q.hint && (
+            <div style={{ fontSize: '14px', color: '#7f8c8d', marginTop: 8, marginBottom: 8, fontStyle: 'italic' }}>
+              💡 {q.hint}
+            </div>
+          )}
+          <AnswerInput
+            q={q}
+            value={answers[q.id] || ''}
+            onChange={(value) => handleAnswerChange(q.id, value)}
+            onBlur={() => handleBlur(q)}
+            answers={answers}
+            setAnswers={setAnswers}
+          />
+          {loadingSummary[q.id] && (
+            <div style={{ marginTop: '12px', fontSize: '14px', color: '#7f8c8d' }}>
+              Getting feedback...
+            </div>
+          )}
+          {metaSummaries[q.id] && (
+            <div style={{
+              marginTop: '12px',
+              padding: '12px',
+              backgroundColor: '#f8f9fa',
+              borderLeft: '3px solid #3498db',
+              fontSize: '14px',
+              color: '#2c3e50',
+              lineHeight: '1.6'
+            }}>
+              {metaSummaries[q.id]}
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 };

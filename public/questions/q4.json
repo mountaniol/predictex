@@ -16,7 +16,8 @@
       "info": "Write the country, state or province if applicable, and the city where the business mainly operates. If there are multiple locations, list them all. Example: USA, North Carolina, Charlotte.",
       "cluster_name": "Meta",
       "position_in_cluster": 1,
-      "question_type": "text"
+      "question_type": "text",
+      "ai_validate_prompt": "Rephrase the following location and confirm your understanding. Start your response with 'As I understand, the business is located in...'. If the input is unclear, ask for clarification. The user's input is: {answer}"
     },
     {
       "id": "MET.IND",
@@ -25,7 +26,8 @@
       "info": "Describe in simple words what the business does, such as coffee shop, plumbing services, online clothing store, small factory. If there are several activities, pick the one that brings the most revenue.",
       "cluster_name": "Meta",
       "position_in_cluster": 2,
-      "question_type": "text"
+      "question_type": "text",
+      "ai_validate_prompt": "Summarize the following business activity in 1-3 words and confirm your understanding. Start your response with 'So, the business operates in the...'. If the input is unclear, state that. The user's input is: {answer}"
     },
     {
       "id": "MET.SIZE",
@@ -766,7 +768,7 @@
       "question_type": "yes-no",
       "ai_context": { "include_meta": ["MET.HC"], "include_answers": ["SG26","SG27"] },
       "related_to": ["SG26","SG27","SG32"],
-      "prompt_add": "Good: yes, with processes and team. Red: no, esp. with many owner-only tasks (SG27) and high hours (SG26)."
+      "prompt_add": "Good: yes, with processes and team , score 100. Red: no, esp. with many owner-only tasks and high hours, score from 0 to 40"
     },
     {
       "id": "SG32",

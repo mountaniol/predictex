@@ -106,6 +106,16 @@ function App() {
     }
   });
 
+  const [metaSummaries, setMetaSummaries] = useState(() => {
+    try {
+      const savedSummaries = localStorage.getItem(`qna-evaluator-metaSummaries-${questionSetId}`);
+      return savedSummaries ? JSON.parse(savedSummaries) : {};
+    } catch (error) {
+      console.warn('Failed to load metaSummaries from localStorage:', error);
+      return {};
+    }
+  });
+
   // Log context values
   useEffect(() => {
     console.log('[App.js] Context Provider value updated:', {
@@ -116,8 +126,9 @@ function App() {
       scoresCount: Object.keys(scores).length,
       statesCount: Object.keys(questionStates).length,
       explanationsCount: Object.keys(explanations).length,
+      metaSummariesCount: Object.keys(metaSummaries).length,
     });
-  }, [loading, sections, metaQuestions, answers, scores, questionStates, explanations]);
+  }, [loading, sections, metaQuestions, answers, scores, questionStates, explanations, metaSummaries]);
 
   // Save data to localStorage whenever it changes
   useEffect(() => {
@@ -160,6 +171,16 @@ function App() {
     }
   }, [explanations, questionSetId]);
 
+  useEffect(() => {
+    if (questionSetId) {
+      try {
+        localStorage.setItem(`qna-evaluator-metaSummaries-${questionSetId}`, JSON.stringify(metaSummaries));
+      } catch (error) {
+        console.warn('Failed to save metaSummaries to localStorage:', error);
+      }
+    }
+  }, [metaSummaries, questionSetId]);
+
   // Add event listener to save data before page unload
   useEffect(() => {
     const handleBeforeUnload = () => {
@@ -169,6 +190,7 @@ function App() {
           localStorage.setItem(`qna-evaluator-scores-${questionSetId}`, JSON.stringify(scores));
           localStorage.setItem(`qna-evaluator-questionStates-${questionSetId}`, JSON.stringify(questionStates));
           localStorage.setItem(`qna-evaluator-explanations-${questionSetId}`, JSON.stringify(explanations));
+          localStorage.setItem(`qna-evaluator-metaSummaries-${questionSetId}`, JSON.stringify(metaSummaries));
         } catch (error) {
           console.warn('Failed to save data before unload:', error);
         }
@@ -177,7 +199,7 @@ function App() {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [answers, scores, questionStates, explanations, questionSetId]);
+  }, [answers, scores, questionStates, explanations, metaSummaries, questionSetId]);
 
   return (
     <AppContext.Provider value={{
@@ -198,7 +220,9 @@ function App() {
       questionStates,
       setQuestionStates,
       explanations,
-      setExplanations
+      setExplanations,
+      metaSummaries,
+      setMetaSummaries
     }}>
       <div style={{
         minHeight: "100vh",

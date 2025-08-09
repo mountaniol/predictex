@@ -42,22 +42,7 @@ import React from 'react';
  * @workflow {3} Renders follow-up questions if conditions are met
  * @workflow {4} Handles value changes and notifies parent component
  */
-const AnswerInput = ({ q, value, onChange, labels, answers, setAnswers }) => {
-  /**
-   * @brief Handles changes for follow-up text fields directly.
-   * @description This function directly updates the global 'answers' state when the user
-   * types into a follow-up text field. This is a much simpler and more robust
-   * approach than passing complex objects up to the parent.
-   * @param {string} followUpId - The unique ID of the follow-up question.
-   * @param {string} followUpValue - The text value from the input field.
-   */
-  const handleFollowUpChange = (followUpId, followUpValue) => {
-    setAnswers(prevAnswers => ({
-      ...prevAnswers,
-      [followUpId]: followUpValue
-    }));
-  };
-
+const AnswerInput = ({ q, value, onChange, onBlur, labels, answers, setAnswers }) => {
   /**
    * @brief Determines if a follow-up question should be displayed
    * 
@@ -121,23 +106,29 @@ const AnswerInput = ({ q, value, onChange, labels, answers, setAnswers }) => {
     if (!q.follow_ups) return null;
 
     return q.follow_ups.map((followUp, index) => {
-      const shouldShow = shouldShowFollowUp(followUp);
+      const condition = followUp.when.in.includes(value);
+      if (!condition) return null;
 
-      if (!shouldShow) return null;
+      const followUpQuestion = followUp.ask;
+      const followUpValue = answers[followUpQuestion.id] || '';
 
-      // Create a wrapper function that passes the correct followUpId
-      const handleFollowUpWrapper = (followUpValue) => {
-        handleFollowUpChange(followUp.ask.id, followUpValue);
-      };
-
-      return (
-        <div key={index} style={{ marginLeft: 20, marginTop: 12, paddingLeft: 12, borderLeft: '2px solid #e1e8ed' }}>
-          <div style={{ fontSize: '14px', color: '#7f8c8d', marginBottom: 8 }}>
-            {followUp.ask.question_type === 'text' && followUp.ask.placeholder}
+      // This is a simplified renderer for the follow-up.
+      // A more robust implementation would use a component similar to AnswerInput itself.
+      if (followUpQuestion.ui === 'textarea') {
+        return (
+          <div key={index} style={{ marginTop: '10px' }}>
+            <textarea
+              rows={3}
+              value={followUpValue}
+              onChange={(e) => setAnswers(prev => ({ ...prev, [followUpQuestion.id]: e.target.value }))}
+              placeholder={followUpQuestion.placeholder}
+              maxLength={followUpQuestion.max_chars}
+              style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ddd' }}
+            />
           </div>
-          {renderInput(followUp.ask, answers[followUp.ask.id] || '', handleFollowUpWrapper)}
-        </div>
-      );
+        );
+      }
+      return null;
     });
   };
 
@@ -176,11 +167,11 @@ const AnswerInput = ({ q, value, onChange, labels, answers, setAnswers }) => {
    * @role {Event Manager} - Manages input events and value changes
    * @role {UI Stylist} - Applies consistent styling to input elements
    */
-  const renderInput = (question, inputValue, inputOnChange) => {
-    const questionType = question.question_type;
-    const ui = question.ui;
+  const renderInput = () => {
+    const { question_type, ui } = q;
+    const inputValue = value || '';
 
-    switch (questionType) {
+    switch (question_type) {
       case 'yes-no':
         const yesLabel = labels?.yes || 'Yes';
         const noLabel = labels?.no || 'No';
@@ -189,18 +180,22 @@ const AnswerInput = ({ q, value, onChange, labels, answers, setAnswers }) => {
             <label style={{ marginRight: 16 }}>
               <input
                 type="radio"
+                name={q.id}
+                value="yes"
                 checked={inputValue === 'yes'}
-                onChange={() => inputOnChange('yes')}
-              />
-              {' '}{yesLabel}
+                onChange={() => onChange('yes', true)}
+              />{' '}
+              {yesLabel}
             </label>
             <label>
               <input
                 type="radio"
+                name={q.id}
+                value="no"
                 checked={inputValue === 'no'}
-                onChange={() => inputOnChange('no')}
-              />
-              {' '}{noLabel}
+                onChange={() => onChange('no', true)}
+              />{' '}
+              {noLabel}
             </label>
           </div>
         );
@@ -210,104 +205,58 @@ const AnswerInput = ({ q, value, onChange, labels, answers, setAnswers }) => {
           return (
             <select
               value={inputValue}
-              onChange={(e) => inputOnChange(e.target.value)}
+              onChange={(e) => onChange(e.target.value, true)}
+              onBlur={onBlur}
               style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ddd' }}
             >
               <option value="">Select an option</option>
-              {question.options?.map((option) => (
+              {q.options?.map((option) => (
                 <option key={option.code} value={option.code}>
                   {option.label}
                 </option>
               ))}
             </select>
           );
-        } else {
+        } else { // radio
           return (
             <div>
-              {question.options?.map((option) => (
+              {q.options?.map((option) => (
                 <label key={option.code} style={{ display: 'block', marginBottom: 8 }}>
                   <input
                     type="radio"
+                    name={q.id}
+                    value={option.code}
                     checked={inputValue === option.code}
-                    onChange={() => inputOnChange(option.code)}
-                  />
-                  {' '}{option.label}
+                    onChange={() => onChange(option.code, true)}
+                  />{' '}
+                  {option.label}
                 </label>
               ))}
             </div>
           );
         }
-
+      
       case 'choice-multi':
-        const currentValues = Array.isArray(inputValue) ? inputValue : [];
-        
-        /**
-         * @brief Handles multi-choice option changes with constraints
-         * 
-         * Processes checkbox changes for multi-choice questions, enforcing
-         * maximum selection limits and managing the selection array.
-         * 
-         * @function handleMultiChange
-         * @param {string} optionCode - Code of the option being changed
-         * @param {boolean} checked - Whether the option is being selected or deselected
-         * 
-         * @input {string} optionCode - Unique identifier for the option
-         * @input {boolean} checked - Selection state (true for selected, false for deselected)
-         * 
-         * @reads {currentValues} - Current array of selected values
-         * @reads {q.max_selections} - Maximum allowed selections
-         * @writes {inputOnChange} - Notifies parent of new selection array
-         * 
-         * @constraints {max_selections} - Enforces maximum selection limit
-         * @constraints {array_management} - Maintains array of selected values
-         * 
-         * @role {Selection Manager} - Manages multi-choice selections
-         * @role {Constraint Enforcer} - Enforces maximum selection limits
-         * @role {Array Handler} - Maintains array of selected values
-         */
-        const handleMultiChange = (optionCode, checked) => {
-          let newValues;
-          if (checked) {
-            if (q.max_selections && currentValues.length >= q.max_selections) {
-              // Remove oldest selection if max reached
-              newValues = [...currentValues.slice(1), optionCode];
-            } else {
-              newValues = [...currentValues, optionCode];
-            }
-          } else {
-            newValues = currentValues.filter(v => v !== optionCode);
-          }
-          
-          // Handle "other" option - now handled by follow-ups
-          
-          inputOnChange(newValues);
+        const selectedOptions = Array.isArray(value) ? value : [];
+        const handleMultiChange = (optionCode) => {
+            const newSelected = selectedOptions.includes(optionCode)
+                ? selectedOptions.filter(item => item !== optionCode)
+                : [...selectedOptions, optionCode];
+            onChange(newSelected, false);
         };
-
         return (
-          <div>
-            {question.options?.map((option) => (
-              <label key={option.code} style={{ display: 'block', marginBottom: 8 }}>
-                <input
-                  type="checkbox"
-                  checked={currentValues.includes(option.code)}
-                  onChange={(e) => handleMultiChange(option.code, e.target.checked)}
-                />
-                {' '}{option.label}
-              </label>
-            ))}
-            
-            {/* Removed duplicate "Please specify" field - using follow-up instead */}
-          </div>
-        );
-
-      case 'number':
-        return (
-          <input
-            type="number"
-            value={inputValue}
-            onChange={(e) => inputOnChange(e.target.value)}
-            style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ddd' }}
-          />
+            <div onBlur={onBlur}>
+                {q.options?.map((option) => (
+                    <label key={option.code} style={{ display: 'block', marginBottom: 8 }}>
+                        <input
+                            type="checkbox"
+                            checked={selectedOptions.includes(option.code)}
+                            onChange={() => handleMultiChange(option.code)}
+                        />{' '}
+                        {option.label}
+                    </label>
+                ))}
+            </div>
         );
 
       case 'text':
@@ -316,74 +265,34 @@ const AnswerInput = ({ q, value, onChange, labels, answers, setAnswers }) => {
             <textarea
               rows={3}
               value={inputValue}
-              onChange={(e) => {
-                inputOnChange(e.target.value);
-              }}
-              placeholder={question.placeholder}
-              maxLength={question.max_chars}
-              style={{ 
-                width: '100%', 
-                padding: 8, 
-                borderRadius: 4, 
-                border: '1px solid #ddd',
-                resize: 'vertical'
-              }}
-            />
-          );
-        } else {
-          return (
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => {
-                inputOnChange(e.target.value);
-              }}
-              placeholder={question.placeholder}
-              maxLength={question.max_chars}
+              onChange={(e) => onChange(e.target.value, false)}
+              onBlur={onBlur}
+              placeholder={q.placeholder}
+              maxLength={q.max_chars}
               style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ddd' }}
             />
           );
         }
-
-      case 'textarea':
         return (
-          <textarea
-            rows={4}
+          <input
+            type="text"
             value={inputValue}
-            onChange={(e) => inputOnChange(e.target.value)}
-            placeholder={question.placeholder}
-            maxLength={question.max_chars}
-            style={{ 
-              width: '100%', 
-              padding: 8, 
-              borderRadius: 4, 
-              border: '1px solid #ddd',
-              resize: 'vertical'
-            }}
+            onChange={(e) => onChange(e.target.value, false)}
+            onBlur={onBlur}
+            placeholder={q.placeholder}
+            maxLength={q.max_chars}
+            style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ddd' }}
           />
         );
-
+      
       default:
-        return (
-          <textarea
-            rows={3}
-            value={inputValue}
-            onChange={(e) => inputOnChange(e.target.value)}
-            style={{ 
-              width: '100%', 
-              padding: 8, 
-              borderRadius: 4, 
-              border: '1px solid #ddd',
-              resize: 'vertical'
-            }}
-          />
-        );
+        return <div>Unsupported question type: {q.question_type}</div>;
     }
   };
 
   return (
     <div>
-      {renderInput(q, value, onChange)}
+      {renderInput()}
       {renderFollowUps()}
     </div>
   );

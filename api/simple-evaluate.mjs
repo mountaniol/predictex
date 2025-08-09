@@ -133,8 +133,10 @@ export default async (req, res) => {
             content: fullPrompt
           }
         ],
-        temperature: 0.1,
-        max_tokens: 150
+        temperature: 0.3,
+        max_tokens: 1024,
+        frequency_penalty: 0,
+        presence_penalty: 0,
       },
       {
         headers: {
