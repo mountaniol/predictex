@@ -1,4 +1,10 @@
 import axios from 'axios';
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.REACT_APP_GPT_KEY,
+  project: process.env.REACT_APP_PROJECT_ID,
+});
 
 export default async (req, res) => {
   // CORS Headers

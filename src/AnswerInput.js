@@ -44,43 +44,6 @@ import React from 'react';
  */
 const AnswerInput = ({ q, value, onChange, onBlur, labels, answers, setAnswers }) => {
   /**
-   * @brief Determines if a follow-up question should be displayed
-   * 
-   * Evaluates the follow-up condition based on current answer value
-   * and follow-up configuration. Supports both single values and arrays
-   * for multi-choice questions.
-   * 
-   * @function shouldShowFollowUp
-   * @param {Object} followUp - Follow-up question configuration
-   * @returns {boolean} True if follow-up should be displayed
-   * 
-   * @input {Object} followUp - Follow-up configuration with when.in condition
-   * @input {Array} followUp.when.in - Array of values that trigger the follow-up
-   * @reads {value} - Current answer value to check against condition
-   * 
-   * @returns {boolean} shouldShow - Whether follow-up should be displayed
-   * 
-   * @format {Single Value} - Direct comparison with followUp.when.in array
-   * @format {Array Value} - Checks if any array element matches condition
-   * 
-   * @role {Condition Evaluator} - Evaluates follow-up display conditions
-   * @role {Format Handler} - Handles both single and array value types
-   * @role {UI Controller} - Controls follow-up question visibility
-   */
-  const shouldShowFollowUp = (followUp) => {
-    if (!followUp.when || !followUp.when.in) return false;
-    
-    let result = false;
-    if (Array.isArray(value)) {
-      result = value.some(v => followUp.when.in.includes(v));
-    } else {
-      result = followUp.when.in.includes(value);
-    }
-    
-    return result;
-  };
-
-  /**
    * @brief Renders follow-up questions based on current answer
    * 
    * Maps through follow-up questions and renders them if conditions

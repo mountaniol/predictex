@@ -19,15 +19,13 @@ import { useState, useEffect } from 'react';
  * }}
  */
 const useLoadQuestions = () => {
-  const [questionSetId, setQuestionSetId] = useState('q4');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [questionSetId, setQuestionSetId] = useState('');
   const [sections, setSections] = useState([]);
   const [metaQuestions, setMetaQuestions] = useState([]);
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [apiKey, setApiKey] = useState('');
-  const [labels, setLabels] = useState({ yes: 'Yes', no: 'No' });
   const [calculations, setCalculations] = useState([]);
+  const [labels, setLabels] = useState({});
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -46,60 +44,32 @@ const useLoadQuestions = () => {
         const data = await response.json();
         console.log('[useLoadQuestions] Data fetched successfully.', data);
 
-        // Group questions by cluster_name to create sections
-        const questions = data.questions || [];
-        const clusterOrder = new Map();
-        const groupedQuestions = questions.reduce((acc, question, index) => {
-          const clusterName = question.cluster_name || 'Other';
-          if (!acc[clusterName]) {
-            acc[clusterName] = [];
-            clusterOrder.set(clusterName, index); // Preserve original order of clusters
+        // Group questions by cluster_name
+        const sectionsMap = {};
+        data.questions.forEach(q => {
+          const clusterName = q.cluster_name || 'Other';
+          if (!sectionsMap[clusterName]) {
+            sectionsMap[clusterName] = {
+              title: clusterName,
+              questions: []
+            };
           }
-          acc[clusterName].push(question);
-          return acc;
-        }, {});
-
-        // Sort questions within each cluster by position
-        Object.keys(groupedQuestions).forEach(clusterName => {
-          groupedQuestions[clusterName].sort((a, b) => 
-            (a.position_in_cluster || 0) - (b.position_in_cluster || 0)
-          );
+          sectionsMap[clusterName].questions.push(q);
         });
 
-        // Create the final sections array, respecting the original order
-        const sectionsArray = Array.from(clusterOrder.entries())
-          .sort((a, b) => a[1] - b[1])
-          .map(([clusterName]) => ({
-            title: clusterName,
-            questions: groupedQuestions[clusterName]
-          }));
-
-        setSections(sectionsArray);
+        const sections = Object.values(sectionsMap);
+        sections.sort((a, b) => a.position - b.position);
+        sections.forEach(s => s.questions.sort((a,b) => a.position_in_cluster - b.position_in_cluster));
+        
+        setQuestionSetId(data.version || 'unknown');
+        setSections(sections);
         setMetaQuestions(data.meta_questions || []);
         setCalculations(data.calculations || []);
-        
-        // Load AI prompt from text file with a fallback
-        try {
-          const promptResponse = await fetch('/questions/ai-prompt.txt');
-          if (promptResponse.ok) {
-            const promptText = await promptResponse.text();
-            setAiPrompt(promptText.trim());
-          } else {
-            throw new Error('Failed to fetch ai-prompt.txt');
-          }
-        } catch (promptError) {
-          console.warn('Could not load prompt from file, using fallback:', promptError);
-          setAiPrompt('You are an expert business evaluator. Analyze the provided information and return a score from 0 to 100, where 0 is extremely high risk and 100 is extremely low risk. Return only a JSON object with a "score" field.');
-        }
+        setLabels(data.settings.labels || {});
 
-        // Hardcode the API key to the correct Vercel endpoint, ignoring the value from the JSON file.
-        setApiKey('/api/simple-evaluate.mjs');
-        setLabels(data.labels || { yes: 'Yes', no: 'No' });
-        console.log('[useLoadQuestions] State updated with loaded data.');
-
-      } catch (e) {
-        console.error('[useLoadQuestions] Error loading questions:', e);
-        setError(`Failed to load or parse questions: ${e.message}`);
+      } catch (error) {
+        console.error("Error loading or parsing questions:", error);
+        setError("Could not load question data.");
       } finally {
         setLoading(false);
         console.log('[useLoadQuestions] Loading finished.');
@@ -109,7 +79,7 @@ const useLoadQuestions = () => {
     loadData();
   }, []);
 
-  return { questionSetId, sections, metaQuestions, loading, error, calculations, aiPrompt, apiKey, labels };
+  return { loading, error, questionSetId, sections, metaQuestions, calculations, labels };
 };
 
 export default useLoadQuestions;

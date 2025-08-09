@@ -63,10 +63,13 @@ export const AppContext = React.createContext(null);
  */
 function App() {
   const [currentLanguage, setCurrentLanguage] = useState("en");
-  const { questionSetId, sections, metaQuestions, loading, error, calculations, aiPrompt, apiKey, labels } = useLoadQuestions();
+  const { 
+    loading, error, questionSetId, sections, metaQuestions, calculations, labels
+  } = useLoadQuestions();
   
   // Load saved data from localStorage on component mount
   const [answers, setAnswers] = useState(() => {
+    if (!questionSetId) return {};
     try {
       const savedAnswers = localStorage.getItem(`qna-evaluator-answers-${questionSetId}`);
       return savedAnswers ? JSON.parse(savedAnswers) : {};
@@ -77,6 +80,7 @@ function App() {
   });
   
   const [scores, setScores] = useState(() => {
+    if (!questionSetId) return {};
     try {
       const savedScores = localStorage.getItem(`qna-evaluator-scores-${questionSetId}`);
       return savedScores ? JSON.parse(savedScores) : {};
@@ -87,6 +91,7 @@ function App() {
   });
   
   const [questionStates, setQuestionStates] = useState(() => {
+    if (!questionSetId) return {};
     try {
       const storedStates = localStorage.getItem(`qna-evaluator-questionStates-${questionSetId}`);
       return storedStates ? JSON.parse(storedStates) : {};
@@ -97,6 +102,7 @@ function App() {
   });
 
   const [explanations, setExplanations] = useState(() => {
+    if (!questionSetId) return {};
     try {
       const savedExplanations = localStorage.getItem(`qna-evaluator-explanations-${questionSetId}`);
       return savedExplanations ? JSON.parse(savedExplanations) : {};
@@ -107,6 +113,7 @@ function App() {
   });
 
   const [metaSummaries, setMetaSummaries] = useState(() => {
+    if (!questionSetId) return {};
     try {
       const savedSummaries = localStorage.getItem(`qna-evaluator-metaSummaries-${questionSetId}`);
       return savedSummaries ? JSON.parse(savedSummaries) : {};
@@ -206,9 +213,6 @@ function App() {
       questionSetId,
       sections,
       metaQuestions,
-      aiPrompt,
-      apiKey,
-      labels,
       loading,
       error,
       calculations,
@@ -222,7 +226,8 @@ function App() {
       explanations,
       setExplanations,
       metaSummaries,
-      setMetaSummaries
+      setMetaSummaries,
+      labels,
     }}>
       <div style={{
         minHeight: "100vh",

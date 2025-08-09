@@ -50,7 +50,7 @@ const applyCalculations = (base, calcArr) => {
 const QuestionSection = () => {
   const context = useContext(AppContext);
   const { 
-    sections, metaQuestions, aiPrompt, calculations,
+    sections, metaQuestions, calculations,
     answers, setAnswers, scores, setScores, questionStates, setQuestionStates,
     explanations, setExplanations, loading: contextLoading, labels
   } = context || {};
@@ -61,33 +61,6 @@ const QuestionSection = () => {
   const startupCheckHasRun = useRef(false);
 
   // --- START: UTILITY AND HELPER FUNCTIONS ---
-
-  const findQuestionById = useCallback((id) => {
-    if (!sections || !metaQuestions) return null;
-    for (const section of sections) {
-      const question = section.questions.find(q => q.id === id);
-      if (question) return question;
-    }
-    const metaQuestion = metaQuestions.find(q => q.id === id);
-    if (metaQuestion) return metaQuestion;
-    return null;
-  }, [sections, metaQuestions]);
-
-  const getReadableAnswer = useCallback((question, answerValue) => {
-    if (!question || answerValue === undefined || answerValue === null || answerValue === '') return answerValue;
-    if (question.question_type === 'yes-no') return answerValue === 'yes' ? 'Yes' : 'No';
-    if (Array.isArray(answerValue) && question.options) {
-      return answerValue.map(val => {
-        const option = question.options.find(opt => opt.code === val);
-        return option ? option.label : val;
-      }).join(', ');
-    }
-    if (question.options) {
-      const option = question.options.find(opt => opt.code === answerValue);
-      return option ? option.label : answerValue;
-    }
-    return answerValue;
-  }, []);
 
   const getQuestionState = useCallback((question, currentAnswers, currentScores, currentStates) => {
     const hasAnswer = currentAnswers[question.id] && currentAnswers[question.id] !== '';
@@ -113,41 +86,18 @@ const QuestionSection = () => {
     return newStates;
   }, [sections, answers, getQuestionState]);
 
-  const evaluateAnswer = useCallback(async (si, qi) => {
-    const question = sections[si]?.questions[qi];
+  const evaluateAnswer = useCallback(async (question) => {
     if (!question) return null;
 
     try {
       const payload = {
-        system: aiPrompt,
-        additional_context: question.prompt_add || '',
-        meta: {},
-        question: { id: question.id, text: question.text },
-        answer: getReadableAnswer(question, answers[question.id]),
-        answers_ctx: {}
+        questionId: question.id,
+        allAnswers: answers,
       };
 
-      if (question.ai_context?.include_meta) {
-        question.ai_context.include_meta.forEach(metaId => {
-          const metaQuestion = findQuestionById(metaId);
-          if (metaQuestion && answers[metaId]) {
-            payload.meta[metaQuestion.text] = getReadableAnswer(metaQuestion, answers[metaId]);
-          }
-        });
-      }
-
-      if (question.ai_context?.include_answers) {
-        question.ai_context.include_answers.forEach(answerId => {
-          const ctxQuestion = findQuestionById(answerId);
-          if (ctxQuestion && answers[answerId]) {
-            payload.answers_ctx[ctxQuestion.text] = getReadableAnswer(ctxQuestion, answers[answerId]);
-          }
-        });
-      }
-
-      console.log('--- Frontend Payload ---');
+      console.log('--- Frontend Payload to Backend ---');
       console.log(JSON.stringify(payload, null, 2));
-      console.log('------------------------');
+      console.log('---------------------------------');
 
       const response = await fetch('/api/simple-evaluate.mjs', {
         method: 'POST',
@@ -155,18 +105,20 @@ const QuestionSection = () => {
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
       return (data.score !== undefined && data.explanation !== undefined) ? data : null;
 
     } catch (error) {
       console.error('Error evaluating answer:', error);
-      alert('Error evaluating answer. Please try again.');
+      alert(`Error evaluating answer: ${error.message}`);
       return null;
-    } finally {
-      // setLoading(prev => ({ ...prev, [key]: false })); // Removed unused loading state
     }
-  }, [sections, answers, aiPrompt, getReadableAnswer, findQuestionById]);
+  }, [answers]);
 
   const findNextQuestionToReevaluate = useCallback((currentStates) => {
     if (!sections || !answers) return null;
@@ -206,8 +158,8 @@ const QuestionSection = () => {
     let currentScores = { ...scores };
     let currentExplanations = { ...explanations };
 
-    for(const {question, si, qi} of initialQuestions) {
-      const result = await evaluateAnswer(si, qi);
+    for(const {question} of initialQuestions) {
+      const result = await evaluateAnswer(question);
       if (result) {
         currentScores[question.id] = result.score;
         currentExplanations[question.id] = result.explanation;
@@ -224,8 +176,8 @@ const QuestionSection = () => {
       const reevalInfo = findNextQuestionToReevaluate(currentStates);
 
       if (reevalInfo) {
-        const { question: questionToReevaluate, si: reeval_si, qi: reeval_qi } = reevalInfo;
-        const result = await evaluateAnswer(reeval_si, reeval_qi);
+        const { question: questionToReevaluate } = reevalInfo;
+        const result = await evaluateAnswer(questionToReevaluate);
         if (result) {
           currentScores[questionToReevaluate.id] = result.score;
           currentExplanations[questionToReevaluate.id] = result.explanation;
@@ -295,8 +247,8 @@ const QuestionSection = () => {
       const reevalInfo = findNextQuestionToReevaluate(currentStates);
 
       if (reevalInfo) {
-        const { question: questionToReevaluate, si: reeval_si, qi: reeval_qi } = reevalInfo;
-        const result = await evaluateAnswer(reeval_si, reeval_qi);
+        const { question: questionToReevaluate } = reevalInfo;
+        const result = await evaluateAnswer(questionToReevaluate);
         if (result) {
           currentScores[questionToReevaluate.id] = result.score;
           currentStates = computeAllStates(currentScores, currentStates);
