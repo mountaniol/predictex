@@ -343,25 +343,54 @@ const QuestionSection = () => {
                 <div style={{ display: 'flex', alignItems: 'center', marginTop: 16 }}>
                   {scores[q.id] !== undefined && (
                     <div style={{ marginLeft: 0, display: 'flex', alignItems: 'center' }}>
-                      <span style={{ marginRight: '5px' }}>Score:</span>
-                      <span
-                  style={{
-                          fontWeight: 'bold',
-                          color: questionStates[q.id] === 'fully_answered' ? '#27ae60' : '#3498db',
-                          cursor: 'help'
+                      <div 
+                        style={{
+                          padding: '4px 10px',
+                          border: '1px solid transparent',
+                          boxShadow: '0 0 0 1px black',
+                          borderRadius: '12px',
+                          display: 'flex',
+                          alignItems: 'baseline',
+                          fontSize: '14px'
                         }}
-                        title={
-                          questionStates[q.id] === 'fully_answered'
-                          ? "This score is final, and all related factors have been taken into account."
-                          : "This score is preliminary and might change as you answer other related questions."
-                        }
                       >
-                        {scores[q.id]}
-                      </span>
+                        <span style={{ marginRight: '5px' }}>Score:</span>
+                        <span
+                          style={{
+                            fontWeight: 'bold',
+                            color: questionStates[q.id] === 'fully_answered' ? '#27ae60' : '#3498db',
+                            cursor: 'help'
+                          }}
+                          title={
+                            questionStates[q.id] === 'fully_answered'
+                            ? "This score is final, and all related factors have been taken into account."
+                            : "This score is preliminary and might change as you answer other related questions."
+                          }
+                        >
+                          {scores[q.id]}
+                        </span>
+                      </div>
+
                       {explanations[q.id] && (
-                        <button onClick={() => toggleExplanation(q.id)} style={{ marginLeft: 10, padding: '2px 8px', fontSize: '12px', backgroundColor: '#ecf0f1', color: '#2c3e50', border: '1px solid #bdc3c7', borderRadius: '3px', cursor: 'pointer' }}>
+                        <button 
+                          onClick={() => toggleExplanation(q.id)} 
+                          style={{ 
+                            marginLeft: 10, 
+                            padding: '4px 10px', 
+                            fontSize: '12px', 
+                            backgroundColor: 'white', 
+                            color: 'black', 
+                            border: '1px solid transparent', // Use transparent border to maintain size
+                            boxShadow: '0 0 0 1px black', // Use box-shadow for a smoother border
+                            borderRadius: '12px', 
+                            cursor: 'pointer',
+                            transition: 'background-color 0.2s, color 0.2s'
+                          }}
+                          onMouseEnter={(e) => { e.target.style.backgroundColor = '#f0f0f0'; }}
+                          onMouseLeave={(e) => { e.target.style.backgroundColor = 'white'; }}
+                        >
                           {expandedExplanations[q.id] ? 'Collapse' : 'Explain'}
-                </button>
+                        </button>
                       )}
                     </div>
                   )}
