@@ -369,19 +369,21 @@ const QuestionSection = () => {
     const question = sections[si]?.questions[qi];
     if (!question) return;
 
-    // Create a mutable copy of the current answers.
-    const newAnswers = { ...answers };
+    let newAnswers = { ...answers };
 
-    // Handle incoming data: it could be a direct answer or an object with follow-up data.
     if (value && typeof value === 'object' && value.followUpData) {
-      // This is follow-up data. Merge it into our newAnswers object.
-      Object.assign(newAnswers, value.followUpData);
+      // This is an object containing both the main answer and follow-up data.
+      // Merge both into the answers state.
+      newAnswers = {
+        ...newAnswers,
+        [question.id]: value.mainValue,
+        ...value.followUpData
+      };
     } else {
-      // This is a regular answer change for the main question.
+      // This is a direct answer (e.g., from a text input or simple radio).
       newAnswers[question.id] = value;
     }
-
-    // Update the global state with the new answers.
+    
     setAnswers(newAnswers);
 
     // Clear dependency warning for this question when answer changes.
