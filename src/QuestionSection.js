@@ -99,45 +99,54 @@ const QuestionSection = () => {
     }
 
     const runStartupCheck = async () => {
-      // Create a fresh copy of states to work with.
-      const newStates = { ...questionStates };
+      // Use an iterative approach to resolve dependencies layer by layer.
+      // This is more robust than a single or two-pass check.
+      let changedInPass = true;
+      let passes = 0;
+      const maxPasses = 5; // Sufficient for deep dependency chains.
 
-      // First pass: Update states for all questions without dependencies.
-      sections.forEach(section => {
-        section.questions.forEach(question => {
-          const dependencies = getQuestionDependencies(question);
-          if (dependencies.length === 0) {
-            const correctState = getQuestionState(question, answers, scores, newStates);
-            if (newStates[question.id] !== correctState) {
-              newStates[question.id] = correctState;
+      let currentStates = { ...questionStates };
+
+      while (changedInPass && passes < maxPasses) {
+        changedInPass = false;
+        passes++;
+
+        const nextStates = { ...currentStates };
+
+        for (const section of sections) {
+          for (const question of section.questions) {
+            const oldState = currentStates[question.id] || 'unanswered';
+            const newState = getQuestionState(question, answers, scores, currentStates);
+
+            if (oldState !== newState) {
+              nextStates[question.id] = newState;
+              changedInPass = true;
             }
-          }
-        });
-      });
-      
-      // Second pass: Re-evaluate dependent questions that are now ready.
-      for (const section of sections) {
-        for (const question of section.questions) {
-          const dependencies = getQuestionDependencies(question);
-          if (dependencies.length > 0) {
-            const currentState = newStates[question.id] || 'unanswered';
-            const allDependenciesMet = dependencies.every(
-              depId => newStates[depId] === 'fully_answered'
-            );
 
-            if (currentState === 'partially_answered' && allDependenciesMet) {
-              const si = sections.findIndex(s => s.title === section.title);
-              const qi = section.questions.findIndex(q => q.id === question.id);
-              if (si !== -1 && qi !== -1) {
-                await evaluateAnswer(si, qi, true);
+            // Check if a partially answered question is now ready for re-evaluation.
+            if (newState === 'partially_answered') {
+              const dependencies = getQuestionDependencies(question);
+              const allDependenciesMet = dependencies.every(
+                (depId) => currentStates[depId] === 'fully_answered'
+              );
+
+              if (allDependenciesMet) {
+                const si = sections.findIndex((s) => s.title === section.title);
+                const qi = section.questions.findIndex((q) => q.id === question.id);
+                if (si !== -1 && qi !== -1) {
+                  // This question is ready, re-evaluate it.
+                  // Note: This happens outside the state update loop to avoid side-effects within state calculation.
+                  evaluateAnswer(si, qi, true);
+                }
               }
             }
           }
         }
+        currentStates = nextStates;
       }
-      
-      // Final state update.
-      setQuestionStates(newStates);
+
+      // After all iterations, update the global state.
+      setQuestionStates(currentStates);
     };
 
     runStartupCheck();
