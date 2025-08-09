@@ -770,7 +770,7 @@ const QuestionSection = () => {
  */
 const applyCalculations = (base, calcArr) => {
   const res = { ...base };
-  const idRegex = /\b([A-Z][0-9]+)\b/g; // matches A3, B10 etc.
+  const idRegex = /\b([A-Z]+[0-9]+[A-Z]?)\b/g; // matches SG01, SG03A etc.
 
   console.log('[calc] applying calculations to base scores:', base);
   console.log('[calc] calculation rules:', calcArr);
