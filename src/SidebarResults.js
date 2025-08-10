@@ -714,7 +714,7 @@ const SidebarResults = () => {
             marginBottom: 8
           }}>
             <span style={{ fontSize: '12px' }}>✓</span>
-            Saved {Object.keys(answers).length} / {sections.reduce((sum, section) => sum + section.questions.length, 0)} questions
+            Saved {Object.keys(answers).length} / {sections.reduce((sum, section) => sum + section.questions.length, 0)} items
           </div>
         )}
         <button
