@@ -42,94 +42,42 @@ import React from 'react';
  * @workflow {3} Renders follow-up questions if conditions are met
  * @workflow {4} Handles value changes and notifies parent component
  */
-const AnswerInput = ({ q, value, onChange, onBlur, labels, answers, setAnswers }) => {
-  /**
-   * @brief Renders follow-up questions based on current answer
-   * 
-   * Maps through follow-up questions and renders them if conditions
-   * are met. Provides visual hierarchy with indentation and styling
-   * to distinguish follow-ups from main questions.
-   * 
-   * @function renderFollowUps
-   * @returns {JSX.Element|null} Rendered follow-up questions or null
-   * 
-   * @reads {q.follow_ups} - Array of follow-up question configurations
-   * @reads {followUpAnswers} - Current follow-up answer values
-   * @reads {value} - Main answer value for condition evaluation
-   * 
-   * @dependencies {shouldShowFollowUp} - Function to evaluate display conditions
-   * @dependencies {renderInput} - Function to render individual input elements
-   * @dependencies {handleFollowUpChange} - Function to handle follow-up changes
-   * 
-   * @role {Follow-up Renderer} - Renders conditional follow-up questions
-   * @role {UI Organizer} - Organizes follow-up questions with visual hierarchy
-   * @role {Condition Manager} - Manages display conditions for follow-ups
-   */
+const AnswerInput = ({ q, value, onChange, onBlur, labels, answers }) => {
+
+  const handleFollowUpChange = (e, followUpQuestion) => {
+    onChange(followUpQuestion.id, e.target.value, false);
+  };
+
   const renderFollowUps = () => {
     if (!q.follow_ups) return null;
 
     return q.follow_ups.map((followUp, index) => {
-      const condition = followUp.when.in.includes(value);
+      const mainAnswer = value;
+      const condition = Array.isArray(mainAnswer)
+        ? mainAnswer.some(a => followUp.when.in.includes(a))
+        : followUp.when.in.includes(mainAnswer);
+
       if (!condition) return null;
 
       const followUpQuestion = followUp.ask;
       const followUpValue = answers[followUpQuestion.id] || '';
 
-      // This is a simplified renderer for the follow-up.
-      // A more robust implementation would use a component similar to AnswerInput itself.
-      if (followUpQuestion.ui === 'textarea') {
-        return (
-          <div key={index} style={{ marginTop: '10px' }}>
-            <textarea
-              rows={3}
-              value={followUpValue}
-              onChange={(e) => setAnswers(prev => ({ ...prev, [followUpQuestion.id]: e.target.value }))}
-              placeholder={followUpQuestion.placeholder}
-              maxLength={followUpQuestion.max_chars}
-              style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ddd' }}
-            />
-          </div>
-        );
-      }
-      return null;
+      return (
+        <div key={index} style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #eee' }}>
+          <textarea
+            rows={3}
+            value={followUpValue}
+            onChange={(e) => handleFollowUpChange(e, followUpQuestion)}
+            onBlur={() => onBlur(followUpQuestion.id)}
+            placeholder={followUpQuestion.placeholder}
+            maxLength={followUpQuestion.max_chars}
+            style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ddd' }}
+          />
+        </div>
+      );
     });
   };
 
-  /**
-   * @brief Renders appropriate input element based on question type
-   * 
-   * Universal input renderer that creates appropriate UI elements based on
-   * question type and UI configuration. Supports all question types with
-   * proper styling and event handling.
-   * 
-   * @function renderInput
-   * @param {Object} question - Question configuration object
-   * @param {*} inputValue - Current input value
-   * @param {Function} inputOnChange - Callback for input value changes
-   * @returns {JSX.Element} Rendered input element
-   * 
-   * @input {Object} question - Question configuration with type and UI settings
-   * @input {*} inputValue - Current value for the input element
-   * @input {Function} inputOnChange - Callback function for value changes
-   * 
-   * @returns {JSX.Element} inputElement - Rendered input component
-   * 
-   * @types {yes-no} - Radio buttons for yes/no questions
-   * @types {choice-single} - Radio buttons or dropdown for single choice
-   * @types {choice-multi} - Checkboxes for multiple choice questions
-   * @types {text} - Text input or textarea based on UI setting
-   * @types {textarea} - Multi-line text input
-   * @types {number} - Numeric input field
-   * @types {default} - Fallback textarea for unknown types
-   * 
-   * @dependencies {labels} - UI labels for yes/no options
-   * @dependencies {handleMultiChange} - Function for multi-choice handling
-   * 
-   * @role {Input Renderer} - Renders appropriate UI for question type
-   * @role {Type Handler} - Handles different question types and UI variants
-   * @role {Event Manager} - Manages input events and value changes
-   * @role {UI Stylist} - Applies consistent styling to input elements
-   */
   const renderInput = () => {
     const { question_type, ui } = q;
     const inputValue = value || '';
@@ -146,7 +94,7 @@ const AnswerInput = ({ q, value, onChange, onBlur, labels, answers, setAnswers }
                 name={q.id}
                 value="yes"
                 checked={inputValue === 'yes'}
-                onChange={() => onChange('yes', true)}
+                onChange={() => onChange(q.id, 'yes', true)}
               />{' '}
               {yesLabel}
             </label>
@@ -156,7 +104,7 @@ const AnswerInput = ({ q, value, onChange, onBlur, labels, answers, setAnswers }
                 name={q.id}
                 value="no"
                 checked={inputValue === 'no'}
-                onChange={() => onChange('no', true)}
+                onChange={() => onChange(q.id, 'no', true)}
               />{' '}
               {noLabel}
             </label>
@@ -169,27 +117,12 @@ const AnswerInput = ({ q, value, onChange, onBlur, labels, answers, setAnswers }
           const customValue = customInputId ? answers[customInputId] || '' : '';
           const isDropdownDisabled = customInputId && customValue !== '';
 
-          const handleCustomChange = (e) => {
-            const newCustomValue = e.target.value;
-            // This is the correct generic way: update both state fields.
-            setAnswers(prev => ({
-              ...prev,
-              [customInputId]: newCustomValue,
-              [q.id]: newCustomValue ? '' : prev[q.id] // Clear dropdown if custom has value
-            }));
-          };
-
-          const handleDropdownChange = (e) => {
-            // This now calls the main onChange from the parent, which is correct.
-            onChange(e.target.value, true);
-          };
-
           return (
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <select
                 value={isDropdownDisabled ? '' : inputValue}
-                onChange={handleDropdownChange}
-                onBlur={onBlur}
+                onChange={(e) => onChange(q.id, e.target.value, true)}
+                onBlur={() => onBlur(q.id)}
                 style={{ flex: 1, padding: 8, borderRadius: 4, border: '1px solid #ddd' }}
                 disabled={isDropdownDisabled}
               >
@@ -204,8 +137,8 @@ const AnswerInput = ({ q, value, onChange, onBlur, labels, answers, setAnswers }
                 <input
                   type="text"
                   value={customValue}
-                  onChange={handleCustomChange}
-                  onBlur={onBlur} 
+                  onChange={(e) => onChange(customInputId, e.target.value, false)}
+                  onBlur={() => onBlur(q.id)}
                   placeholder={q.custom_text_input.placeholder}
                   style={{ flex: 1, padding: 8, borderRadius: 4, border: '1px solid #ddd' }}
                 />
@@ -222,7 +155,7 @@ const AnswerInput = ({ q, value, onChange, onBlur, labels, answers, setAnswers }
                     name={q.id}
                     value={option.code}
                     checked={inputValue === option.code}
-                    onChange={() => onChange(option.code, true)}
+                    onChange={() => onChange(q.id, option.code, true)}
                   />{' '}
                   {option.label}
                 </label>
@@ -237,7 +170,7 @@ const AnswerInput = ({ q, value, onChange, onBlur, labels, answers, setAnswers }
             const newSelected = selectedOptions.includes(optionCode)
                 ? selectedOptions.filter(item => item !== optionCode)
                 : [...selectedOptions, optionCode];
-            onChange(newSelected, true); // Always submit on change for multi-choice
+            onChange(q.id, newSelected, true);
         };
         return (
             <div>
@@ -260,8 +193,8 @@ const AnswerInput = ({ q, value, onChange, onBlur, labels, answers, setAnswers }
             <textarea
               rows={3}
               value={inputValue}
-              onChange={(e) => onChange(e.target.value, false)}
-              onBlur={onBlur}
+              onChange={(e) => onChange(q.id, e.target.value, false)}
+              onBlur={() => onBlur(q.id)}
               placeholder={q.placeholder}
               maxLength={q.max_chars}
               style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ddd' }}
@@ -272,8 +205,8 @@ const AnswerInput = ({ q, value, onChange, onBlur, labels, answers, setAnswers }
           <input
             type="text"
             value={inputValue}
-            onChange={(e) => onChange(e.target.value, false)}
-            onBlur={onBlur}
+            onChange={(e) => onChange(q.id, e.target.value, false)}
+            onBlur={() => onBlur(q.id)}
             placeholder={q.placeholder}
             maxLength={q.max_chars}
             style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ddd' }}

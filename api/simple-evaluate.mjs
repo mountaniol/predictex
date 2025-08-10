@@ -28,9 +28,8 @@ function loadQuestionsData() {
 
 // Helper function to find a question by its ID from the loaded data
 function findQuestionById(id) {
-  if (!questionsData) return null;
-  const allQuestions = [...questionsData.questions, ...questionsData.meta_questions];
-  return allQuestions.find(q => q.id === id);
+  if (!questionsData || !Array.isArray(questionsData.questions)) return null;
+  return questionsData.questions.find(q => q.id === id);
 }
 
 // Helper function to get readable answer text
@@ -128,24 +127,51 @@ export default async function handler(req, res) {
     Return ONLY a single JSON object with 'score' (0-100) and 'explanation' (string) keys.
   `;
 
-  try {
-    const completion = await openai.chat.completions.create({
-        messages: [
-          { "role": "system", "content": payload.system },
-          { "role": "user", "content": fullPrompt }
-        ],
-        model: "gpt-4-1106-preview",
-        response_format: { type: "json_object" },
-        temperature: 0.3,
-        max_tokens: 1024,
-        frequency_penalty: 0,
-        presence_penalty: 0,
-      });
+  let attempt = 0;
+  const maxDelay = 30000; // 30 seconds
+  const initialDelay = 1000; // 1 second
 
-    res.status(200).json(JSON.parse(completion.choices[0].message.content));
-  } catch (error) {
-    console.error('Error with OpenAI API:', error);
-    res.status(500).json({ message: 'Error processing your request with AI.' });
+  while (true) {
+    try {
+      const completion = await openai.chat.completions.create({
+          messages: [
+            { "role": "system", "content": payload.system },
+            { "role": "user", "content": fullPrompt }
+          ],
+          model: "gpt-4-1106-preview",
+          response_format: { type: "json_object" },
+          temperature: 0.3,
+          max_tokens: 1024,
+          frequency_penalty: 0,
+          presence_penalty: 0,
+        });
+
+      // On success, exit the loop and return the response
+      return res.status(200).json(JSON.parse(completion.choices[0].message.content));
+
+    } catch (error) {
+      // Only retry on rate limit errors (status 429)
+      if (error.status === 429) {
+        attempt++;
+        const apiRetryAfterMs = error.headers['retry-after-ms'] ? parseInt(error.headers['retry-after-ms'], 10) : 0;
+        
+        // Exponential backoff calculation
+        const exponentialDelay = initialDelay * (2 ** (attempt - 1));
+        
+        // Add jitter to prevent thundering herd
+        const jitter = Math.random() * 500;
+        
+        let waitTime = Math.min(exponentialDelay + jitter, maxDelay);
+        waitTime = Math.max(waitTime, apiRetryAfterMs);
+
+        console.warn(`Rate limit exceeded. Attempt ${attempt}. Retrying in ${waitTime.toFixed(0)}ms...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      } else {
+        // For any other non-retriable error, log it and return a generic 500 error
+        console.error('Non-retriable error with OpenAI API:', error);
+        return res.status(500).json({ message: 'Error processing your request with AI.' });
+      }
+    }
   }
 }
 

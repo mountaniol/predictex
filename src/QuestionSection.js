@@ -200,6 +200,7 @@ const QuestionSection = () => {
       if (reevalInfo) {
         const { question: questionToReevaluate } = reevalInfo;
         setEvaluating(prev => ({ ...prev, [questionToReevaluate.id]: true }));
+        
         const result = await evaluateAnswer(questionToReevaluate);
         setEvaluating(prev => {
           const newEvaluating = { ...prev };
@@ -216,7 +217,7 @@ const QuestionSection = () => {
     }
 
     console.log('[Orchestrator] Loop finished. Committing final state.');
-    if (calculations && calculations.length > 0) {
+        if (calculations && calculations.length > 0) {
       currentScores = applyCalculations(currentScores, calculations);
     }
 
@@ -229,30 +230,46 @@ const QuestionSection = () => {
     setQuestionStates(prev => ({...prev, ...currentStates}));
   }, [calculations, computeAllStates, evaluateAnswer, explanations, findNextQuestionToReevaluate, questionStates, scores, sections, setExplanations, setQuestionStates, setScores]);
   
-  const handleAnswerChange = useCallback((question, answer, submitNow = false) => {
+  const handleAnswerChange = useCallback((id, value, submitNow = false) => {
     setHighlightUnanswered(false); // Reset highlight on any answer change
-    console.log('[handleAnswerChange] Fired for:', question.id, 'with value:', answer, 'and submitNow:', submitNow);
-    const newAnswers = {...answers, [question.id]: answer};
+
+    let newAnswers = { ...answers, [id]: value };
+
+    const question = sections.flatMap(s => s.questions).find(q => 
+        q.id === id || q.custom_text_input?.id === id
+    );
+
+    if (question && question.custom_text_input) {
+        const mainId = question.id;
+        const customId = question.custom_text_input.id;
+        if (id === mainId) {
+            newAnswers[customId] = '';
+        } else {
+            newAnswers[mainId] = '';
+        }
+    }
+
     setAnswers(newAnswers);
+    
+    if (question) {
+        const newState = getQuestionState(question, newAnswers, scores, questionStates);
+        setQuestionStates(prev => ({...prev, [question.id]: newState}));
 
-    if (depWarnings[question.id]) {
-      setDepWarnings(prev => ({...prev, [question.id]: undefined }));
+        if (submitNow && question.score !== "NO") {
+            setSubmissionTrigger({ question });
+        }
     }
+  }, [answers, getQuestionState, questionStates, scores, sections, setAnswers, setHighlightUnanswered, setQuestionStates]);
 
-    const newState = getQuestionState(question, newAnswers, scores, questionStates);
-    setQuestionStates(prev => ({...prev, [question.id]: newState}));
-
-    if (submitNow) {
-      setSubmissionTrigger({ question });
-    }
-  }, [answers, depWarnings, getQuestionState, questionStates, scores, setAnswers, setQuestionStates, setHighlightUnanswered]);
-
-  const handleAnswerBlur = useCallback((question) => {
+  const handleAnswerBlur = useCallback((id) => {
+    const question = sections.flatMap(s => s.questions).find(q => q.id === id);
+    if (!question) return;
+    
     console.log('[handleAnswerBlur] Fired for:', question.id);
-    if (answers[question.id]) {
+    if (question.score !== "NO" && answers[question.id]) {
       setSubmissionTrigger({ question });
     }
-  }, [answers]);
+  }, [answers, sections]);
 
   const runStartupCheck = useCallback(async () => {
     let currentScores = { ...scores };
@@ -340,6 +357,8 @@ const QuestionSection = () => {
             {section.title}
           </h2>
           {section.questions.map((q, qi) => {
+            if (q.question_type === 'internal') return null;
+            
             const key = `q-${si}-${qi}`;
             const isUnanswered = questionStates[q.id] === 'unanswered';
             const shouldHighlight = isUnanswered && highlightUnanswered;
@@ -353,7 +372,7 @@ const QuestionSection = () => {
               boxShadow: shouldHighlight ? '0 0 10px rgba(211, 47, 47, 0.2)' : 'none',
               transition: 'border-color 0.3s, box-shadow 0.3s'
             };
-
+            
             return (
               <div
                 key={key}
@@ -366,8 +385,8 @@ const QuestionSection = () => {
                 {q.hint && <div style={{ fontSize: '14px', color: '#7f8c8d', marginTop: 8, marginBottom: 8, fontStyle: 'italic' }}>💡 {q.hint}</div>}
                 <AnswerInput
                   q={q} value={answers[q.id] || ''}
-                  onChange={(value, submitNow) => handleAnswerChange(q, value, submitNow)}
-                  onBlur={() => handleAnswerBlur(q)}
+                  onChange={handleAnswerChange}
+                  onBlur={handleAnswerBlur}
                   labels={labels} answers={answers} setAnswers={setAnswers}
                   questionState={questionStates[q.id]}
                 />
@@ -379,7 +398,7 @@ const QuestionSection = () => {
                         border: '1px solid transparent',
                         boxShadow: '0 0 0 1px #ccc',
                         borderRadius: '12px',
-                        fontSize: '14px',
+                    fontSize: '14px',
                         color: '#777'
                       }}
                     >
@@ -413,7 +432,7 @@ const QuestionSection = () => {
                         >
                           {scores[q.id]}
                         </span>
-                      </div>
+                  </div>
 
                       {explanations[q.id] && (
                         <button 
@@ -427,7 +446,7 @@ const QuestionSection = () => {
                             border: '1px solid transparent', // Use transparent border to maintain size
                             boxShadow: '0 0 0 1px black', // Use box-shadow for a smoother border
                             borderRadius: '12px', 
-                            cursor: 'pointer',
+                      cursor: 'pointer',
                             transition: 'background-color 0.2s, color 0.2s'
                           }}
                           onMouseEnter={(e) => { e.target.style.backgroundColor = '#f0f0f0'; }}
