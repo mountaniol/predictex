@@ -55,7 +55,6 @@ const QuestionSection = () => {
     highlightUnanswered, setHighlightUnanswered
   } = context || {};
 
-  const [depWarnings, setDepWarnings] = useState({});
   const [expandedExplanations, setExpandedExplanations] = useState({});
   const [submissionTrigger, setSubmissionTrigger] = useState(null);
   const startupCheckHasRun = useRef(false);
@@ -368,7 +367,7 @@ const QuestionSection = () => {
               padding: '24px',
               marginBottom: '28px',
               borderRadius: '12px',
-              border: shouldHighlight ? '2px solid #D32F2F' : (depWarnings[key] ? '2px solid #e74c3c' : '1px solid #e1e8ed'),
+              border: shouldHighlight ? '2px solid #D32F2F' : '1px solid #e1e8ed',
               boxShadow: shouldHighlight ? '0 0 10px rgba(211, 47, 47, 0.2)' : 'none',
               transition: 'border-color 0.3s, box-shadow 0.3s'
             };
