@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from "react";
+import React, { useState, useEffect, useRef, useLayoutEffect } from "react";
 import useLoadQuestions from "./useLoadQuestions";
 import LanguageSelector from "./LanguageSelector";
 import "./App.css";
@@ -67,7 +67,7 @@ function App() {
   
   const initialQuestionSetId = new URLSearchParams(window.location.search).get('q') || 'q4';
   const { 
-    loading, error, questionSetId, setQuestionSetId, sections, metaQuestions, calculations, labels, finalAnalysisConfig
+    loading, error, questionSetId, sections, metaQuestions, calculations, labels, finalAnalysisConfig
   } = useLoadQuestions(initialQuestionSetId);
   
   const [answers, setAnswers] = useState(() => {

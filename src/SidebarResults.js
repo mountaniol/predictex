@@ -45,8 +45,6 @@ const SidebarResults = () => {
     setIsGeneratingReport,
     setFinalReport,
     finalReport,
-    loadAndApplyState,
-    applyState,
     finalAnalysisConfig,
     calculations,
     setAnswers,
