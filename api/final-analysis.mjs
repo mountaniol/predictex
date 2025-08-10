@@ -206,29 +206,20 @@ export default async function handler(req, res) {
             try {
                 console.log(`===== [Attempt ${attempt}/${maxRetries}] Sending ${sectionConfig.name} Request to OpenAI =====`);
                 
-                const resp = await openai.responses.create({
-                    model: sectionConfig.model,
-                    input: [
-                        { role: "user", content: fullPrompt }
-                    ],
-                    tools: sectionConfig.web_search.enabled ? [
-                        { type: "web_search" }
-                    ] : undefined,
-                    tool_choice: sectionConfig.web_search.enabled ? "auto" : "none",
-                    max_output_tokens: sectionConfig.model_config.max_output_tokens || 800,
-                    temperature: sectionConfig.model_config.temperature || 0.3,
-                });
-                
-                console.log('REQUEST BODY:');
-                console.log(JSON.stringify({
+                const requestPayload = {
                     model: sectionConfig.model,
                     input: [{ role: "user", content: fullPrompt }],
                     tools: sectionConfig.web_search.enabled ? [{ type: "web_search" }] : undefined,
                     tool_choice: sectionConfig.web_search.enabled ? "auto" : "none",
                     max_output_tokens: sectionConfig.model_config.max_output_tokens || 800,
                     temperature: sectionConfig.model_config.temperature || 0.3,
-                }, null, 2));
+                };
+
+                console.log('REQUEST BODY:');
+                console.log(JSON.stringify(requestPayload, null, 2));
                 console.log("===================================================================");
+
+                const resp = await openai.responses.create(requestPayload);
                 
                 console.log('FULL OPENAI RESPONSE:');
                 console.log(JSON.stringify(resp, null, 2));
@@ -258,10 +249,14 @@ export default async function handler(req, res) {
                         // Take the first key's value, or if it's an object, stringify it
                         const firstKey = keys[0];
                         const content = jsonContent[firstKey];
+
+                        // CRITICAL FIX: Ensure nested objects in the report are stringified
                         if (typeof content === 'string') {
                             report = content;
                         } else {
-                            report = JSON.stringify(content);
+                            // If the content is an object, it's likely the nested JSON we want to avoid.
+                            // We stringify it to see it, but the prompt is what needs fixing.
+                            report = JSON.stringify(content, null, 2); 
                         }
                         isValidJson = true;
                     }
@@ -276,10 +271,12 @@ export default async function handler(req, res) {
                                 // Take the first key's value, or if it's an object, stringify it
                                 const firstKey = keys[0];
                                 const content = parsed[firstKey];
+                                
+                                // CRITICAL FIX: Ensure nested objects in the report are stringified
                                 if (typeof content === 'string') {
                                     report = content;
                                 } else {
-                                    report = JSON.stringify(content);
+                                    report = JSON.stringify(content, null, 2);
                                 }
                                 isValidJson = true;
                             }
@@ -342,9 +339,9 @@ export default async function handler(req, res) {
         
         // If all retries fail
         console.error('All retries failed. Final error:', lastError);
-        return res.status(lastError.status || 500).json({ 
+        return res.status(lastError?.status || 500).json({ 
             message: `Error generating analysis after ${maxRetries} attempts`, 
-            error: lastError.message 
+            error: lastError?.message 
         });
 
     } catch (error) {
