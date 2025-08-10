@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from "react";
 import useLoadQuestions from "./useLoadQuestions";
 import LanguageSelector from "./LanguageSelector";
 import "./App.css";
@@ -7,7 +7,7 @@ import QuestionSection from "./QuestionSection";
 import SidebarResults from "./SidebarResults";
 import Header from "./Header";
 import Footer from "./Footer";
-import { useCallback } from "react";
+import FinalReport from "./FinalReport";
 
 /**
  * @brief React Context for global application state management
@@ -67,71 +67,87 @@ function App() {
   
   const initialQuestionSetId = new URLSearchParams(window.location.search).get('q') || 'q4';
   const { 
-    loading, error, questionSetId, setQuestionSetId, sections, metaQuestions, calculations, labels
+    loading, error, questionSetId, setQuestionSetId, sections, metaQuestions, calculations, labels, finalAnalysisConfig
   } = useLoadQuestions(initialQuestionSetId);
   
-  const [answers, setAnswers] = useState({});
-  const [scores, setScores] = useState({});
-  const [questionStates, setQuestionStates] = useState({});
-  const [explanations, setExplanations] = useState({});
-  const [metaSummaries, setMetaSummaries] = useState({});
+  const [answers, setAnswers] = useState(() => {
+    const saved = localStorage.getItem(`qna-evaluator-answers-${initialQuestionSetId}`);
+    return saved ? JSON.parse(saved) : {};
+  });
+  const [scores, setScores] = useState(() => {
+    const saved = localStorage.getItem(`qna-evaluator-scores-${initialQuestionSetId}`);
+    return saved ? JSON.parse(saved) : {};
+  });
+  const [questionStates, setQuestionStates] = useState(() => {
+    const saved = localStorage.getItem(`qna-evaluator-questionStates-${initialQuestionSetId}`);
+    return saved ? JSON.parse(saved) : {};
+  });
+  const [explanations, setExplanations] = useState(() => {
+    const saved = localStorage.getItem(`qna-evaluator-explanations-${initialQuestionSetId}`);
+    return saved ? JSON.parse(saved) : {};
+  });
+  const [metaSummaries, setMetaSummaries] = useState(() => {
+    const saved = localStorage.getItem(`qna-evaluator-metaSummaries-${initialQuestionSetId}`);
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  const [finalReport, setFinalReport] = useState(() => {
+    const saved = localStorage.getItem(`qna-evaluator-finalReport-${initialQuestionSetId}`);
+    return saved ? saved : null;
+  });
+
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+
+  const topOfContentRef = useRef(null);
+  const [contentOffset, setContentOffset] = useState(0);
+
+  useLayoutEffect(() => {
+    if (topOfContentRef.current) {
+      const newHeight = topOfContentRef.current.offsetHeight;
+      if (newHeight !== contentOffset) {
+        setContentOffset(newHeight);
+      }
+    }
+  }, [loading, metaQuestions, contentOffset]); // Re-measure when loading state or meta questions change
 
   useEffect(() => {
     if (!questionSetId) return;
     try {
       const savedAnswers = localStorage.getItem(`qna-evaluator-answers-${questionSetId}`);
-      setAnswers(savedAnswers ? JSON.parse(savedAnswers) : {});
+      if (savedAnswers) setAnswers(JSON.parse(savedAnswers));
 
       const savedScores = localStorage.getItem(`qna-evaluator-scores-${questionSetId}`);
-      setScores(savedScores ? JSON.parse(savedScores) : {});
+      if (savedScores) setScores(JSON.parse(savedScores));
 
       const storedStates = localStorage.getItem(`qna-evaluator-questionStates-${questionSetId}`);
-      setQuestionStates(storedStates ? JSON.parse(storedStates) : {});
+      if (storedStates) setQuestionStates(JSON.parse(storedStates));
 
       const savedExplanations = localStorage.getItem(`qna-evaluator-explanations-${questionSetId}`);
-      setExplanations(savedExplanations ? JSON.parse(savedExplanations) : {});
+      if (savedExplanations) setExplanations(JSON.parse(savedExplanations));
 
       const savedSummaries = localStorage.getItem(`qna-evaluator-metaSummaries-${questionSetId}`);
-      setMetaSummaries(savedSummaries ? JSON.parse(savedSummaries) : {});
+      if (savedSummaries) setMetaSummaries(JSON.parse(savedSummaries));
+      
+      const savedReport = localStorage.getItem(`qna-evaluator-finalReport-${questionSetId}`);
+      if (savedReport) setFinalReport(savedReport);
 
     } catch (error) {
       console.warn('Failed to load data from localStorage on question set change:', error);
     }
   }, [questionSetId]);
 
-  // A new function to dynamically load a question set and apply new state
-  const loadAndApplyState = useCallback((newState) => {
-    if (newState.questionSetId) {
-      // Trigger the data load for the new question set
-      setQuestionSetId(newState.questionSetId);
-      
-      // We need a way to apply the state AFTER the new questions are loaded.
-      // A simple (but not perfect) way is to use a timeout. A better way would
-      // be a more robust state machine, but this is a good first step.
-      setTimeout(() => {
-        setAnswers(newState.answers || {});
-        setScores(newState.scores || {});
-        setQuestionStates(newState.questionStates || {});
-        setExplanations(newState.explanations || {});
-        setMetaSummaries(newState.metaSummaries || {});
-        console.log(`State for ${newState.questionSetId} has been applied.`);
-      }, 500); // Wait 500ms for questions to load
+  useEffect(() => {
+    if (questionSetId) {
+      if (finalReport) {
+        localStorage.setItem(`qna-evaluator-finalReport-${questionSetId}`, finalReport);
+      } else {
+        localStorage.removeItem(`qna-evaluator-finalReport-${questionSetId}`);
+      }
     }
-  }, [setQuestionSetId]);
-
+  }, [finalReport, questionSetId]);
 
   // Log context values
   useEffect(() => {
-    console.log('[App.js] Context Provider value updated:', {
-      loading,
-      sectionsCount: sections?.length,
-      metaQuestionsCount: metaQuestions?.length,
-      answersCount: Object.keys(answers).length,
-      scoresCount: Object.keys(scores).length,
-      statesCount: Object.keys(questionStates).length,
-      explanationsCount: Object.keys(explanations).length,
-      metaSummariesCount: Object.keys(metaSummaries).length,
-    });
   }, [loading, sections, metaQuestions, answers, scores, questionStates, explanations, metaSummaries]);
 
   // Save data to localStorage whenever it changes
@@ -185,6 +201,14 @@ function App() {
     }
   }, [metaSummaries, questionSetId]);
 
+  useEffect(() => {
+    if (finalReport) {
+      localStorage.setItem('finalReport', finalReport);
+    } else {
+      localStorage.removeItem('finalReport');
+    }
+  }, [finalReport]);
+
   // Add event listener to save data before page unload
   useEffect(() => {
     const handleBeforeUnload = () => {
@@ -195,6 +219,11 @@ function App() {
           localStorage.setItem(`qna-evaluator-questionStates-${questionSetId}`, JSON.stringify(questionStates));
           localStorage.setItem(`qna-evaluator-explanations-${questionSetId}`, JSON.stringify(explanations));
           localStorage.setItem(`qna-evaluator-metaSummaries-${questionSetId}`, JSON.stringify(metaSummaries));
+          if (finalReport) {
+            localStorage.setItem('finalReport', finalReport);
+          } else {
+            localStorage.removeItem('finalReport');
+          }
         } catch (error) {
           console.warn('Failed to save data before unload:', error);
         }
@@ -203,30 +232,36 @@ function App() {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [answers, scores, questionStates, explanations, metaSummaries, questionSetId]);
+  }, [answers, scores, questionStates, explanations, metaSummaries, questionSetId, finalReport]);
 
   return (
-    <AppContext.Provider value={{
-      questionSetId,
-      sections,
-      metaQuestions,
-      loading,
-      error,
-      calculations,
-      currentLanguage,
-      answers,
-      setAnswers,
-      scores,
-      setScores,
-      questionStates,
-      setQuestionStates,
-      explanations,
-      setExplanations,
-      metaSummaries,
-      setMetaSummaries,
-      labels,
-      loadAndApplyState // Expose the new function
-    }}>
+    <AppContext.Provider
+      value={{
+        questionSetId,
+        sections,
+        metaQuestions,
+        loading,
+        error,
+        calculations,
+        currentLanguage,
+        answers,
+        setAnswers,
+        scores,
+        setScores,
+        questionStates,
+        setQuestionStates,
+        explanations,
+        setExplanations,
+        metaSummaries,
+        setMetaSummaries,
+        labels,
+        finalReport,
+        setFinalReport,
+        isGeneratingReport,
+        setIsGeneratingReport,
+        finalAnalysisConfig
+      }}
+    >
       <div style={{
         minHeight: "100vh",
         background: "#f8f9fb",
@@ -237,50 +272,47 @@ function App() {
         <div style={{
           maxWidth: 1200,
           margin: "0 auto",
-          padding: "32px 16px 0 16px"
+          padding: "32px 16px 0 16px",
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: '24px'
         }}>
-          <Header />
-          <LanguageSelector
-            currentLanguage={currentLanguage}
-            onChange={setCurrentLanguage}
-            translating={loading}
-          />
-
-          {metaQuestions && metaQuestions.length > 0 && (
-            <h2 style={{
-              fontSize: '24px',
-              fontWeight: 'bold',
-              marginTop: '20px',
-              marginBottom: '20px',
-              color: '#2c3e50',
-              // Position the title as if it's in the second column
-              marginLeft: '304px', // 280px (sidebar) + 24px (gap)
-            }}>
-              Basic Information
-            </h2>
-          )}
-
+          {/* Column 1: Sticky Sidebar */}
           <div style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: '24px',
+            width: '280px',
+            flexShrink: 0,
+            position: 'sticky',
+            top: '20px',
+            paddingTop: `${contentOffset}px` // Dynamically apply the measured height
           }}>
-            {/* Column 1: Sticky Sidebar */}
-            <div style={{
-              width: '280px',
-              flexShrink: 0, // Prevents the sidebar from shrinking
-              position: 'sticky',
-              top: '20px',
-            }}>
-              <SidebarResults />
-            </div>
+            <SidebarResults />
+          </div>
 
-            {/* Column 2: Main Content */}
-            <div style={{
-              flex: 1 // Takes up the remaining space
-            }}>
-              <QuestionSection />
+          {/* Column 2: Main Content */}
+          <div style={{
+            flex: 1
+          }}>
+            <div ref={topOfContentRef}> {/* This is the measurement wrapper */}
+              <Header />
+              <LanguageSelector
+                currentLanguage={currentLanguage}
+                onChange={setCurrentLanguage}
+                translating={loading}
+              />
+              {metaQuestions && metaQuestions.length > 0 && (
+                <h2 style={{
+                  fontSize: '24px',
+                  fontWeight: 'bold',
+                  marginTop: '20px',
+                  marginBottom: '20px',
+                  color: '#2c3e50',
+                }}>
+                  Basic Information
+                </h2>
+              )}
             </div>
+            <QuestionSection />
+            <FinalReport />
           </div>
         </div>
         <Footer />

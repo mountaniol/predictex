@@ -1,5 +1,6 @@
 import React, { useContext, useMemo, useState, useEffect } from 'react';
 import { AppContext } from './App';
+import { Tooltip } from 'react-tooltip'
 
 /**
  * @brief Sidebar results component for desktop layout
@@ -32,7 +33,28 @@ import { AppContext } from './App';
  * @role {Sidebar UI} - Provides fixed sidebar interface
  */
 const SidebarResults = () => {
-  const { questionSetId, sections, answers, scores, calculations, questionStates, setAnswers, setScores, setQuestionStates, explanations, setExplanations, loadAndApplyState } = useContext(AppContext);
+  const { 
+    scores, 
+    questionStates, 
+    sections, 
+    questionSetId,
+    answers,
+    explanations,
+    metaSummaries,
+    isGeneratingReport,
+    setIsGeneratingReport,
+    setFinalReport,
+    finalReport,
+    loadAndApplyState,
+    applyState,
+    finalAnalysisConfig,
+    calculations,
+    setAnswers,
+    setScores,
+    setQuestionStates,
+    setExplanations,
+    setMetaSummaries
+  } = useContext(AppContext);
   const [clearState, setClearState] = useState(0); // 0: idle, 1: first press, 2: second press
   const [clearTimer, setClearTimer] = useState(null);
   const [tooltip, setTooltip] = useState({ visible: false, text: '', id: null });
@@ -49,15 +71,16 @@ const SidebarResults = () => {
   }, [clearTimer]);
 
   const handleSaveToFile = () => {
-    const dataToSave = {
+    const stateToSave = {
       questionSetId,
       answers,
       scores,
       questionStates,
       explanations,
-      savedAt: new Date().toISOString(),
+      metaSummaries,
+      finalReport,
     };
-    const blob = new Blob([JSON.stringify(dataToSave, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(stateToSave, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -76,22 +99,20 @@ const SidebarResults = () => {
     reader.onload = (e) => {
       try {
         const data = JSON.parse(e.target.result);
-
-        if (data.questionSetId !== questionSetId) {
-          // If the question set is different, use the new central function
-          // to load the correct question set and then apply the state.
-          console.log(`Switching from question set ${questionSetId} to ${data.questionSetId}`);
-          loadAndApplyState(data);
+        
+        // This function now correctly handles the state update for the current question set.
+        // The useEffect hooks in App.js will then handle saving to localStorage automatically.
+        if (data.questionSetId === questionSetId) {
+          setAnswers(data.answers || {});
+          setScores(data.scores || {});
+          setQuestionStates(data.questionStates || {});
+          setExplanations(data.explanations || {});
+          setMetaSummaries(data.metaSummaries || {});
+          setFinalReport(data.finalReport || null);
         } else {
-          // If it's the same question set, just update the state directly.
-          if (data.answers && data.scores && data.questionStates) {
-            setAnswers(data.answers);
-            setScores(data.scores);
-            setQuestionStates(data.questionStates);
-            setExplanations(data.explanations || {});
-          } else {
-            throw new Error('Invalid file format.');
-          }
+          // For changing the question set, we need a more robust mechanism
+          // than the previous implementation. For now, alert the user.
+          alert(`This file is for a different question set (${data.questionSetId}). Please switch to that question set first.`);
         }
       } catch (error) {
         alert(`Error loading file: ${error.message}`);
@@ -266,6 +287,63 @@ const SidebarResults = () => {
     };
   }, [computedScores, sections, questionStates]);
 
+  const allQuestions = useMemo(() => {
+    return sections.flatMap(s => s.questions);
+  }, [sections]);
+
+  const allAnswered = useMemo(() => {
+    if (!allQuestions || allQuestions.length === 0) return false;
+    const fullyAnsweredCount = Object.values(questionStates).filter(s => s === 'fully_answered').length;
+    return fullyAnsweredCount === allQuestions.length;
+  }, [questionStates, allQuestions]);
+
+  const handleGenerateReport = async () => {
+    setIsGeneratingReport(true);
+    setFinalReport(null); 
+    try {
+      const response = await fetch('/api/final-analysis.mjs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          allAnswers: answers, 
+          allScores: scores,
+          questionSetId: questionSetId
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to generate report.');
+      }
+
+      const result = await response.json();
+      setFinalReport(result.report);
+
+    } catch (error) {
+      console.error("Error generating final report:", error);
+      alert(`Error: ${error.message}`);
+      setFinalReport(`## Error\n\nFailed to generate report:\n\n\`\`\`\n${error.message}\n\`\`\``);
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
+  const buttonStyle = (disabled = false) => ({
+    width: '100%',
+    padding: '6px 12px',
+    fontSize: '11px',
+    backgroundColor: 'white',
+    color: 'black',
+    border: '1px solid transparent',
+    boxShadow: '0 0 0 1px black',
+    borderRadius: '12px',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+    marginBottom: '8px'
+  });
+
   return (
     <div style={{
       backgroundColor: 'white',
@@ -284,8 +362,6 @@ const SidebarResults = () => {
         Evaluation Results
       </h3>
 
-        <>
-          {/* Overall Risk Assessment */}
       <div 
         style={{
           textAlign: 'center',
@@ -758,7 +834,34 @@ const SidebarResults = () => {
           )}
         </div>
       </div>
-    </>
+
+      <div style={{ borderTop: '1px solid #e0e0e0', margin: '20px 0' }} />
+      
+      <div style={{ marginTop: '20px' }}>
+        {isGeneratingReport ? (
+          <div style={{ textAlign: 'center', padding: '10px', color: '#555' }}>
+            {finalAnalysisConfig?.loading_message || 'Analyzing...'}
+          </div>
+        ) : (
+          <button
+            style={buttonStyle(!allAnswered)}
+            onClick={handleGenerateReport}
+            disabled={!allAnswered}
+            data-tooltip-id="report-tooltip"
+            data-tooltip-content={!allAnswered ? 'Please answer all questions before generating the report.' : 'Generate a comprehensive final analysis report.'}
+          >
+            Generate Final Report
+          </button>
+        )}
+      </div>
+
+      <div style={{ borderTop: '1px solid #e0e0e0', margin: '20px 0' }} />
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: 'auto' }}>
+        <Tooltip id="load-tooltip" delayShow={1000} />
+        <Tooltip id="clear-tooltip" />
+        <Tooltip id="report-tooltip" />
+      </div>
     </div>
   );
 };

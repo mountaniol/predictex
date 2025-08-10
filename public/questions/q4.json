@@ -868,5 +868,9 @@
       "ai_context": { "include_meta": ["MET.RISKCTX"], "include_answers": ["SG22"] },
       "prompt_add": "Good: risk-based checks. Red: no/unknown with concentrated suppliers (SG22); scale by MET.RISKCTX."
     }
-  ]
+  ],
+  "final_analysis_config": {
+    "loading_message": "Analyzing... This may take a few minutes.",
+    "prompt_template": "You are an expert business valuator and M&A analyst. Based on the provided questionnaire data, perform a comprehensive analysis for a potential acquisition. The user has provided the following data:\n\n**Meta Information:**\n{meta_text}\n\n**Questionnaire Answers & Scores:**\n{answers_text}\n\n**Calculated Section Scores:**\n{calculations_text}\n\nYour analysis must be structured and well-formatted using Markdown. It must include the following sections:\n\n1.  **Executive Summary:** A brief overview of the key findings and the final recommendation.\n\n2.  **Strengths:** Analyze the positive aspects of the business based on the answers. What makes it an attractive target?\n\n3.  **Weaknesses & Risks:** Identify the key risks, challenges, and negative aspects. What are the major red flags?\n\n4.  **Valuation Analysis:** This is the most critical part. You **MUST** use web search to find relevant industry multiples (e.g., SDE multiples, EBITDA multiples, revenue multiples) for this type of business in its specific geographic location and industry. State the multiples you found and the sources. Based on the provided financial data and the discovered multiples, calculate an estimated valuation range for the business. Clearly explain your methodology.\n\n5.  **Final Recommendation:** Conclude with a clear recommendation: Should the user seriously consider acquiring this business? Provide a final justification based on the balance of strengths, weaknesses, and the valuation. \n\nYour final output **MUST** be a valid JSON object in the following format: {\"report\": \"<Your full Markdown-formatted analysis here>\"}"
+  }
 }

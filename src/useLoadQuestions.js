@@ -24,8 +24,9 @@ const useLoadQuestions = (initialQuestionSetId) => {
   const [questionSetId, setQuestionSetId] = useState(initialQuestionSetId);
   const [sections, setSections] = useState([]);
   const [metaQuestions, setMetaQuestions] = useState([]);
-  const [calculations, setCalculations] = useState([]);
-  const [labels, setLabels] = useState({});
+  const [calculations, setCalculations] = useState(null);
+  const [labels, setLabels] = useState(null);
+  const [finalAnalysisConfig, setFinalAnalysisConfig] = useState(null);
 
   useEffect(() => {
     if (!questionSetId) {
@@ -69,8 +70,9 @@ const useLoadQuestions = (initialQuestionSetId) => {
         
         setSections(sections);
         setMetaQuestions(data.meta_questions || []);
-        setCalculations(data.calculations || []);
-        setLabels(data.settings.labels || {});
+        setCalculations(data.calculations || null);
+        setLabels(data.settings.labels || null);
+        setFinalAnalysisConfig(data.final_analysis_config || null);
 
       } catch (error) {
         console.error("Error loading or parsing questions:", error);
@@ -84,7 +86,7 @@ const useLoadQuestions = (initialQuestionSetId) => {
     loadData();
   }, [questionSetId]);
 
-  return { loading, error, questionSetId, setQuestionSetId, sections, metaQuestions, calculations, labels };
+  return { loading, error, questionSetId, setQuestionSetId, sections, metaQuestions, calculations, labels, finalAnalysisConfig };
 };
 
 export default useLoadQuestions;
