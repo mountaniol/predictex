@@ -297,32 +297,72 @@ const SidebarResults = () => {
 
   const handleGenerateReport = async () => {
     setIsGeneratingReport(true);
-    setFinalReport(null); 
+    setFinalReport(''); // Clear previous report
+
+    const { prompt_templates } = finalAnalysisConfig;
+    if (!prompt_templates || !Array.isArray(prompt_templates)) {
+      alert("Error: prompt_templates are not configured correctly in the question set.");
+      setIsGeneratingReport(false);
+      return;
+    }
+
+    let accumulatedMarkdown = "";
+    const reportSections = [];
+    const totalSteps = prompt_templates.length;
+
     try {
-      const response = await fetch('/api/final-analysis.mjs', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          allAnswers: answers, 
-          allScores: scores,
-          questionSetId: questionSetId
-        }),
-      });
+      for (let i = 0; i < totalSteps; i++) {
+        const promptTemplate = prompt_templates[i];
+        
+        const progressMessage = `*Step ${i + 1} of ${totalSteps}: Generating section...*`;
+        setFinalReport(progressMessage);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to generate report.');
+        const body = {
+          prompt_template: promptTemplate,
+          meta: sections.find(s => s.title === 'Meta')?.questions || [],
+          sections: sections.filter(s => s.title !== 'Meta'),
+          answers,
+          calculations: computedScores,
+          sections_markdown: accumulatedMarkdown,
+          overall_score: overallStats.averageScore,
+        };
+
+        const response = await fetch('/api/final-analysis.mjs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`Step ${i + 1} failed: ${errorData.message || 'Unknown error'}`);
+        }
+
+        const result = await response.json();
+        
+        reportSections.push(result.report);
+        // We still accumulate markdown for prompts that need context from previous steps.
+        accumulatedMarkdown += `\n\n${result.report}`;
       }
-
-      const result = await response.json();
-      setFinalReport(result.report);
+      
+      // Reorder and assemble the final report for logical presentation
+      if (reportSections.length >= 2) {
+        const reportTitle = reportSections.shift(); // First section is the main title
+        const executiveSummary = reportSections.pop(); // Last section is the summary
+        const restOfReport = reportSections.join('\n\n');
+        
+        // Assemble in the correct order: Title, Summary, then everything else.
+        const finalReportContent = `${reportTitle}\n\n${executiveSummary}\n\n${restOfReport}`;
+        setFinalReport(finalReportContent.trim());
+      } else {
+        // Fallback for fewer than 2 sections, though this shouldn't happen in normal flow.
+        setFinalReport(reportSections.join('\n\n').trim());
+      }
 
     } catch (error) {
       console.error("Error generating final report:", error);
-      alert(`Error: ${error.message}`);
-      setFinalReport(`## Error\n\nFailed to generate report:\n\n\`\`\`\n${error.message}\n\`\`\``);
+      const errorMessage = `## Error\n\nAn error occurred during report generation:\n\n\`\`\`\n${error.message}\n\`\`\``;
+      setFinalReport(errorMessage);
     } finally {
       setIsGeneratingReport(false);
     }

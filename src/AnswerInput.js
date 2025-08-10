@@ -165,20 +165,47 @@ const AnswerInput = ({ q, value, onChange, onBlur, labels, answers, setAnswers }
 
       case 'choice-single':
         if (ui === 'dropdown') {
+          const customInputId = q.custom_text_input?.id;
+          const customValue = customInputId ? answers[customInputId] || '' : '';
+          const isDropdownDisabled = customInputId && customValue !== '';
+
+          const handleCustomChange = (e) => {
+            const newCustomValue = e.target.value;
+            setAnswers(prev => ({
+              ...prev,
+              [customInputId]: newCustomValue,
+              // If user types in custom, clear the dropdown selection
+              [q.id]: newCustomValue ? '' : prev[q.id]
+            }));
+          };
+
           return (
-            <select
-              value={inputValue}
-              onChange={(e) => onChange(e.target.value, true)}
-              onBlur={onBlur}
-              style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid #ddd' }}
-            >
-              <option value="">Select an option</option>
-              {q.options?.map((option) => (
-                <option key={option.code} value={option.code}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <select
+                value={isDropdownDisabled ? '' : inputValue}
+                onChange={(e) => onChange(e.target.value, true)}
+                onBlur={onBlur}
+                style={{ flex: 1, padding: 8, borderRadius: 4, border: '1px solid #ddd' }}
+                disabled={isDropdownDisabled}
+              >
+                <option value="">Select an option</option>
+                {q.options?.map((option) => (
+                  <option key={option.code} value={option.code}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              {customInputId && (
+                <input
+                  type="text"
+                  value={customValue}
+                  onChange={handleCustomChange}
+                  onBlur={onBlur} // Assuming onBlur works for custom input too
+                  placeholder={q.custom_text_input.placeholder}
+                  style={{ flex: 1, padding: 8, borderRadius: 4, border: '1px solid #ddd' }}
+                />
+              )}
+            </div>
           );
         } else { // radio
           return (
