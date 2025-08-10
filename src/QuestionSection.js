@@ -51,7 +51,8 @@ const QuestionSection = () => {
   const { 
     sections, calculations,
     answers, setAnswers, scores, setScores, questionStates, setQuestionStates,
-    explanations, setExplanations, loading: contextLoading, labels
+    explanations, setExplanations, loading: contextLoading, labels,
+    highlightUnanswered, setHighlightUnanswered
   } = context || {};
 
   const [depWarnings, setDepWarnings] = useState({});
@@ -229,6 +230,7 @@ const QuestionSection = () => {
   }, [calculations, computeAllStates, evaluateAnswer, explanations, findNextQuestionToReevaluate, questionStates, scores, sections, setExplanations, setQuestionStates, setScores]);
   
   const handleAnswerChange = useCallback((question, answer, submitNow = false) => {
+    setHighlightUnanswered(false); // Reset highlight on any answer change
     console.log('[handleAnswerChange] Fired for:', question.id, 'with value:', answer, 'and submitNow:', submitNow);
     const newAnswers = {...answers, [question.id]: answer};
     setAnswers(newAnswers);
@@ -243,7 +245,7 @@ const QuestionSection = () => {
     if (submitNow) {
       setSubmissionTrigger({ question });
     }
-  }, [answers, depWarnings, getQuestionState, questionStates, scores, setAnswers, setQuestionStates]);
+  }, [answers, depWarnings, getQuestionState, questionStates, scores, setAnswers, setQuestionStates, setHighlightUnanswered]);
 
   const handleAnswerBlur = useCallback((question) => {
     console.log('[handleAnswerBlur] Fired for:', question.id);
@@ -339,13 +341,24 @@ const QuestionSection = () => {
           </h2>
           {section.questions.map((q, qi) => {
             const key = `q-${si}-${qi}`;
+            const isUnanswered = questionStates[q.id] === 'unanswered';
+            const shouldHighlight = isUnanswered && highlightUnanswered;
+
+            const containerStyle = {
+              background: '#fff',
+              padding: '24px',
+              marginBottom: '28px',
+              borderRadius: '12px',
+              border: shouldHighlight ? '2px solid #D32F2F' : (depWarnings[key] ? '2px solid #e74c3c' : '1px solid #e1e8ed'),
+              boxShadow: shouldHighlight ? '0 0 10px rgba(211, 47, 47, 0.2)' : 'none',
+              transition: 'border-color 0.3s, box-shadow 0.3s'
+            };
+
             return (
               <div
                 key={key}
-                style={{
-                  background: '#fff', padding: '24px', marginBottom: '28px',
-                  borderRadius: '12px', border: depWarnings[key] ? '2px solid #e74c3c' : '1px solid #e1e8ed'
-                }}
+                style={containerStyle}
+                className={isUnanswered ? 'question-unanswered' : ''}
               >
                 <div style={{ marginBottom: '16px' }}>
                   <strong style={{ color: '#2c3e50' }}>{q.text}</strong>
@@ -356,6 +369,7 @@ const QuestionSection = () => {
                   onChange={(value, submitNow) => handleAnswerChange(q, value, submitNow)}
                   onBlur={() => handleAnswerBlur(q)}
                   labels={labels} answers={answers} setAnswers={setAnswers}
+                  questionState={questionStates[q.id]}
                 />
                 <div style={{ display: 'flex', alignItems: 'center', marginTop: 16 }}>
                   {evaluating[q.id] ? (

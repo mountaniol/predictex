@@ -50,7 +50,8 @@ const SidebarResults = () => {
     setScores,
     setQuestionStates,
     setExplanations,
-    finalReportRef
+    finalReportRef,
+    setHighlightUnanswered
   } = useContext(AppContext);
   const [clearState, setClearState] = useState(0); // 0: idle, 1: first press, 2: second press
   const [clearTimer, setClearTimer] = useState(null);
@@ -378,11 +379,20 @@ const SidebarResults = () => {
     }
 
     if (!allAnswered) {
+      setHighlightUnanswered(true);
       setButtonFeedback({ text: 'First Answer All Questions', color: 'red' });
+
+      // Scroll to the first unanswered question
+      const firstUnanswered = document.querySelector('.question-unanswered');
+      if (firstUnanswered) {
+        firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
       feedbackTimer.current = setTimeout(() => {
         setButtonFeedback({ text: 'Generate Final Report', color: 'black' });
       }, 5000);
     } else {
+      setHighlightUnanswered(false);
       setButtonFeedback({ text: 'The Report Is Generating...', color: 'blue' });
       feedbackTimer.current = setTimeout(() => {
         // After 5 seconds, it will be controlled by the isGeneratingReport state

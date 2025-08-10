@@ -92,6 +92,7 @@ function App() {
   });
 
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [highlightUnanswered, setHighlightUnanswered] = useState(false);
 
   const topOfContentRef = useRef(null);
   const finalReportRef = useRef(null);
@@ -239,7 +240,9 @@ function App() {
         isGeneratingReport,
         setIsGeneratingReport,
         finalAnalysisConfig,
-        finalReportRef
+        finalReportRef,
+        highlightUnanswered,
+        setHighlightUnanswered
       }}
     >
       <div style={{
