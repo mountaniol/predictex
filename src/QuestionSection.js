@@ -10,7 +10,6 @@
 import React, { useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { AppContext } from './App';
 import AnswerInput from './AnswerInput';
-import MetaQuestionsSection from './MetaQuestionsSection';
 
 const getQuestionDependencies = (question) => {
   return question.ai_context?.include_answers || [];
@@ -50,7 +49,7 @@ const applyCalculations = (base, calcArr) => {
 const QuestionSection = () => {
   const context = useContext(AppContext);
   const { 
-    sections, metaQuestions, calculations,
+    sections, calculations,
     answers, setAnswers, scores, setScores, questionStates, setQuestionStates,
     explanations, setExplanations, loading: contextLoading, labels
   } = context || {};
@@ -64,12 +63,24 @@ const QuestionSection = () => {
   // --- START: UTILITY AND HELPER FUNCTIONS ---
 
   const getQuestionState = useCallback((question, currentAnswers, currentScores, currentStates) => {
-    const hasAnswer = currentAnswers[question.id] && currentAnswers[question.id] !== '';
+    const hasStandardAnswer = currentAnswers[question.id] && currentAnswers[question.id] !== '';
+    const hasCustomAnswer = question.custom_text_input && currentAnswers[question.custom_text_input.id];
+    const hasAnswer = hasStandardAnswer || hasCustomAnswer;
+
     const hasScore = currentScores[question.id] !== undefined;
     const dependencies = getQuestionDependencies(question);
     
     if (!hasAnswer) return 'unanswered';
-    if (dependencies.length === 0) return 'fully_answered';
+    
+    // If score is set to "NO", ignore score requirement
+    if (question.score === "NO") {
+      return 'fully_answered';
+    }
+    
+    if (dependencies.length === 0) {
+      // For questions without dependencies, need both answer and score
+      return hasScore ? 'fully_answered' : 'partially_answered';
+    }
     
     const allDependenciesFullyAnswered = dependencies.every(depId => currentStates[depId] === 'fully_answered');
     if (allDependenciesFullyAnswered && hasScore) return 'fully_answered';
@@ -241,18 +252,6 @@ const QuestionSection = () => {
     }
   }, [answers]);
 
-  const handleMetaChangeAndReevaluateDependents = useCallback((metaQuestionId) => {
-    if (!sections) return;
-    const allQuestions = sections.flatMap(sec => sec.questions);
-    const dependentQuestions = allQuestions.filter(q =>
-      q.ai_context?.include_meta?.includes(metaQuestionId) && answers[q.id]
-    );
-
-    if (dependentQuestions.length > 0) {
-      handleSubmitAndResolveDependencies(null, null, dependentQuestions);
-    }
-  }, [sections, answers, handleSubmitAndResolveDependencies]);
-  
   const runStartupCheck = useCallback(async () => {
     let currentScores = { ...scores };
     let currentStates = computeAllStates(currentScores, questionStates);
@@ -314,11 +313,11 @@ const QuestionSection = () => {
   }, [submissionTrigger, sections, handleSubmitAndResolveDependencies]);
 
   useEffect(() => {
-    if (!contextLoading && sections?.length > 0 && metaQuestions?.length > 0 && !startupCheckHasRun.current) {
+    if (!contextLoading && sections?.length > 0 && !startupCheckHasRun.current) {
       runStartupCheck();
       startupCheckHasRun.current = true;
     }
-  }, [contextLoading, sections, metaQuestions, runStartupCheck]);
+  }, [contextLoading, sections, runStartupCheck]);
 
   // --- END: LIFECYCLE HOOKS ---
 
@@ -333,10 +332,6 @@ const QuestionSection = () => {
 
   return (
     <div>
-      {metaQuestions && metaQuestions.length > 0 && (
-        <MetaQuestionsSection onMetaChange={handleMetaChangeAndReevaluateDependents} />
-      )}
-      
       {sections.map((section, si) => (
         <div key={si} style={{ marginBottom: 32 }}>
           <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '20px', color: '#2c3e50' }}>

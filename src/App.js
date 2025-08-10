@@ -17,7 +17,6 @@ import FinalReport from "./FinalReport";
  * 
  * @context {Object} AppContext - Global application context
  * @context {Array} sections - Grouped questions by cluster/section
- * @context {Array} metaQuestions - Meta questions for basic information
  * @context {string} aiPrompt - System prompt for AI evaluation
  * @context {string} apiKey - API endpoint URL for evaluation
  * @context {Object} labels - UI labels for yes/no options
@@ -67,7 +66,7 @@ function App() {
   
   const initialQuestionSetId = new URLSearchParams(window.location.search).get('q') || 'q4';
   const { 
-    loading, error, questionSetId, sections, metaQuestions, calculations, labels, finalAnalysisConfig
+    loading, error, questionSetId, sections, calculations, labels, finalAnalysisConfig
   } = useLoadQuestions(initialQuestionSetId);
   
   const [answers, setAnswers] = useState(() => {
@@ -86,10 +85,6 @@ function App() {
     const saved = localStorage.getItem(`qna-evaluator-explanations-${initialQuestionSetId}`);
     return saved ? JSON.parse(saved) : {};
   });
-  const [metaSummaries, setMetaSummaries] = useState(() => {
-    const saved = localStorage.getItem(`qna-evaluator-metaSummaries-${initialQuestionSetId}`);
-    return saved ? JSON.parse(saved) : {};
-  });
 
   const [finalReport, setFinalReport] = useState(() => {
     const saved = localStorage.getItem(`qna-evaluator-finalReport-${initialQuestionSetId}`);
@@ -99,6 +94,7 @@ function App() {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
   const topOfContentRef = useRef(null);
+  const finalReportRef = useRef(null);
   const [contentOffset, setContentOffset] = useState(0);
 
   useLayoutEffect(() => {
@@ -108,7 +104,7 @@ function App() {
         setContentOffset(newHeight);
       }
     }
-  }, [loading, metaQuestions, contentOffset]); // Re-measure when loading state or meta questions change
+  }, [loading, contentOffset]); // Re-measure when loading state changes
 
   useEffect(() => {
     if (!questionSetId) return;
@@ -125,9 +121,6 @@ function App() {
       const savedExplanations = localStorage.getItem(`qna-evaluator-explanations-${questionSetId}`);
       if (savedExplanations) setExplanations(JSON.parse(savedExplanations));
 
-      const savedSummaries = localStorage.getItem(`qna-evaluator-metaSummaries-${questionSetId}`);
-      if (savedSummaries) setMetaSummaries(JSON.parse(savedSummaries));
-      
       const savedReport = localStorage.getItem(`qna-evaluator-finalReport-${questionSetId}`);
       if (savedReport) setFinalReport(savedReport);
 
@@ -148,7 +141,7 @@ function App() {
 
   // Log context values
   useEffect(() => {
-  }, [loading, sections, metaQuestions, answers, scores, questionStates, explanations, metaSummaries]);
+  }, [loading, sections, answers, scores, questionStates, explanations]);
 
   // Save data to localStorage whenever it changes
   useEffect(() => {
@@ -192,16 +185,6 @@ function App() {
   }, [explanations, questionSetId]);
 
   useEffect(() => {
-    if (questionSetId) {
-      try {
-        localStorage.setItem(`qna-evaluator-metaSummaries-${questionSetId}`, JSON.stringify(metaSummaries));
-      } catch (error) {
-        console.warn('Failed to save metaSummaries to localStorage:', error);
-      }
-    }
-  }, [metaSummaries, questionSetId]);
-
-  useEffect(() => {
     if (finalReport) {
       localStorage.setItem('finalReport', finalReport);
     } else {
@@ -218,7 +201,6 @@ function App() {
           localStorage.setItem(`qna-evaluator-scores-${questionSetId}`, JSON.stringify(scores));
           localStorage.setItem(`qna-evaluator-questionStates-${questionSetId}`, JSON.stringify(questionStates));
           localStorage.setItem(`qna-evaluator-explanations-${questionSetId}`, JSON.stringify(explanations));
-          localStorage.setItem(`qna-evaluator-metaSummaries-${questionSetId}`, JSON.stringify(metaSummaries));
           if (finalReport) {
             localStorage.setItem('finalReport', finalReport);
           } else {
@@ -232,14 +214,13 @@ function App() {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [answers, scores, questionStates, explanations, metaSummaries, questionSetId, finalReport]);
+  }, [answers, scores, questionStates, explanations, questionSetId, finalReport]);
 
   return (
     <AppContext.Provider
       value={{
         questionSetId,
         sections,
-        metaQuestions,
         loading,
         error,
         calculations,
@@ -252,14 +233,13 @@ function App() {
         setQuestionStates,
         explanations,
         setExplanations,
-        metaSummaries,
-        setMetaSummaries,
         labels,
         finalReport,
         setFinalReport,
         isGeneratingReport,
         setIsGeneratingReport,
-        finalAnalysisConfig
+        finalAnalysisConfig,
+        finalReportRef
       }}
     >
       <div style={{
@@ -299,20 +279,11 @@ function App() {
                 onChange={setCurrentLanguage}
                 translating={loading}
               />
-              {metaQuestions && metaQuestions.length > 0 && (
-                <h2 style={{
-                  fontSize: '24px',
-                  fontWeight: 'bold',
-                  marginTop: '20px',
-                  marginBottom: '20px',
-                  color: '#2c3e50',
-                }}>
-                  Basic Information
-                </h2>
-              )}
             </div>
             <QuestionSection />
-            <FinalReport />
+            <div ref={finalReportRef}>
+              <FinalReport />
+            </div>
           </div>
         </div>
         <Footer />

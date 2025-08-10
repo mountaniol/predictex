@@ -8,15 +8,16 @@
       "role": "buyer"
     }
   },
-  "meta_questions": [
+  "questions": [
     {
       "id": "MET.LOC",
       "text": "Where is the business located (country, state, city)?",
       "hint": "List main operating location(s).",
       "info": "Write the country, state or province if applicable, and the city where the business mainly operates. If there are multiple locations, list them all. Example: USA, North Carolina, Charlotte.",
-      "cluster_name": "Meta",
+      "cluster_name": "Basic Information",
       "position_in_cluster": 1,
       "question_type": "text",
+      "score": "NO",
       "ai_validate_prompt": "Rephrase the following location and confirm your understanding. Start your response with 'As I understand, the business is located in...'. If the input is unclear, ask for clarification. The user's input is: {answer}"
     },
     {
@@ -24,9 +25,10 @@
       "text": "What is the primary industry or activity of the business?",
       "hint": "Describe in simple words what the business does.",
       "info": "Describe in simple words what the business does, such as coffee shop, plumbing services, online clothing store, small factory. If there are several activities, pick the one that brings the most revenue.",
-      "cluster_name": "Meta",
+      "cluster_name": "Basic Information",
       "position_in_cluster": 2,
       "question_type": "text",
+      "score": "NO",
       "ai_validate_prompt": "Summarize the following business activity in 1-3 words and confirm your understanding. Start your response with 'So, the business operates in the...'. If the input is unclear, state that. The user's input is: {answer}"
     },
     {
@@ -34,16 +36,29 @@
       "text": "Approximate annual revenue bracket",
       "hint": "Pick a rough yearly sales range.",
       "info": "Pick the rough yearly sales before expenses. If you do not know the exact number, choose the closest range. Ask the seller for last year sales totals or tax filings if needed.",
-      "cluster_name": "Meta",
+      "cluster_name": "Basic Information",
       "position_in_cluster": 3,
       "question_type": "choice-single",
       "ui": "dropdown",
+      "score": "NO",
       "options_sort": "as_is",
       "options": [
-        { "code": "lt250k", "label": "< $250k" },
-        { "code": "250k_1m", "label": "$250k to $1m" },
-        { "code": "1m_5m", "label": "$1m to $5m" },
-        { "code": "gt5m", "label": ">$5m" }
+        {
+          "code": "lt250k",
+          "label": "< $250k"
+        },
+        {
+          "code": "250k_1m",
+          "label": "$250k to $1m"
+        },
+        {
+          "code": "1m_5m",
+          "label": "$1m to $5m"
+        },
+        {
+          "code": "gt5m",
+          "label": ">$5m"
+        }
       ],
       "custom_text_input": {
         "id": "MET.SIZE_CUSTOM",
@@ -51,21 +66,71 @@
       }
     },
     {
+      "id": "MET.YOU",
+      "text": "Do you have experience in this business?",
+      "hint": "Pick from the list",
+      "info": "Pick the rough years of experience in this business",
+      "cluster_name": "Basic Information",
+      "position_in_cluster": 4,
+      "question_type": "choice-single",
+      "ui": "dropdown",
+      "score": "NO",
+      "options_sort": "as_is",
+      "options": [
+        {
+          "code": "exp_no",
+          "label": "No experience"
+        },
+        {
+          "code": "exp_some",
+          "label": "Some experience but not like an owner"
+        },
+        {
+          "code": "exp_1y",
+          "label": "1 year or less as an owner"
+        },
+        {
+          "code": "exp_3",
+          "label": "1-3 years as an owner"
+        }
+      ],
+      "custom_text_input": {
+        "id": "MET.YOU_CUSTOM",
+        "placeholder": "Or enter here what is your experience"
+      }
+    },
+    {
       "id": "MET.HC",
       "text": "How many people work in the business (FTE including owner)?",
       "hint": "Full-time equivalents (FTE).",
       "info": "Count everyone who works regularly. Two half time workers are about one full time equivalent. Include the owner if they work in the business.",
-      "cluster_name": "Meta",
+      "cluster_name": "Basic Information",
       "position_in_cluster": 4,
       "question_type": "choice-single",
       "ui": "dropdown",
+      "score": "NO",
       "options_sort": "as_is",
       "options": [
-        { "code": "solo", "label": "1 (owner only)" },
-        { "code": "micro_2_5", "label": "2 to 5" },
-        { "code": "small_6_20", "label": "6 to 20" },
-        { "code": "med_21_100", "label": "21 to 100" },
-        { "code": "gt100", "label": ">100" }
+        {
+          "code": "solo",
+          "label": "1 (owner only)"
+        },
+        {
+          "code": "micro_2_5",
+          "label": "2 to 5"
+        },
+        {
+          "code": "small_6_20",
+          "label": "6 to 20"
+        },
+        {
+          "code": "med_21_100",
+          "label": "21 to 100"
+        },
+        {
+          "code": "gt100",
+          "label": ">100"
+        }
       ]
     },
     {
@@ -73,24 +138,35 @@
       "text": "Do you sell to government or state-owned customers?",
       "hint": "Government, public agencies, or SOEs.",
       "info": "Choose Yes if any customer is a government office, public agency, or state owned enterprise. This affects approvals and compliance checks.",
-      "cluster_name": "Meta",
+      "cluster_name": "Basic Information",
       "position_in_cluster": 5,
-      "question_type": "yes-no"
+      "question_type": "yes-no",
+      "score": "NO"
     },
     {
       "id": "MET.DATA",
       "text": "Do you process personal or financial customer data (PII)?",
       "hint": "None, limited, or high sensitivity.",
       "info": "If the business stores names, emails, phone numbers, or health or financial details, choose the level. None means almost no personal data. Limited means basic contacts or payments. High means sensitive data such as health or finance.",
-      "cluster_name": "Meta",
+      "cluster_name": "Basic Information",
       "position_in_cluster": 6,
       "question_type": "choice-single",
       "ui": "dropdown",
+      "score": "NO",
       "options_sort": "as_is",
       "options": [
-        { "code": "none", "label": "None" },
-        { "code": "limited", "label": "Limited" },
-        { "code": "high", "label": "High" }
+        {
+          "code": "none",
+          "label": "None"
+        },
+        {
+          "code": "limited",
+          "label": "Limited"
+        },
+        {
+          "code": "high",
+          "label": "High"
+        }
       ]
     },
     {
@@ -98,12 +174,11 @@
       "text": "Regional corruption and informality context (auto)",
       "hint": "Internal only.",
       "info": "Internal field. The system sets a country or region risk factor from public indices to adjust scoring. You do not need to answer this.",
-      "cluster_name": "Meta",
+      "cluster_name": "Basic Information",
       "position_in_cluster": 7,
-      "question_type": "internal"
-    }
-  ],
-  "questions": [
+      "question_type": "internal",
+      "score": "NO"
+    },
     {
       "id": "SG01",
       "text": "Why are you selling now?",
@@ -119,21 +194,54 @@
       "other_text_id": "SG01_OTHER",
       "options_sort": "as_is",
       "options": [
-        { "code": "retirement_move", "label": "Retirement or move" },
-        { "code": "health", "label": "Health or personal" },
-        { "code": "strategic_refocus", "label": "Strategic refocus" },
-        { "code": "declining_sales", "label": "Declining sales" },
-        { "code": "lawsuits_tax", "label": "Lawsuits or tax issues" },
-        { "code": "urgent_cash", "label": "Urgent cash need" },
-        { "code": "other", "label": "Other" }
+        {
+          "code": "retirement_move",
+          "label": "Retirement or move"
+        },
+        {
+          "code": "health",
+          "label": "Health or personal"
+        },
+        {
+          "code": "strategic_refocus",
+          "label": "Strategic refocus"
+        },
+        {
+          "code": "declining_sales",
+          "label": "Declining sales"
+        },
+        {
+          "code": "lawsuits_tax",
+          "label": "Lawsuits or tax issues"
+        },
+        {
+          "code": "urgent_cash",
+          "label": "Urgent cash need"
+        },
+        {
+          "code": "other",
+          "label": "Other"
+        }
       ],
       "follow_ups": [
         {
-          "when": { "in": ["other"] },
-          "ask": { "id": "SG01_OTHER", "question_type": "text", "ui": "textarea", "placeholder": "Explain", "max_chars": 160 }
+          "when": {
+            "in": [
+              "other"
+            ]
+          },
+          "ask": {
+            "id": "SG01_OTHER",
+            "question_type": "text",
+            "ui": "textarea",
+            "placeholder": "Explain",
+            "max_chars": 160
+          }
         }
       ],
-      "ai_context": { "include_meta": ["MET.LOC","MET.IND","MET.SIZE","MET.HC"], "include_answers": [] },
+      "ai_context": {
+        "include_answers": []
+      },
       "prompt_add": "Score intent of sale. Good: planned retirement/move/strategic refocus. Red: urgent cash need, lawsuits/tax issues, sale due to heavy losses. Penalize contradictions with SG02/SG04. Bands: 0–19 critical; 20–49 high; 50–79 moderate; 80–100 low."
     },
     {
@@ -147,12 +255,28 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "no", "label": "No" },
-        { "code": "inquiries_only", "label": "Only initial inquiries" },
-        { "code": "loi_or_dd", "label": "LOI or due diligence access" },
-        { "code": "deals_withdrawn", "label": "Deals withdrawn" }
+        {
+          "code": "no",
+          "label": "No"
+        },
+        {
+          "code": "inquiries_only",
+          "label": "Only initial inquiries"
+        },
+        {
+          "code": "loi_or_dd",
+          "label": "LOI or due diligence access"
+        },
+        {
+          "code": "deals_withdrawn",
+          "label": "Deals withdrawn"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG01"] },
+      "ai_context": {
+        "include_answers": [
+          "SG01"
+        ]
+      },
       "prompt_add": "Good: fresh listing or LOI/DD activity with credible reasons. Red: long time on market without serious interest or multiple withdrawn deals without clear cause. Cross-check SG01 (motive) and SG04 (trend)."
     },
     {
@@ -166,12 +290,26 @@
       "ui": "dropdown",
       "options_sort": "as_is",
       "options": [
-        { "code": "age_lt2", "label": "Under 2 years" },
-        { "code": "age_2_5", "label": "2–5 years" },
-        { "code": "age_5_20", "label": "5–20 years" },
-        { "code": "age_gt20", "label": "Over 20 years" }
+        {
+          "code": "age_lt2",
+          "label": "Under 2 years"
+        },
+        {
+          "code": "age_2_5",
+          "label": "2–5 years"
+        },
+        {
+          "code": "age_5_20",
+          "label": "5–20 years"
+        },
+        {
+          "code": "age_gt20",
+          "label": "Over 20 years"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": [] },
+      "ai_context": {
+        "include_answers": []
+      },
       "prompt_add": "Good: 5–20 years with consistent ops. Red: <2 years (unproven) unless strong backlog/margins. Adjust tolerance by MET.IND."
     },
     {
@@ -185,12 +323,26 @@
       "ui": "dropdown",
       "options_sort": "as_is",
       "options": [
-        { "code": "rm_lt1", "label": "Under 1 year" },
-        { "code": "rm_1_3", "label": "1–3 years" },
-        { "code": "rm_3_7", "label": "3–7 years" },
-        { "code": "rm_gt7", "label": "Over 7 years" }
+        {
+          "code": "rm_lt1",
+          "label": "Under 1 year"
+        },
+        {
+          "code": "rm_1_3",
+          "label": "1–3 years"
+        },
+        {
+          "code": "rm_3_7",
+          "label": "3–7 years"
+        },
+        {
+          "code": "rm_gt7",
+          "label": "Over 7 years"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": [] },
+      "ai_context": {
+        "include_answers": []
+      },
       "prompt_add": "Good: model 3–7y+. Red: <1y without strong backlog or margins; penalize volatility per SG04/SG05."
     },
     {
@@ -204,17 +356,41 @@
       "ui": "dropdown",
       "options_sort": "as_is",
       "options": [
-        { "code": "up", "label": "Up" },
-        { "code": "flat", "label": "About flat" },
-        { "code": "down_20plus", "label": "Down 20% or more" }
+        {
+          "code": "up",
+          "label": "Up"
+        },
+        {
+          "code": "flat",
+          "label": "About flat"
+        },
+        {
+          "code": "down_20plus",
+          "label": "Down 20% or more"
+        }
       ],
       "follow_ups": [
         {
-          "when": { "in": ["down_20plus"] },
-          "ask": { "id": "SG04_REASON", "question_type": "text", "ui": "textarea", "placeholder": "Main reason for decline", "max_chars": 140 }
+          "when": {
+            "in": [
+              "down_20plus"
+            ]
+          },
+          "ask": {
+            "id": "SG04_REASON",
+            "question_type": "text",
+            "ui": "textarea",
+            "placeholder": "Main reason for decline",
+            "max_chars": 140
+          }
         }
       ],
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG03A","SG03B"] },
+      "ai_context": {
+        "include_answers": [
+          "SG03A",
+          "SG03B"
+        ]
+      },
       "prompt_add": "Good: up/flat with plausible context. Red: down ≥20% without credible reason or conflicting with SG05/SG12/SG13. Weigh industry cyclicality (MET.IND)."
     },
     {
@@ -227,11 +403,25 @@
       "question_type": "yes-no",
       "follow_ups": [
         {
-          "when": { "in": ["yes"] },
-          "ask": { "id": "SG05_NOTE", "question_type": "text", "ui": "textarea", "placeholder": "Brief reason (seasonality/shock)", "max_chars": 120 }
+          "when": {
+            "in": [
+              "yes"
+            ]
+          },
+          "ask": {
+            "id": "SG05_NOTE",
+            "question_type": "text",
+            "ui": "textarea",
+            "placeholder": "Brief reason (seasonality/shock)",
+            "max_chars": 120
+          }
         }
       ],
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG04"] },
+      "ai_context": {
+        "include_answers": [
+          "SG04"
+        ]
+      },
       "prompt_add": "Good: no large dips or dips explained by seasonality. Red: unexplained dips conflicting with SG04 trend."
     },
     {
@@ -242,7 +432,11 @@
       "cluster_name": "Financial & Legal Situation",
       "position_in_cluster": 3,
       "question_type": "yes-no",
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG04"] },
+      "ai_context": {
+        "include_answers": [
+          "SG04"
+        ]
+      },
       "prompt_add": "Good: no exceptional WC strain or well-planned financing. Red: heavy seasonal WC strain without plan; weigh with SG23 (inventory) and SG04."
     },
     {
@@ -256,11 +450,22 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "lt20", "label": "Below 20%" },
-        { "code": "20_40", "label": "20–40%" },
-        { "code": "gt40", "label": "Above 40%" }
+        {
+          "code": "lt20",
+          "label": "Below 20%"
+        },
+        {
+          "code": "20_40",
+          "label": "20–40%"
+        },
+        {
+          "code": "gt40",
+          "label": "Above 40%"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": [] },
+      "ai_context": {
+        "include_answers": []
+      },
       "prompt_add": "Good: 20–40%+ stable. Red: <20% with discounting (SG08) or price pressure. Consider MET.IND norms."
     },
     {
@@ -274,10 +479,21 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "frequent_deep", "label": "Yes, frequent/deep" },
-        { "code": "rare_or_no", "label": "Rarely or no" }
+        {
+          "code": "frequent_deep",
+          "label": "Yes, frequent/deep"
+        },
+        {
+          "code": "rare_or_no",
+          "label": "Rarely or no"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG07","SG04"] },
+      "ai_context": {
+        "include_answers": [
+          "SG07",
+          "SG04"
+        ]
+      },
       "prompt_add": "Good: rare/no discounting with healthy margins (SG07). Red: frequent deep discounting, esp. if margins low or revenue flat/down."
     },
     {
@@ -291,11 +507,22 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "lt20", "label": "Below 20%" },
-        { "code": "20_35", "label": "20–35%" },
-        { "code": "gt35", "label": "Above 35%" }
+        {
+          "code": "lt20",
+          "label": "Below 20%"
+        },
+        {
+          "code": "20_35",
+          "label": "20–35%"
+        },
+        {
+          "code": "gt35",
+          "label": "Above 35%"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.IND","MET.SIZE"], "include_answers": [] },
+      "ai_context": {
+        "include_answers": []
+      },
       "prompt_add": "Good: <20% for most sizes; tolerate higher for micro (MET.SIZE). Red: >35% with weak transferability (SG11) or no seller support (SG32)."
     },
     {
@@ -309,11 +536,24 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "lt40", "label": "Below 40%" },
-        { "code": "40_60", "label": "40–60%" },
-        { "code": "gt60", "label": "Above 60%" }
+        {
+          "code": "lt40",
+          "label": "Below 40%"
+        },
+        {
+          "code": "40_60",
+          "label": "40–60%"
+        },
+        {
+          "code": "gt60",
+          "label": "Above 60%"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.IND","MET.SIZE"], "include_answers": ["SG09"] },
+      "ai_context": {
+        "include_answers": [
+          "SG09"
+        ]
+      },
       "prompt_add": "Good: diversified <40–60% depending on size. Red: >60% with weak contracts (SG11)."
     },
     {
@@ -327,12 +567,29 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "all_transferable", "label": "All transferable" },
-        { "code": "some_not", "label": "Some not transferable" },
-        { "code": "none", "label": "No / mostly not" },
-        { "code": "unknown", "label": "I'm not sure" }
+        {
+          "code": "all_transferable",
+          "label": "All transferable"
+        },
+        {
+          "code": "some_not",
+          "label": "Some not transferable"
+        },
+        {
+          "code": "none",
+          "label": "No / mostly not"
+        },
+        {
+          "code": "unknown",
+          "label": "I'm not sure"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG09","SG10"] },
+      "ai_context": {
+        "include_answers": [
+          "SG09",
+          "SG10"
+        ]
+      },
       "prompt_add": "Good: all transferable. Red: non-transferable or unknown without protections (SG33) and high concentration (SG09/SG10)."
     },
     {
@@ -346,10 +603,20 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "backlog_ge_3m", "label": "Yes, ≥3 months" },
-        { "code": "backlog_lt_3m", "label": "No / <3 months" }
+        {
+          "code": "backlog_ge_3m",
+          "label": "Yes, ≥3 months"
+        },
+        {
+          "code": "backlog_lt_3m",
+          "label": "No / <3 months"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG04"] },
+      "ai_context": {
+        "include_answers": [
+          "SG04"
+        ]
+      },
       "prompt_add": "Good: ≥3 months coverage. Red: <3 months, esp. with revenue down (SG04) or recent churn (SG12)."
     },
     {
@@ -362,11 +629,26 @@
       "question_type": "yes-no",
       "follow_ups": [
         {
-          "when": { "in": ["yes"] },
-          "ask": { "id": "SG12_REASON", "question_type": "text", "ui": "textarea", "placeholder": "Brief reason", "max_chars": 120 }
+          "when": {
+            "in": [
+              "yes"
+            ]
+          },
+          "ask": {
+            "id": "SG12_REASON",
+            "question_type": "text",
+            "ui": "textarea",
+            "placeholder": "Brief reason",
+            "max_chars": 120
+          }
         }
       ],
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG04","SG13"] },
+      "ai_context": {
+        "include_answers": [
+          "SG04",
+          "SG13"
+        ]
+      },
       "prompt_add": "Good: no material churn or replaced quickly. Red: >10% churn conflicting with SG04 up/flat or SG13 ≥3m."
     },
     {
@@ -380,12 +662,26 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "no_concentration", "label": "No, diversified" },
-        { "code": "concentrated_with_alt", "label": "Yes, but equal alternative" },
-        { "code": "concentrated_no_alt", "label": "Yes, no equal alternative" },
-        { "code": "unknown", "label": "I'm not sure" }
+        {
+          "code": "no_concentration",
+          "label": "No, diversified"
+        },
+        {
+          "code": "concentrated_with_alt",
+          "label": "Yes, but equal alternative"
+        },
+        {
+          "code": "concentrated_no_alt",
+          "label": "Yes, no equal alternative"
+        },
+        {
+          "code": "unknown",
+          "label": "I'm not sure"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": [] },
+      "ai_context": {
+        "include_answers": []
+      },
       "prompt_add": "Good: diversified or viable alternative. Red: concentrated with no alternative; penalize unknown if inventory issues exist (SG23)."
     },
     {
@@ -399,11 +695,25 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "aging", "label": "Aging >90 days" },
-        { "code": "stockouts", "label": "Frequent stockouts" },
-        { "code": "balanced", "label": "Neither is common" }
+        {
+          "code": "aging",
+          "label": "Aging >90 days"
+        },
+        {
+          "code": "stockouts",
+          "label": "Frequent stockouts"
+        },
+        {
+          "code": "balanced",
+          "label": "Neither is common"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG22","SG06"] },
+      "ai_context": {
+        "include_answers": [
+          "SG22",
+          "SG06"
+        ]
+      },
       "prompt_add": "Good: balanced/controlled. Red: chronic aging or stockouts; weigh with supplier concentration (SG22) and seasonality (SG06)."
     },
     {
@@ -417,11 +727,22 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "all_transfer", "label": "Yes, all transfer" },
-        { "code": "some_issues", "label": "Some not owned/transferable" },
-        { "code": "major_issues", "label": "Major issues" }
+        {
+          "code": "all_transfer",
+          "label": "Yes, all transfer"
+        },
+        {
+          "code": "some_issues",
+          "label": "Some not owned/transferable"
+        },
+        {
+          "code": "major_issues",
+          "label": "Major issues"
+        }
       ],
-      "ai_context": { "include_meta": [], "include_answers": [] },
+      "ai_context": {
+        "include_answers": []
+      },
       "prompt_add": "Good: all transfer. Red: major gaps; penalize mismatch if SG29 claims documentation but assets not transferable."
     },
     {
@@ -435,11 +756,24 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "all_documented", "label": "All documented and transferable" },
-        { "code": "partially", "label": "Partially documented" },
-        { "code": "not_documented", "label": "Not documented" }
+        {
+          "code": "all_documented",
+          "label": "All documented and transferable"
+        },
+        {
+          "code": "partially",
+          "label": "Partially documented"
+        },
+        {
+          "code": "not_documented",
+          "label": "Not documented"
+        }
       ],
-      "ai_context": { "include_meta": [], "include_answers": ["SG35"] },
+      "ai_context": {
+        "include_answers": [
+          "SG35"
+        ]
+      },
       "prompt_add": "Good: all documented & transferable. Red: not documented; penalize if digital assets also problematic (SG35)."
     },
     {
@@ -453,11 +787,22 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "service_full", "label": "Yes, full coverage" },
-        { "code": "service_partial", "label": "Partial / informal" },
-        { "code": "service_none", "label": "None" }
+        {
+          "code": "service_full",
+          "label": "Yes, full coverage"
+        },
+        {
+          "code": "service_partial",
+          "label": "Partial / informal"
+        },
+        {
+          "code": "service_none",
+          "label": "None"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": [] },
+      "ai_context": {
+        "include_answers": []
+      },
       "prompt_add": "Good: full coverage, low downtime. Red: none plus downtime (SG25) and encumbrances (SG18)."
     },
     {
@@ -470,11 +815,25 @@
       "question_type": "yes-no",
       "follow_ups": [
         {
-          "when": { "in": ["yes"] },
-          "ask": { "id": "SG25_REASON", "question_type": "text", "ui": "textarea", "placeholder": "Brief reason / fix", "max_chars": 120 }
+          "when": {
+            "in": [
+              "yes"
+            ]
+          },
+          "ask": {
+            "id": "SG25_REASON",
+            "question_type": "text",
+            "ui": "textarea",
+            "placeholder": "Brief reason / fix",
+            "max_chars": 120
+          }
         }
       ],
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG24"] },
+      "ai_context": {
+        "include_answers": [
+          "SG24"
+        ]
+      },
       "prompt_add": "Good: no outages or well-managed rare incident. Red: repeated or long outages with poor service cover (SG24)."
     },
     {
@@ -488,10 +847,21 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "none", "label": "No" },
-        { "code": "some", "label": "Yes (some)" }
+        {
+          "code": "none",
+          "label": "No"
+        },
+        {
+          "code": "some",
+          "label": "Yes (some)"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG24","SG25"] },
+      "ai_context": {
+        "include_answers": [
+          "SG24",
+          "SG25"
+        ]
+      },
       "prompt_add": "Good: no encumbrances or clear payoff plan. Red: encumbered critical assets plus downtime (SG25) or no service (SG24)."
     },
     {
@@ -505,11 +875,22 @@
       "ui": "dropdown",
       "options_sort": "as_is",
       "options": [
-        { "code": "owned", "label": "Owned" },
-        { "code": "lease_ge_2y", "label": "Leased, ≥2 years left" },
-        { "code": "lease_lt_2y", "label": "Leased, <2 years left" }
+        {
+          "code": "owned",
+          "label": "Owned"
+        },
+        {
+          "code": "lease_ge_2y",
+          "label": "Leased, ≥2 years left"
+        },
+        {
+          "code": "lease_lt_2y",
+          "label": "Leased, <2 years left"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.LOC"], "include_answers": [] },
+      "ai_context": {
+        "include_answers": []
+      },
       "prompt_add": "Good: owned or ≥2y lease. Red: <2y and weak landlord stance (SG20), esp. with backlog exposure (SG13)."
     },
     {
@@ -523,12 +904,28 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "transfer_ok", "label": "Yes, transferable" },
-        { "code": "transfer_partial", "label": "Maybe / conditional" },
-        { "code": "transfer_no", "label": "No" },
-        { "code": "unknown", "label": "I'm not sure" }
+        {
+          "code": "transfer_ok",
+          "label": "Yes, transferable"
+        },
+        {
+          "code": "transfer_partial",
+          "label": "Maybe / conditional"
+        },
+        {
+          "code": "transfer_no",
+          "label": "No"
+        },
+        {
+          "code": "unknown",
+          "label": "I'm not sure"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.LOC"], "include_answers": ["SG19"] },
+      "ai_context": {
+        "include_answers": [
+          "SG19"
+        ]
+      },
       "prompt_add": "Good: transferable with consent. Red: no/unknown without protections (SG33) or pilot (SG34)."
     },
     {
@@ -542,12 +939,26 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "all_ok", "label": "All valid and transferable" },
-        { "code": "some_issues", "label": "Some not transferable or expiring" },
-        { "code": "major_issues", "label": "Major issues / not transferable" },
-        { "code": "unknown", "label": "I'm not sure" }
+        {
+          "code": "all_ok",
+          "label": "All valid and transferable"
+        },
+        {
+          "code": "some_issues",
+          "label": "Some not transferable or expiring"
+        },
+        {
+          "code": "major_issues",
+          "label": "Major issues / not transferable"
+        },
+        {
+          "code": "unknown",
+          "label": "I'm not sure"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.LOC","MET.IND"], "include_answers": [] },
+      "ai_context": {
+        "include_answers": []
+      },
       "prompt_add": "Good: all valid & transferable. Red: major issues or unknown without protections (SG33/SG34)."
     },
     {
@@ -561,11 +972,26 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "yes", "label": "Yes" },
-        { "code": "maybe", "label": "Maybe / depends" },
-        { "code": "no", "label": "No" }
+        {
+          "code": "yes",
+          "label": "Yes"
+        },
+        {
+          "code": "maybe",
+          "label": "Maybe / depends"
+        },
+        {
+          "code": "no",
+          "label": "No"
+        }
       ],
-      "ai_context": { "include_meta": [], "include_answers": ["SG11","SG20","SG21"] },
+      "ai_context": {
+        "include_answers": [
+          "SG11",
+          "SG20",
+          "SG21"
+        ]
+      },
       "prompt_add": "Good: escrow/conditional/reversal accepted. Red: refuses protections while transfer risks exist (SG11/SG20/SG21)."
     },
     {
@@ -579,11 +1005,25 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "yes", "label": "Yes" },
-        { "code": "maybe", "label": "Maybe / discuss" },
-        { "code": "no", "label": "No" }
+        {
+          "code": "yes",
+          "label": "Yes"
+        },
+        {
+          "code": "maybe",
+          "label": "Maybe / discuss"
+        },
+        {
+          "code": "no",
+          "label": "No"
+        }
       ],
-      "ai_context": { "include_meta": [], "include_answers": ["SG20","SG21"] },
+      "ai_context": {
+        "include_answers": [
+          "SG20",
+          "SG21"
+        ]
+      },
       "prompt_add": "Good: pilot allowed. Red: refuses pilot where transfer/licensing risk exists (SG20/SG21)."
     },
     {
@@ -597,11 +1037,22 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "lt30", "label": "Below 30 days" },
-        { "code": "30_45", "label": "30–45 days" },
-        { "code": "gt45", "label": "Above 45 days" }
+        {
+          "code": "lt30",
+          "label": "Below 30 days"
+        },
+        {
+          "code": "30_45",
+          "label": "30–45 days"
+        },
+        {
+          "code": "gt45",
+          "label": "Above 45 days"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": [] },
+      "ai_context": {
+        "include_answers": []
+      },
       "prompt_add": "Good: DSO aligned with industry norms; <45 days for most SMB B2B. Red: >45 without explanation or with low write-offs (SG15) inconsistency."
     },
     {
@@ -612,7 +1063,11 @@
       "cluster_name": "Financial & Legal Situation",
       "position_in_cluster": 6,
       "question_type": "yes-no",
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG14"] },
+      "ai_context": {
+        "include_answers": [
+          "SG14"
+        ]
+      },
       "prompt_add": "Good: ≤1% write-offs with reasonable DSO. Red: high write-offs and long DSO; check mismatch if DSO long but write-offs claimed low. Also, try to search information regarding this type of business in the given place, and condinsider it in your scoring. In your answer expand explanation, explain what is normal for this type of business in this area."
     },
     {
@@ -623,7 +1078,11 @@
       "cluster_name": "Financial & Legal Situation",
       "position_in_cluster": 7,
       "question_type": "yes-no",
-      "ai_context": { "include_meta": ["MET.LOC"], "include_answers": ["SG04"] },
+      "ai_context": {
+        "include_answers": [
+          "SG04"
+        ]
+      },
       "prompt_add": "Good: no arrears. Red: current arrears or installment plans; amplify if revenue is down (SG04)."
     },
     {
@@ -634,7 +1093,12 @@
       "cluster_name": "Operational Readiness",
       "position_in_cluster": 1,
       "question_type": "yes-no",
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG16","SG04"] },
+      "ai_context": {
+        "include_answers": [
+          "SG16",
+          "SG04"
+        ]
+      },
       "prompt_add": "Good: no delays. Red: delays, especially with revenue down (SG04) or tax arrears (SG16)."
     },
     {
@@ -648,11 +1112,25 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "none", "label": "None" },
-        { "code": "past_closed", "label": "Past, closed" },
-        { "code": "open_now", "label": "Open now" }
+        {
+          "code": "none",
+          "label": "None"
+        },
+        {
+          "code": "past_closed",
+          "label": "Past, closed"
+        },
+        {
+          "code": "open_now",
+          "label": "Open now"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.LOC","MET.IND"], "include_answers": ["SG04","SG13"] },
+      "ai_context": {
+        "include_answers": [
+          "SG04",
+          "SG13"
+        ]
+      },
       "prompt_add": "Good: none or closed minor items. Red: open cases; penalize if inconsistent with claimed stability (SG04 up/flat and SG13 ≥3m)."
     },
     {
@@ -666,11 +1144,24 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "coverage_and_no_claims", "label": "Coverage, no claims" },
-        { "code": "coverage_with_claims", "label": "Coverage with claims" },
-        { "code": "no_coverage", "label": "No coverage" }
+        {
+          "code": "coverage_and_no_claims",
+          "label": "Coverage, no claims"
+        },
+        {
+          "code": "coverage_with_claims",
+          "label": "Coverage with claims"
+        },
+        {
+          "code": "no_coverage",
+          "label": "No coverage"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.IND"], "include_answers": ["SG30"] },
+      "ai_context": {
+        "include_answers": [
+          "SG30"
+        ]
+      },
       "prompt_add": "Good: coverage in place; occasional claims ok. Red: no coverage or many claims linked to open issues (SG30)."
     },
     {
@@ -684,11 +1175,25 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "none", "label": "None" },
-        { "code": "past_closed", "label": "Past, closed" },
-        { "code": "open_now", "label": "Open now" }
+        {
+          "code": "none",
+          "label": "None"
+        },
+        {
+          "code": "past_closed",
+          "label": "Past, closed"
+        },
+        {
+          "code": "open_now",
+          "label": "Open now"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.LOC","MET.IND"], "include_answers": ["SG21","SG30"] },
+      "ai_context": {
+        "include_answers": [
+          "SG21",
+          "SG30"
+        ]
+      },
       "prompt_add": "Good: none or closed. Red: open violations, especially if licenses are problematic (SG21)."
     },
     {
@@ -702,11 +1207,22 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "lt10h", "label": "<10 h/week" },
-        { "code": "10_30h", "label": "10–30 h/week" },
-        { "code": "gt30h", "label": ">30 h/week" }
+        {
+          "code": "lt10h",
+          "label": "<10 h/week"
+        },
+        {
+          "code": "10_30h",
+          "label": "10–30 h/week"
+        },
+        {
+          "code": "gt30h",
+          "label": ">30 h/week"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.HC"], "include_answers": [] },
+      "ai_context": {
+        "include_answers": []
+      },
       "prompt_add": "Good: ≤10–30h with delegation (SG27) and survivability (SG28). Red: >30h plus many owner-only tasks."
     },
     {
@@ -720,11 +1236,24 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "none", "label": "None / fully delegated" },
-        { "code": "some", "label": "Some tasks owner-only" },
-        { "code": "many", "label": "Many tasks owner-only" }
+        {
+          "code": "none",
+          "label": "None / fully delegated"
+        },
+        {
+          "code": "some",
+          "label": "Some tasks owner-only"
+        },
+        {
+          "code": "many",
+          "label": "Many tasks owner-only"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.HC"], "include_answers": ["SG26"] },
+      "ai_context": {
+        "include_answers": [
+          "SG26"
+        ]
+      },
       "prompt_add": "Good: none/some with cover. Red: many owner-only tasks, esp. if SG26 is high hours."
     },
     {
@@ -735,7 +1264,12 @@
       "cluster_name": "Owner Dependency & Exit Risks",
       "position_in_cluster": 3,
       "question_type": "yes-no",
-      "ai_context": { "include_meta": ["MET.HC"], "include_answers": ["SG26","SG27"] },
+      "ai_context": {
+        "include_answers": [
+          "SG26",
+          "SG27"
+        ]
+      },
       "prompt_add": "Good: yes, with processes and team , score 100. Red: no, esp. with many owner-only tasks and high hours, score from 0 to 40"
     },
     {
@@ -749,11 +1283,26 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "yes_strong", "label": "Yes, structured commitment" },
-        { "code": "limited", "label": "Limited help" },
-        { "code": "no", "label": "No" }
+        {
+          "code": "yes_strong",
+          "label": "Yes, structured commitment"
+        },
+        {
+          "code": "limited",
+          "label": "Limited help"
+        },
+        {
+          "code": "no",
+          "label": "No"
+        }
       ],
-      "ai_context": { "include_meta": [], "include_answers": ["SG28","SG09","SG10"] },
+      "ai_context": {
+        "include_answers": [
+          "SG28",
+          "SG09",
+          "SG10"
+        ]
+      },
       "prompt_add": "Good: structured support & intros, esp. with client concentration (SG09/SG10). Red: no support while owner-dependency is high."
     }
   ],
@@ -769,13 +1318,33 @@
       "ui": "dropdown",
       "options_sort": "as_is",
       "options": [
-        { "code": "no", "label": "No" },
-        { "code": "agents_only", "label": "Agents/intermediaries" },
-        { "code": "public_only", "label": "Government/state-owned" },
-        { "code": "both", "label": "Both" },
-        { "code": "unknown", "label": "I'm not sure" }
+        {
+          "code": "no",
+          "label": "No"
+        },
+        {
+          "code": "agents_only",
+          "label": "Agents/intermediaries"
+        },
+        {
+          "code": "public_only",
+          "label": "Government/state-owned"
+        },
+        {
+          "code": "both",
+          "label": "Both"
+        },
+        {
+          "code": "unknown",
+          "label": "I'm not sure"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.LOC","MET.IND","MET.PUBLIC","MET.RISKCTX"], "include_answers": ["SG09","SG10"] },
+      "ai_context": {
+        "include_answers": [
+          "SG09",
+          "SG10"
+        ]
+      },
       "prompt_add": "Higher inherent risk with agents/public sales; weigh need for ABC controls (SGA02/SGA03) and deal protections (SG33). Scale by MET.RISKCTX."
     },
     {
@@ -789,12 +1358,26 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "both", "label": "Both are in place" },
-        { "code": "policy_only", "label": "Policy only" },
-        { "code": "none", "label": "None" },
-        { "code": "unknown", "label": "I'm not sure" }
+        {
+          "code": "both",
+          "label": "Both are in place"
+        },
+        {
+          "code": "policy_only",
+          "label": "Policy only"
+        },
+        {
+          "code": "none",
+          "label": "None"
+        },
+        {
+          "code": "unknown",
+          "label": "I'm not sure"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.RISKCTX"], "include_answers": [] },
+      "ai_context": {
+        "include_answers": []
+      },
       "prompt_add": "Good: both present. Red: none/unknown in higher-risk context (MET.RISKCTX)."
     },
     {
@@ -808,11 +1391,24 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "yes_high", "label": "Yes, >10%" },
-        { "code": "no", "label": "No" },
-        { "code": "unknown", "label": "I'm not sure" }
+        {
+          "code": "yes_high",
+          "label": "Yes, >10%"
+        },
+        {
+          "code": "no",
+          "label": "No"
+        },
+        {
+          "code": "unknown",
+          "label": "I'm not sure"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.RISKCTX"], "include_answers": ["SGA01"] },
+      "ai_context": {
+        "include_answers": [
+          "SGA01"
+        ]
+      },
       "prompt_add": "Good: normal commissions. Red: >10% without justification; scale by MET.RISKCTX."
     },
     {
@@ -826,12 +1422,26 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "often", "label": "Often" },
-        { "code": "rare", "label": "Rare" },
-        { "code": "no", "label": "No" },
-        { "code": "unknown", "label": "I'm not sure" }
+        {
+          "code": "often",
+          "label": "Often"
+        },
+        {
+          "code": "rare",
+          "label": "Rare"
+        },
+        {
+          "code": "no",
+          "label": "No"
+        },
+        {
+          "code": "unknown",
+          "label": "I'm not sure"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.LOC","MET.RISKCTX"], "include_answers": [] },
+      "ai_context": {
+        "include_answers": []
+      },
       "prompt_add": "Good: none/rare. Red: often, esp. alongside license issues (SG21) or supplier choke points (SG22); scale by MET.RISKCTX."
     },
     {
@@ -845,12 +1455,29 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "open_now", "label": "Open now" },
-        { "code": "past_closed", "label": "Past, closed" },
-        { "code": "none", "label": "None" },
-        { "code": "unknown", "label": "I'm not sure" }
+        {
+          "code": "open_now",
+          "label": "Open now"
+        },
+        {
+          "code": "past_closed",
+          "label": "Past, closed"
+        },
+        {
+          "code": "none",
+          "label": "None"
+        },
+        {
+          "code": "unknown",
+          "label": "I'm not sure"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.LOC","MET.RISKCTX"], "include_answers": ["SG30","SG31"] },
+      "ai_context": {
+        "include_answers": [
+          "SG30",
+          "SG31"
+        ]
+      },
       "prompt_add": "Good: none or past closed with remediation. Red: open now; scale by MET.RISKCTX."
     },
     {
@@ -864,19 +1491,210 @@
       "ui": "radio",
       "options_sort": "as_is",
       "options": [
-        { "code": "risk_based", "label": "Yes, risk-based" },
-        { "code": "ad_hoc", "label": "Ad-hoc" },
-        { "code": "no", "label": "No" },
-        { "code": "unknown", "label": "I'm not sure" }
+        {
+          "code": "risk_based",
+          "label": "Yes, risk-based"
+        },
+        {
+          "code": "ad_hoc",
+          "label": "Ad-hoc"
+        },
+        {
+          "code": "no",
+          "label": "No"
+        },
+        {
+          "code": "unknown",
+          "label": "I'm not sure"
+        }
       ],
-      "ai_context": { "include_meta": ["MET.RISKCTX"], "include_answers": ["SG22"] },
+      "ai_context": {
+        "include_answers": [
+          "SG22"
+        ]
+      },
       "prompt_add": "Good: risk-based checks. Red: no/unknown with concentrated suppliers (SG22); scale by MET.RISKCTX."
     }
   ],
   "final_analysis_config": {
     "loading_message": "Analyzing... This may take a few minutes.",
-    "prompt_templates": [
-      "You are a skeptical buy-side M&A analyst and business valuator. Your stance is conservative and risk-first. Verify claims with recent, reputable sources; when browsing is unavailable, state it and use clearly labeled conservative assumptions. To manage time and cost, limit any web research to a maximum of 3-5 targeted searches per section. Never reveal chain-of-thought; present conclusions and evidence only. Penalize missing or contradictory data in favor of the buyer.\n\nInputs (verbatim):\\nMeta:\\n{meta_text}\\n\\nQuestionnaire Answers & Scores:\\n{answers_text}\\n\\nCalculated Section Scores:\\n{calculations_text}\\n\\nReturn a single valid JSON object: {\"report\":\"<Markdown>\"} — no extra keys, no backticks.\n\nREPORT STRUCTURE (Markdown inside the JSON string):\n\n# Final Analysis Report\n\n## Executive Summary\n- One short paragraph summarizing the situation and a clear, buyer-first recommendation outcome (no prices here).\n- State whether browsing was available. If not, state \"Browsing unavailable — using conservative assumptions.\"\n\n## Deal-Breakers Checklist\nFor each item mark as: PASS / REVIEW / FAIL, with one-line justification and a source if applicable.\n- Negative or unverified cash flow\n- No current insurance coverage\n- Heavy owner dependency without a binding transition plan\n- Missing last 24–36 months financials (PL/BS/Cash Flow) or POS/merchant statements\n- Critical licenses/permits at risk or non-transferable\n- Material legal/tax liabilities, liens, or undisclosed debts\n- Single-point-of-failure suppliers/customers (>30% revenue)\nRule: If any item remains FAIL, the Final Recommendation must be \"Do not proceed.\"\n\n## Strengths\nBullet points tied strictly to evidence from the inputs or sources (cite each nontrivial claim).\n\n## Weaknesses & Risks\nBullet points with explicit buyer-side implications and mitigation difficulty (Low/Medium/High). Cite where relevant.\n\n## Valuation Analysis (Evidence-Backed)\n1) Comparable Set and Filters: describe filters (country/region, industry code, size/revenue band, business model).\n2) Comps Table (summary): a small table with columns: Source | Location | Size | Multiple Type (Revenue/EBITDA/SDE) | Multiple | URL. Exclude outliers; if few comps are found, say so.\n3) Multiple Selection: justify chosen multiple(s) with citations. If only industry ranges are found, use the lower quartile by default.\n4) Scenario Range: provide a conservative valuation range with Base and Downside scenarios. Show simple math and assumptions (currency, normalization, add-backs).\n5) Sensitivity Note: one paragraph on how valuation changes if margin or growth is overstated by 10–20 percent.\n\nIf web sources are insufficient: state \"Insufficient comparable data\" and fall back to conservative industry references (with sources) or SDE-based rules-of-thumb, clearly labeled.\n\n## Negotiation and Deal Structure (Buyer-Protective)\n- Price Guardrails: recommend percentage discount bands tied to named risks (map each risk to a discount rationale).\n- Structure: propose specific buyer protections — holdback (percent and months), escrow, earn-out conditions and KPIs, representations and warranties, working-capital peg, transition services agreement duration and hours, non-compete specifics.\n- Pre-Closing Conditions: list must-fix items (insurance in force, tax clearances, license transfer approvals, key-staff retention letters).\n\n## Verification and Evidence Summary\n- Key Sources (with URLs): bullet list, prefer last 24 months.\n- Quality of Evidence: High / Medium / Low, with 1–2 lines explaining why.\n- Unknowns and Assumptions Register: bullet list of what could swing the deal and what data is missing.\n\n## Final Recommendation\nA single clear sentence with the decision (no numbers).\n- If any Deal-Breaker is FAIL and unresolved, OR {overall_score} < 60 (or equivalent from {calculations_text}), the recommendation must be \"Do not proceed.\"\n- If proceed conditionally, say \"Proceed only with protections and successful remediation of listed pre-closing conditions.\"\n- Otherwise, \"Proceed.\"\n\nFORMATTING RULES\n- Keep claims falsifiable; avoid generic statements without evidence.\n- Every valuation input or market benchmark must have a citation with a working URL.\n- If a user-provided figure conflicts with sources, flag the conflict explicitly in \"Weaknesses & Risks\" and use the conservative figure in valuation.\n- Do not include any developer/system notes or this instruction text in the output.\n"
+    "base_prompt": "You're a skeptical buy-side M&A analyst writing for non-experts. Be conservative and risk-first. Use plain language (grade 6–8), short sentences, no jargon. Do not use terms like EBITDA or SDE; if unavoidable, explain in brackets the first time. Do not mention browsing. Do not reveal chain-of-thought; give conclusions and evidence only. Verify important claims with recent reputable sources. If solid sources are not found quickly, use reasonable proxies and still deliver results; never write 'Not enough public data'. CRITICAL: You MUST return a FLAT JSON object with exactly ONE field named 'report'. The 'report' field must contain ONLY the Markdown text content as a string. DO NOT create nested JSON objects inside the 'report' field. DO NOT create arrays or complex structures. The 'report' field should be a simple string containing the full Markdown content. Example format: {\"report\": \"# Section Title\\n\\n- Item 1: Description\\n- Item 2: Description\"}. Return response up to 250 words.",
+    "sections": [
+      {
+        "name": "Business Environment",
+        "model": "gpt-4o",
+        "web_search": {
+          "enabled": true,
+          "max_searches": 12
+        },
+        "ai_context": {
+          "include_answers": [
+            "all"
+          ],
+          "include_scores": true,
+          "include_overall_score": true
+        },
+        "specific_prompt": "Your task is to write ONLY the 'Business Environment' section. Begin with one line: 'For this type of business in {location}, we see the following:' Then provide a concise place-and-industry scan. Cover: demand and ability to pay, market reach, sustainability and trends, labor and hiring, operating conditions, economic backdrop, regulatory climate, specific constraints, risk snapshot by category, and a 2–3 sentence bottom line. Use up to 12 targeted searches; do not cite URLs.",
+        "output_constraint": "return one JSON object with one field named report whose value is the full Markdown for this section, the response size no more than 250 words",
+        "model_config": {
+          "max_output_tokens": 1000,
+          "temperature": 0.3,
+          "stream": true
+        }
+      },
+      {
+        "name": "Deal-Breakers Checklist",
+        "model": "gpt-4o-mini",
+        "web_search": {
+          "enabled": false
+        },
+        "ai_context": {
+          "include_answers": [
+            "all"
+          ],
+          "include_scores": false,
+          "include_overall_score": false
+        },
+        "specific_prompt": "Your task is to write ONLY the 'Deal-Breakers Checklist' section in Markdown format. Create a bulleted list where each item is marked very low score < 40 or very high score > 90 with a brief explanation.",
+        "output_constraint": "return one JSON object with one field named report whose value is the full Markdown for this section, the response size no more than 250 words",
+        "model_config": {
+          "max_output_tokens": 1000,
+          "temperature": 0.2,
+          "stream": true
+        }
+      },
+      {
+        "name": "Strengths",
+        "model": "gpt-4o",
+        "web_search": {
+          "enabled": true,
+          "max_searches": 3
+        },
+        "ai_context": {
+          "include_answers": [
+            "all"
+          ],
+          "include_scores": true,
+          "include_overall_score": true
+        },
+        "specific_prompt": "Your task is to write ONLY the 'Strengths' section. Use bullets tied to inputs or sources with high score > 75. Explain why each helps a buyer.",
+        "output_constraint": "return one JSON object with one field named report whose value is the full Markdown for this section, the response size no more than 250 words",
+        "model_config": {
+          "max_output_tokens": 1000,
+          "temperature": 0.3,
+          "stream": true
+        }
+      },
+      {
+        "name": "Weaknesses & Risks",
+        "model": "gpt-4o",
+        "web_search": {
+          "enabled": true,
+          "max_searches": 3
+        },
+        "ai_context": {
+          "include_answers": [
+            "all"
+          ],
+          "include_scores": true,
+          "include_overall_score": true
+        },
+        "specific_prompt": "Your task is to write ONLY the 'Weaknesses & Risks' section. Use bullets with buyer impact and mitigation difficulty (Low/Medium/High). Explain possible consequences of the Low mitigation difficulty. Add a one-line 'Why this matters'.",
+        "output_constraint": "return one JSON object with one field named report whose value is the full Markdown for this section, the response size no more than 250 words",
+        "model_config": {
+          "max_output_tokens": 1000,
+          "temperature": 0.3,
+          "stream": true
+        }
+      },
+      {
+        "name": "Valuation Analysis",
+        "model": "gpt-4o",
+        "web_search": {
+          "enabled": true,
+          "max_searches": 12
+        },
+        "ai_context": {
+          "include_answers": [
+            "all"
+          ],
+          "include_scores": true,
+          "include_overall_score": true
+        },
+        "specific_prompt": "Your task is to write ONLY the 'Valuation Analysis' section. Use a search escalation ladder (local deals -> national -> proxies). Always deliver a comps table and a scenario range (Base and Downside). Explain the multiple selection and show simple math in words. Use up to 12 targeted searches.",
+        "output_constraint": "return one JSON object with one field named report whose value is the full Markdown for this section, the response size no more than 250 words",
+        "model_config": {
+          "max_output_tokens": 1000,
+          "temperature": 0.3,
+          "stream": true
+        }
+      },
+      {
+        "name": "Negotiation and Deal Structure",
+        "model": "gpt-4o",
+        "web_search": {
+          "enabled": true,
+          "max_searches": 3
+        },
+        "ai_context": {
+          "include_answers": [
+            "all"
+          ],
+          "include_scores": true,
+          "include_overall_score": true
+        },
+        "specific_prompt": "Your task is to write ONLY the 'Negotiation and Deal Structure' section. Cover price guardrails (discount bands tied to risks), structure (holdback, escrow, earn-out), reps and warranties, working-capital peg, transition help, non-compete, and pre-closing conditions.",
+        "output_constraint": "return one JSON object with one field named report whose value is the full Markdown for this section, the response size no more than 250 words",
+        "model_config": {
+          "max_output_tokens": 1000,
+          "temperature": 0.3,
+          "stream": true
+        }
+      },
+      {
+        "name": "Verification and Evidence Summary",
+        "model": "gpt-4o",
+        "web_search": {
+          "enabled": true,
+          "max_searches": 3
+        },
+        "ai_context": {
+          "include_answers": [
+            "all"
+          ],
+          "include_scores": true,
+          "include_overall_score": true
+        },
+        "specific_prompt": "Your task is to write ONLY the 'Verification and Evidence Summary' section. List key sources used in the last 24 months, assess Quality of Evidence (High/Medium/Low) with a reason, and list Unknowns and Assumptions.",
+        "output_constraint": "return one JSON object with one field named report whose value is the full Markdown for this section, the response size no more than 250 words",
+        "model_config": {
+          "max_output_tokens": 1000,
+          "temperature": 0.3,
+          "stream": true
+        }
+      },
+      {
+        "name": "Executive Summary and Final Recommendation",
+        "model": "gpt-4o",
+        "web_search": {
+          "enabled": false
+        },
+        "ai_context": {
+          "include_answers": [
+            "all"
+          ],
+          "include_scores": true,
+          "include_overall_score": true,
+          "include_previous_sections": true
+        },
+        "specific_prompt": "You have already written the following sections of the report:\n\n{sections_markdown}\n\nBased on these sections and the original inputs, your task is to write ONLY the 'Executive Summary' and the 'Final Recommendation' sections. The summary should be 2-3 short paragraphs in plain language. The recommendation should be one plain-language sentence. If you see dangerous dealbreakers and {overall_score} < 60, say 'Do not proceed.' If conditional, say 'Proceed only with protections...' and explain protections. Otherwise, say 'Proceed.' and after it explain why to proceed.",
+        "output_constraint": "return one JSON object with one field named report whose value is the full Markdown for these two sections, the response size no more than 250 words",
+        "model_config": {
+          "max_output_tokens": 1000,
+          "temperature": 0.3,
+          "stream": true
+        }
+      }
     ]
   }
 }

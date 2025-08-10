@@ -171,19 +171,24 @@ const AnswerInput = ({ q, value, onChange, onBlur, labels, answers, setAnswers }
 
           const handleCustomChange = (e) => {
             const newCustomValue = e.target.value;
+            // This is the correct generic way: update both state fields.
             setAnswers(prev => ({
               ...prev,
               [customInputId]: newCustomValue,
-              // If user types in custom, clear the dropdown selection
-              [q.id]: newCustomValue ? '' : prev[q.id]
+              [q.id]: newCustomValue ? '' : prev[q.id] // Clear dropdown if custom has value
             }));
+          };
+
+          const handleDropdownChange = (e) => {
+            // This now calls the main onChange from the parent, which is correct.
+            onChange(e.target.value, true);
           };
 
           return (
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <select
                 value={isDropdownDisabled ? '' : inputValue}
-                onChange={(e) => onChange(e.target.value, true)}
+                onChange={handleDropdownChange}
                 onBlur={onBlur}
                 style={{ flex: 1, padding: 8, borderRadius: 4, border: '1px solid #ddd' }}
                 disabled={isDropdownDisabled}
@@ -200,7 +205,7 @@ const AnswerInput = ({ q, value, onChange, onBlur, labels, answers, setAnswers }
                   type="text"
                   value={customValue}
                   onChange={handleCustomChange}
-                  onBlur={onBlur} // Assuming onBlur works for custom input too
+                  onBlur={onBlur} 
                   placeholder={q.custom_text_input.placeholder}
                   style={{ flex: 1, padding: 8, borderRadius: 4, border: '1px solid #ddd' }}
                 />

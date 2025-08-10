@@ -9,7 +9,6 @@ import { useState, useEffect } from 'react';
  *
  * @returns {{
  *   sections: Array,
- *   metaQuestions: Array,
  *   loading: boolean,
  *   error: string,
  *   calculations: Array,
@@ -23,7 +22,6 @@ const useLoadQuestions = (initialQuestionSetId) => {
   const [error, setError] = useState('');
   const [questionSetId, setQuestionSetId] = useState(initialQuestionSetId);
   const [sections, setSections] = useState([]);
-  const [metaQuestions, setMetaQuestions] = useState([]);
   const [calculations, setCalculations] = useState(null);
   const [labels, setLabels] = useState(null);
   const [finalAnalysisConfig, setFinalAnalysisConfig] = useState(null);
@@ -69,7 +67,6 @@ const useLoadQuestions = (initialQuestionSetId) => {
         // setQuestionSetId(data.version || 'unknown'); 
         
         setSections(sections);
-        setMetaQuestions(data.meta_questions || []);
         setCalculations(data.calculations || null);
         setLabels(data.settings.labels || null);
         setFinalAnalysisConfig(data.final_analysis_config || null);
@@ -86,7 +83,7 @@ const useLoadQuestions = (initialQuestionSetId) => {
     loadData();
   }, [questionSetId]);
 
-  return { loading, error, questionSetId, setQuestionSetId, sections, metaQuestions, calculations, labels, finalAnalysisConfig };
+  return { loading, error, questionSetId, setQuestionSetId, sections, calculations, labels, finalAnalysisConfig };
 };
 
 export default useLoadQuestions;

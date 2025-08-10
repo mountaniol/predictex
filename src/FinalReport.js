@@ -29,7 +29,16 @@ function FinalReport() {
       }}>
         Final Analysis Report
       </h2>
-      <div className="markdown-body">
+      <div 
+        className="markdown-body"
+        style={{
+          minHeight: '600px', // Примерно 30 строк (20px на строку)
+          maxHeight: 'none', // Позволяет расти без ограничений
+          overflow: 'auto', // Добавляет скролл если нужно
+          lineHeight: '1.6',
+          fontSize: '14px'
+        }}
+      >
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{finalReport}</ReactMarkdown>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState, useEffect } from 'react';
+import React, { useContext, useMemo, useState, useEffect, useRef } from 'react';
 import { AppContext } from './App';
 import { Tooltip } from 'react-tooltip'
 
@@ -40,7 +40,6 @@ const SidebarResults = () => {
     questionSetId,
     answers,
     explanations,
-    metaSummaries,
     isGeneratingReport,
     setIsGeneratingReport,
     setFinalReport,
@@ -51,12 +50,14 @@ const SidebarResults = () => {
     setScores,
     setQuestionStates,
     setExplanations,
-    setMetaSummaries
+    finalReportRef
   } = useContext(AppContext);
   const [clearState, setClearState] = useState(0); // 0: idle, 1: first press, 2: second press
   const [clearTimer, setClearTimer] = useState(null);
   const [tooltip, setTooltip] = useState({ visible: false, text: '', id: null });
   const [tooltipTimer, setTooltipTimer] = useState(null);
+  const [buttonFeedback, setButtonFeedback] = useState({ text: 'Generate Final Report', color: 'black' });
+  const feedbackTimer = useRef(null);
 
 
   // Effect to clear the timer if the component unmounts
@@ -75,7 +76,6 @@ const SidebarResults = () => {
       scores,
       questionStates,
       explanations,
-      metaSummaries,
       finalReport,
     };
     const blob = new Blob([JSON.stringify(stateToSave, null, 2)], { type: 'application/json' });
@@ -105,7 +105,6 @@ const SidebarResults = () => {
           setScores(data.scores || {});
           setQuestionStates(data.questionStates || {});
           setExplanations(data.explanations || {});
-          setMetaSummaries(data.metaSummaries || {});
           setFinalReport(data.finalReport || null);
         } else {
           // For changing the question set, we need a more robust mechanism
@@ -291,40 +290,55 @@ const SidebarResults = () => {
 
   const allAnswered = useMemo(() => {
     if (!allQuestions || allQuestions.length === 0) return false;
+    const answerableQuestions = allQuestions.filter(q => q.question_type !== 'internal');
     const fullyAnsweredCount = Object.values(questionStates).filter(s => s === 'fully_answered').length;
-    return fullyAnsweredCount === allQuestions.length;
+
+    // --- Start Debug Logging ---
+    const notFullyAnswered = answerableQuestions.filter(q => questionStates[q.id] !== 'fully_answered');
+    console.log('--- Report Button Logic ---');
+    console.log('Total Answerable Questions:', answerableQuestions.length);
+    console.log('Fully Answered Count:', fullyAnsweredCount);
+    console.log('Is button enabled?', fullyAnsweredCount === answerableQuestions.length);
+    if (notFullyAnswered.length > 0) {
+        console.log('Questions NOT fully answered:', notFullyAnswered.map(q => ({id: q.id, text: q.text, state: questionStates[q.id] || 'undefined'})));
+    }
+    console.log('---------------------------');
+    // --- End Debug Logging ---
+
+    return fullyAnsweredCount === answerableQuestions.length;
   }, [questionStates, allQuestions]);
 
   const handleGenerateReport = async () => {
+    finalReportRef.current?.scrollIntoView({ behavior: 'smooth' });
+
     setIsGeneratingReport(true);
     setFinalReport(''); // Clear previous report
 
-    const { prompt_templates } = finalAnalysisConfig;
-    if (!prompt_templates || !Array.isArray(prompt_templates)) {
-      alert("Error: prompt_templates are not configured correctly in the question set.");
+    const { sections: configSections } = finalAnalysisConfig;
+    if (!configSections || !Array.isArray(configSections)) {
+      alert("Error: sections are not configured correctly in the question set.");
       setIsGeneratingReport(false);
       return;
     }
 
     let accumulatedMarkdown = "";
-    const reportSections = [];
-    const totalSteps = prompt_templates.length;
+    const totalSteps = configSections.length;
 
     try {
       for (let i = 0; i < totalSteps; i++) {
-        const promptTemplate = prompt_templates[i];
+        const sectionConfig = configSections[i];
         
-        const progressMessage = `*Step ${i + 1} of ${totalSteps}: Generating section...*`;
+        const progressMessage = `${accumulatedMarkdown}\n\n*Step ${i + 1} of ${totalSteps}: Generating ${sectionConfig.name}...*`;
         setFinalReport(progressMessage);
 
         const body = {
-          prompt_template: promptTemplate,
-          meta: sections.find(s => s.title === 'Meta')?.questions || [],
-          sections: sections.filter(s => s.title !== 'Meta'),
+          section_index: i,
+          sections: sections, 
           answers,
           calculations: computedScores,
           sections_markdown: accumulatedMarkdown,
           overall_score: overallStats.averageScore,
+          final_analysis_config: finalAnalysisConfig
         };
 
         const response = await fetch('/api/final-analysis.mjs', {
@@ -335,36 +349,47 @@ const SidebarResults = () => {
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(`Step ${i + 1} failed: ${errorData.message || 'Unknown error'}`);
+          throw new Error(`Step ${i + 1} (${sectionConfig.name}) failed: ${errorData.message || 'Unknown error'}`);
         }
 
         const result = await response.json();
         
-        reportSections.push(result.report);
-        // We still accumulate markdown for prompts that need context from previous steps.
+        // Append the new section to the accumulated markdown
         accumulatedMarkdown += `\n\n${result.report}`;
+        setFinalReport(accumulatedMarkdown.trim());
       }
       
-      // Reorder and assemble the final report for logical presentation
-      if (reportSections.length >= 2) {
-        const reportTitle = reportSections.shift(); // First section is the main title
-        const executiveSummary = reportSections.pop(); // Last section is the summary
-        const restOfReport = reportSections.join('\n\n');
-        
-        // Assemble in the correct order: Title, Summary, then everything else.
-        const finalReportContent = `${reportTitle}\n\n${executiveSummary}\n\n${restOfReport}`;
-        setFinalReport(finalReportContent.trim());
-      } else {
-        // Fallback for fewer than 2 sections, though this shouldn't happen in normal flow.
-        setFinalReport(reportSections.join('\n\n').trim());
-      }
-
     } catch (error) {
       console.error("Error generating final report:", error);
       const errorMessage = `## Error\n\nAn error occurred during report generation:\n\n\`\`\`\n${error.message}\n\`\`\``;
       setFinalReport(errorMessage);
     } finally {
       setIsGeneratingReport(false);
+    }
+  };
+
+  const handleReportButtonClick = () => {
+    if (feedbackTimer.current) {
+      clearTimeout(feedbackTimer.current);
+    }
+
+    if (isGeneratingReport) {
+      return; // Do nothing if a report is already being generated
+    }
+
+    if (!allAnswered) {
+      setButtonFeedback({ text: 'First Answer All Questions', color: 'red' });
+      feedbackTimer.current = setTimeout(() => {
+        setButtonFeedback({ text: 'Generate Final Report', color: 'black' });
+      }, 5000);
+    } else {
+      setButtonFeedback({ text: 'The Report Is Generating...', color: 'blue' });
+      feedbackTimer.current = setTimeout(() => {
+        // After 5 seconds, it will be controlled by the isGeneratingReport state
+        // which shows the "Analyzing..." message.
+        setButtonFeedback({ text: 'Generate Final Report', color: 'black' });
+      }, 5000);
+      handleGenerateReport();
     }
   };
 
@@ -882,13 +907,12 @@ const SidebarResults = () => {
           </div>
         ) : (
           <button
-            style={buttonStyle(!allAnswered)}
-            onClick={handleGenerateReport}
-            disabled={!allAnswered}
+            style={{...buttonStyle(), color: buttonFeedback.color}}
+            onClick={handleReportButtonClick}
             data-tooltip-id="report-tooltip"
             data-tooltip-content={!allAnswered ? 'Please answer all questions before generating the report.' : 'Generate a comprehensive final analysis report.'}
           >
-            Generate Final Report
+            {buttonFeedback.text}
           </button>
         )}
       </div>

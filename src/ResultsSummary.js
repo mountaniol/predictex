@@ -13,7 +13,6 @@ import { AppContext } from './App';
  * 
  * @context {AppContext} - Global application state and functions
  * @context {Array} sections - Questions grouped by cluster/section
- * @context {Array} metaQuestions - Meta questions for basic information
  * @context {Object} answers - User answers to questions
  * @context {Object} scores - AI evaluation scores
  * @context {Array} calculations - Calculation rules for derived scores
