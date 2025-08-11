@@ -1,4 +1,12 @@
 import os
+import sys
+
+# Add the project root to the Python path to allow absolute imports
+# This makes the script runnable both locally and on Vercel
+PROJECT_ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+if PROJECT_ROOT_PATH not in sys.path:
+    sys.path.append(PROJECT_ROOT_PATH)
+
 import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -6,8 +14,8 @@ from dotenv import load_dotenv
 import time
 
 # --- Import business logic from other modules ---
-from .py_simple_evaluate import evaluate_answer_logic
-from .py_final_analysis import final_analysis_logic, load_question_set
+from api.backend.py_simple_evaluate import evaluate_answer_logic
+from api.backend.py_final_analysis import final_analysis_logic, load_question_set
 
 # Define the absolute path to the project root. This is robust for both local and Vercel execution.
 # We go up two levels from `api/backend/` to reach the root.
@@ -92,6 +100,7 @@ def handle_simple_evaluate():
         prompt_file = config.get("Generic", {}).get("ai_prompt_file")
 
         if not question_file or not prompt_file:
+            print("!!! CRITICAL: 'question_set_file' or 'ai_prompt_file' not found in app.config.json")
             return jsonify({"message": "Server configuration error: file paths not specified."}), 500
 
         result = evaluate_answer_logic(question_id, all_answers, config, question_file, prompt_file)
@@ -106,6 +115,7 @@ def handle_simple_evaluate():
 
 @app.route('/api/final-analysis.mjs', methods=['POST'])
 def handle_final_analysis():
+    print("\n--- Python Server: Received request at /api/final-analysis.mjs ---")
     """
     @brief Flask endpoint to handle final analysis report generation requests.
 
@@ -130,19 +140,23 @@ def handle_final_analysis():
     @related_to py_final_analysis.py: This is the primary web entry point for its logic.
     """
     try:
+        print("[handle_final_analysis] Attempting to parse JSON body...")
         data = request.get_json()
+        print(f"[handle_final_analysis] Successfully parsed JSON. Received keys: {list(data.keys()) if data else 'No data'}")
+        
         print("\n--- DEBUG: /api/final-analysis.mjs ---")
         print(f"Received request keys: {list(data.keys()) if data else 'No data received'}")
         print("---------------------------------------\n")
 
         if not data or 'section_index' not in data or 'answers' not in data or 'calculations' not in data:
-            print("Validation failed: 'section_index', 'answers', or 'calculations' key is missing.")
+            print(f"Validation failed: 'section_index', 'answers', or 'calculations' key is missing.")
             return jsonify({"message": "Missing required parameters for final analysis"}), 400
 
         config = load_app_config()
         # Use config to determine which question set to load. No fallback.
         question_set_file = config.get("Generic", {}).get("question_set_file")
         if not question_set_file:
+            print("!!! CRITICAL: 'question_set_file' not found in app.config.json")
             return jsonify({"message": "Server configuration error: question_set_file not specified."}), 500
         
         load_question_set(question_set_file)

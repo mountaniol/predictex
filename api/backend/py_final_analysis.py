@@ -132,9 +132,9 @@ def final_analysis_logic(section_index, answers, scores, final_analysis_config, 
                 "response_format": {"type": "json_object"}
             }
 
-            print("\n--- DEBUG: OpenAI Request Payload ---")
+            print("\n--- DEBUG: OpenAI Request (Final Analysis) ---")
             print(json.dumps(request_payload, indent=2))
-            print("-------------------------------------\n")
+            print("----------------------------------------------\n")
 
             try:
                 completion = client.chat.completions.create(**request_payload)
@@ -152,9 +152,9 @@ def final_analysis_logic(section_index, answers, scores, final_analysis_config, 
                     # Handle non-streaming response (the whole object comes at once)
                     response_content = completion.choices[0].message.content
 
-                print("\n--- DEBUG: OpenAI Response Content ---")
+                print("\n--- DEBUG: OpenAI Response (Final Analysis) ---")
                 print(response_content)
-                print("--------------------------------------\n")
+                print("-----------------------------------------------\n")
 
                 # The rest of the logic expects a JSON object string
                 result_json = json.loads(response_content)

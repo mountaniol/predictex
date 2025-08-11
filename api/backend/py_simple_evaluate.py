@@ -206,17 +206,25 @@ Return ONLY a single JSON object with 'score' (0-100) and 'explanation' (string)
 
     while True:
         try:
+            messages=[
+                {"role": "system", "content": payload['system']},
+                {"role": "user", "content": full_prompt}
+            ]
+            print("\n--- DEBUG: OpenAI Request (Simple Evaluate) ---")
+            print(json.dumps({"model": model, "messages": messages}, indent=2))
+            print("-----------------------------------------------\n")
+
             completion = client.chat.completions.create(
-                messages=[
-                    {"role": "system", "content": payload['system']},
-                    {"role": "user", "content": full_prompt}
-                ],
+                messages=messages,
                 model=model,
                 response_format={"type": "json_object"},
                 temperature=temperature,
                 max_tokens=max_tokens
             )
             response_content = completion.choices[0].message.content
+            print("\n--- DEBUG: OpenAI Response (Simple Evaluate) ---")
+            print(response_content)
+            print("------------------------------------------------\n")
             return json.loads(response_content)
 
         except RateLimitError as e:

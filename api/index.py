@@ -16,15 +16,15 @@ for the production environment. However, all the core business logic from
 
 import sys
 import os
+from os.path import dirname, abspath
 
-# Add the src directory to the system path
-# This is necessary for Vercel to find the modules in the `api/backend` directory.
-# We are going one level up from `api/` to the project root, then into `api/`.
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Add the parent directory of 'api' to the Python path
+# This allows us to use absolute imports from the project root
+sys.path.append(dirname(dirname(abspath(__file__))))
 
-# Import the Flask app object from the local server implementation.
-# The path must be relative to the project root which we added to sys.path.
+# Now, we can import the Flask app object from the backend module
+# This path is relative to the project root after the sys.path modification
 from api.backend.py_local_api_server import app
 
-# The 'app' object is now exposed for Vercel's runtime.
-# When a request comes to /api/..., Vercel routes it to this Flask instance.
+# The 'app' variable is now exposed for Vercel's WSGI server to use.
+# For local development, you would still run py_local_api_server.py directly.
