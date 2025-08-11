@@ -3,10 +3,14 @@ import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
+import time
 
 # --- Import business logic from other modules ---
 from py_simple_evaluate import evaluate_answer_logic
 from py_final_analysis import final_analysis_logic, load_question_set
+
+# Define the absolute path to the project root. This is robust for both local and Vercel execution.
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 # --- App Initialization ---
 
@@ -19,23 +23,35 @@ app = Flask(__name__)
 CORS(app)
 
 _app_config = None
+_config_mtime = 0 # To track file modification time for caching
 
 def load_app_config():
     """
     @brief Loads the application configuration from public/app.config.json.
-    @details Caches the config in a global variable to avoid repeated file reads.
+    @description This function reads the main JSON configuration file. It also
+    implements a simple caching mechanism by checking the file's modification
+    time, reloading it only if it has changed. This is useful for local
+    development.
+    @return A dictionary containing the application configuration.
+    @related_to app.config.json
     """
-    global _app_config
-    if _app_config is None:
-        try:
-            config_path = os.path.join(os.getcwd(), 'public', 'app.config.json')
+    global _app_config, _config_mtime
+    config_path = os.path.join(PROJECT_ROOT, 'public', 'app.config.json')
+
+    try:
+        # For serverless environments, caching based on modification time might not be effective,
+        # but it doesn't hurt. We'll rely on it mostly for local dev.
+        mtime = os.path.getmtime(config_path) if os.path.exists(config_path) else 0
+        if mtime > _config_mtime or _app_config is None:
+            print(f"[Config] Loading configuration from {config_path}")
             with open(config_path, 'r', encoding='utf-8') as f:
                 _app_config = json.load(f)
-        except Exception as e:
-            print(f"CRITICAL: Could not load app.config.json. Error: {e}")
-            # Fallback to an empty dict to prevent crashes, though functionality will be degraded.
-            _app_config = {}
-    return _app_config
+            _config_mtime = mtime
+        return _app_config
+    except Exception as e:
+        print(f"!!! CRITICAL: Could not load or parse app.config.json from {config_path}. Error: {e}")
+        # Return a default/empty config to prevent a hard crash
+        return {}
 
 
 @app.route('/api/simple-evaluate.mjs', methods=['POST'])

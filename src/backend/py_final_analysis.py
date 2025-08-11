@@ -3,43 +3,39 @@ import json
 import time
 from openai import OpenAI, RateLimitError, BadRequestError
 
-# --- Globals ---
+# Define the absolute path to the project root. This is robust for both local and Vercel execution.
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-#: A simple in-memory cache for loaded question set JSON data.
-#: The keys are the `set_id` (e.g., 'q4') and values are the parsed dicts.
-_question_data_cache = {}
+# --- Globals for caching ---
+_question_set = {} # Cache for question set content
 
-def load_question_set(set_id):
+def load_question_set(set_id="q4.json"):
     """
-    @brief Loads a specific question set from the filesystem into a cache.
-
-    @details This function reads the specified JSON file that defines the questions and
-             final analysis structure (e.g., 'q4.json') from the `public/questions`
-             directory. It uses an in-memory dictionary `_question_data_cache` to
-             prevent re-reading the same file multiple times during the application's
-             lifecycle, improving performance.
-
-    @param set_id (str): The identifier for the question set, corresponding to the
-                        filename (e.g., 'q4.json').
-
-    @globals_written _question_data_cache: Caches the parsed JSON data on first load for a given `set_id`.
-
-    @returns {dict}: The parsed JSON data for the requested question set as a dictionary.
-    
-    @raises FileNotFoundError: If the JSON file corresponding to the `set_id` does not exist.
+    @brief Loads and caches a question set from a file.
+    @description Reads the specified question set JSON file from the public/questions
+    directory. It uses a global variable to cache the data, preventing
+    repeated file reads. The path is constructed relative to the project
+    root to ensure it works in both local and serverless environments.
+    @param set_id The name of the question set JSON file (e.g., "q4.json").
+    @return A dictionary containing the question set data.
+    @related_to app.config.json: The filename is read from the app config.
     """
-    if set_id in _question_data_cache:
-        return _question_data_cache[set_id]
+    global _question_set
+    # Construct absolute path
+    file_path = os.path.join(PROJECT_ROOT, 'public', 'questions', set_id)
 
-    try:
-        file_path = os.path.join(os.getcwd(), 'public', 'questions', set_id)
-        with open(file_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            _question_data_cache[set_id] = data
-            return data
-    except FileNotFoundError:
-        print(f"Error: Question set file not found for id: {set_id}")
-        raise
+    # Load file if not cached or if a different set_id is requested
+    if not _question_set or _question_set.get('version') != set_id: # A simple check
+        try:
+            print(f"[Data] Loading question set from: {file_path}")
+            with open(file_path, 'r', encoding='utf-8') as f:
+                _question_set = json.load(f)
+        except Exception as e:
+            print(f"!!! CRITICAL: Could not load or parse question set {file_path}. Error: {e}")
+            # Return empty data to prevent a hard crash
+            _question_set = {"questions": []}
+
+    return _question_set
 
 
 def format_data_for_prompt(context_config, answers, scores):

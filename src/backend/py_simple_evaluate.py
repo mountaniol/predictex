@@ -3,58 +3,54 @@ import json
 import time
 from openai import OpenAI, RateLimitError
 
-# --- Globals ---
+# Define the absolute path to the project root. This is robust for both local and Vercel execution.
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-#: Caches the loaded question data to prevent redundant file I/O.
-questions_data = None
+# --- Globals for caching ---
+_questions_data = {} # Cache for question file content
 #: Stores the content of the main AI prompt file.
-ai_prompt = ''
+_ai_prompt = ''
 
-def load_questions_data(question_file, prompt_file):
+def load_questions_data(question_file="q4.json", prompt_file="ai-prompt.txt"):
     """
-    @brief Loads question data and AI prompt from the filesystem into global variables.
-    
-    @details This function is designed to be idempotent. It checks if the global `questions_data`
-             variable is already populated. If so, it returns immediately to prevent redundant
-             file I/O. It constructs absolute paths to `public/questions/q4.json` and
-             `public/questions/ai-prompt.txt` relative to the project's root directory,
-             reads their contents, and populates the corresponding global variables.
-    
-    @param question_file (str): The filename of the question set to load (e.g., 'q4.json').
-    @param prompt_file (str): The filename of the AI prompt file to load (e.g., 'ai-prompt.txt').
-
-    @globals_written questions_data: Populated with the parsed JSON from `q4.json`.
-    @globals_written ai_prompt: Populated with the string content from `ai-prompt.txt`.
-    
-    @side_effects Reads from the filesystem. Modifies global variables `questions_data` and `ai_prompt`.
-    
-    @raises FileNotFoundError: If `q4.json` or `ai-prompt.txt` is not found at the expected paths.
-    @raises json.JSONDecodeError: If the content of `q4.json` is not valid JSON.
-    
-    @related find_question_by_id: This function must be called before `find_question_by_id` can operate.
+    @brief Loads and caches question and prompt data from files.
+    @description Reads the specified question JSON and AI prompt text file. It uses
+    global variables to cache the data, preventing repeated file reads.
+    The paths are constructed relative to the project root to ensure they work
+    in both local and serverless environments.
+    @param question_file The name of the question set JSON file (e.g., "q4.json").
+    @param prompt_file The name of the AI prompt file (e.g., "ai-prompt.txt").
+    @return A tuple containing the loaded questions data (dict) and AI prompt (str).
+    @related_to app.config.json: The filenames are read from the app config.
     """
-    global questions_data, ai_prompt
-    if questions_data:
-        return
+    global _questions_data, _ai_prompt
 
-    try:
-        # Construct path relative to the project root
-        json_path = os.path.join(os.getcwd(), 'public', 'questions', question_file)
-        with open(json_path, 'r', encoding='utf-8') as f:
-            questions_data = json.load(f)
+    # Construct absolute paths
+    questions_path = os.path.join(PROJECT_ROOT, 'public', 'questions', question_file)
+    prompt_path = os.path.join(PROJECT_ROOT, 'public', 'questions', prompt_file)
 
-        prompt_path = os.path.join(os.getcwd(), 'public', 'questions', prompt_file)
-        with open(prompt_path, 'r', encoding='utf-8') as f:
-            ai_prompt = f.read()
+    # Load questions file if not cached
+    if not _questions_data:
+        try:
+            print(f"[Data] Loading questions from: {questions_path}")
+            with open(questions_path, 'r', encoding='utf-8') as f:
+                _questions_data = json.load(f)
+        except Exception as e:
+            print(f"!!! CRITICAL: Could not load or parse question file {questions_path}. Error: {e}")
+            # Return empty data to prevent a hard crash
+            _questions_data = {"questions": []}
 
-    except FileNotFoundError as e:
-        print(f"Error: Required file not found - {e}")
-        # In a production environment, you might want to handle this more gracefully
-        # or ensure the server fails to start.
-        raise
-    except json.JSONDecodeError as e:
-        print(f"Error: Failed to decode JSON from q4.json - {e}")
-        raise
+    # Load AI prompt file if not cached
+    if not _ai_prompt:
+        try:
+            print(f"[Data] Loading AI prompt from: {prompt_path}")
+            with open(prompt_path, 'r', encoding='utf-8') as f:
+                _ai_prompt = f.read()
+        except Exception as e:
+            print(f"!!! CRITICAL: Could not load AI prompt file {prompt_path}. Error: {e}")
+            _ai_prompt = "No prompt loaded."
+
+    return _questions_data, _ai_prompt
 
 def find_question_by_id(question_id):
     """
@@ -72,9 +68,9 @@ def find_question_by_id(question_id):
     
     @related load_questions_data: Depends on `load_questions_data` to have been called successfully.
     """
-    if not questions_data or 'questions' not in questions_data:
+    if not _questions_data or 'questions' not in _questions_data:
         return None
-    return next((q for q in questions_data['questions'] if q['id'] == question_id), None)
+    return next((q for q in _questions_data['questions'] if q['id'] == question_id), None)
 
 def get_readable_answer(question, answer_value):
     """
@@ -148,7 +144,7 @@ def evaluate_answer_logic(question_id, all_answers, config):
 
     # --- Prompt Construction ---
     payload = {
-        'system': ai_prompt,
+        'system': _ai_prompt,
         'additional_context': question.get('prompt_add', ''),
         'meta': {},
         'question': {'id': question['id'], 'text': question['text']},
