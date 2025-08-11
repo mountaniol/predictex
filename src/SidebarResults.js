@@ -108,9 +108,20 @@ const SidebarResults = () => {
           setExplanations(data.explanations || {});
           setFinalReport(data.finalReport || null);
         } else {
-          // For changing the question set, we need a more robust mechanism
-          // than the previous implementation. For now, alert the user.
-          alert(`This file is for a different question set (${data.questionSetId}). Please switch to that question set first.`);
+          // If the question set is different, save the loaded data to localStorage
+          // under the new questionSetId and reload the page with the new ID in the URL.
+          const newId = data.questionSetId;
+          if (window.confirm(`This file is for a different question set ('${newId}').\n\nDo you want to switch to this question set and load the data?`)) {
+            localStorage.setItem(`qna-evaluator-answers-${newId}`, JSON.stringify(data.answers || {}));
+            localStorage.setItem(`qna-evaluator-scores-${newId}`, JSON.stringify(data.scores || {}));
+            localStorage.setItem(`qna-evaluator-questionStates-${newId}`, JSON.stringify(data.questionStates || {}));
+            localStorage.setItem(`qna-evaluator-explanations-${newId}`, JSON.stringify(data.explanations || {}));
+            localStorage.setItem(`qna-evaluator-finalReport-${newId}`, JSON.stringify(data.finalReport || null));
+
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('q', newId);
+            window.location.href = currentUrl.href;
+          }
         }
       } catch (error) {
         alert(`Error loading file: ${error.message}`);

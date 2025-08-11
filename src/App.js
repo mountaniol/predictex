@@ -63,31 +63,52 @@ export const AppContext = React.createContext(null);
  */
 function App() {
   const [currentLanguage, setCurrentLanguage] = useState("en");
+  const [appConfig, setAppConfig] = useState(null);
+  const [questionSetId, setQuestionSetId] = useState(null);
+
+  useEffect(() => {
+    fetch('/app.config.json')
+      .then((response) => response.json())
+      .then((config) => {
+        setAppConfig(config);
+        const qId = new URLSearchParams(window.location.search).get('q') || config?.Generic?.question_set_file || 'q4';
+        setQuestionSetId(qId);
+      })
+      .catch((error) => {
+        console.error("Failed to load app.config.json, falling back to default.", error);
+        setAppConfig({}); // Set empty config on error to allow fallback
+        setQuestionSetId(new URLSearchParams(window.location.search).get('q') || 'q4');
+      });
+  }, []);
   
-  const initialQuestionSetId = new URLSearchParams(window.location.search).get('q') || 'q4';
   const { 
-    loading, error, questionSetId, sections, calculations, labels, finalAnalysisConfig
-  } = useLoadQuestions(initialQuestionSetId);
+    loading, error, sections, calculations, labels, finalAnalysisConfig
+  } = useLoadQuestions(questionSetId);
   
   const [answers, setAnswers] = useState(() => {
-    const saved = localStorage.getItem(`qna-evaluator-answers-${initialQuestionSetId}`);
+    if (!questionSetId) return {};
+    const saved = localStorage.getItem(`qna-evaluator-answers-${questionSetId}`);
     return saved ? JSON.parse(saved) : {};
   });
   const [scores, setScores] = useState(() => {
-    const saved = localStorage.getItem(`qna-evaluator-scores-${initialQuestionSetId}`);
+    if (!questionSetId) return {};
+    const saved = localStorage.getItem(`qna-evaluator-scores-${questionSetId}`);
     return saved ? JSON.parse(saved) : {};
   });
   const [questionStates, setQuestionStates] = useState(() => {
-    const saved = localStorage.getItem(`qna-evaluator-questionStates-${initialQuestionSetId}`);
+    if (!questionSetId) return {};
+    const saved = localStorage.getItem(`qna-evaluator-questionStates-${questionSetId}`);
     return saved ? JSON.parse(saved) : {};
   });
   const [explanations, setExplanations] = useState(() => {
-    const saved = localStorage.getItem(`qna-evaluator-explanations-${initialQuestionSetId}`);
+    if (!questionSetId) return {};
+    const saved = localStorage.getItem(`qna-evaluator-explanations-${questionSetId}`);
     return saved ? JSON.parse(saved) : {};
   });
 
   const [finalReport, setFinalReport] = useState(() => {
-    const saved = localStorage.getItem(`qna-evaluator-finalReport-${initialQuestionSetId}`);
+    if (!questionSetId) return null;
+    const saved = localStorage.getItem(`qna-evaluator-finalReport-${questionSetId}`);
     return saved ? saved : null;
   });
 
@@ -221,14 +242,14 @@ function App() {
     <AppContext.Provider
       value={{
         questionSetId,
-        sections,
-        loading,
-        error,
-        calculations,
-        currentLanguage,
-        answers,
-        setAnswers,
-        scores,
+      sections,
+      loading,
+      error,
+      calculations,
+      currentLanguage,
+      answers,
+      setAnswers,
+      scores,
         setScores,
         questionStates,
         setQuestionStates,
@@ -276,14 +297,14 @@ function App() {
             flex: 1
           }}>
             <div ref={topOfContentRef}> {/* This is the measurement wrapper */}
-              <Header />
-              <LanguageSelector
-                currentLanguage={currentLanguage}
-                onChange={setCurrentLanguage}
-                translating={loading}
-              />
+          <Header />
+          <LanguageSelector
+            currentLanguage={currentLanguage}
+            onChange={setCurrentLanguage}
+            translating={loading}
+          />
             </div>
-            <QuestionSection />
+          <QuestionSection />
             <div ref={finalReportRef}>
               <FinalReport />
             </div>

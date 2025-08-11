@@ -17,10 +17,9 @@ import { useState, useEffect } from 'react';
  *   labels: Object
  * }}
  */
-const useLoadQuestions = (initialQuestionSetId) => {
+const useLoadQuestions = (questionSetId) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [questionSetId, setQuestionSetId] = useState(initialQuestionSetId);
   const [sections, setSections] = useState([]);
   const [calculations, setCalculations] = useState(null);
   const [labels, setLabels] = useState(null);
@@ -83,7 +82,7 @@ const useLoadQuestions = (initialQuestionSetId) => {
     loadData();
   }, [questionSetId]);
 
-  return { loading, error, questionSetId, setQuestionSetId, sections, calculations, labels, finalAnalysisConfig };
+  return { loading, error, sections, calculations, labels, finalAnalysisConfig };
 };
 
 export default useLoadQuestions;
