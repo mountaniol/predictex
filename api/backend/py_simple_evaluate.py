@@ -12,7 +12,7 @@ _questions_data = {} # Cache for question file content
 #: Stores the content of the main AI prompt file.
 _ai_prompt = ''
 
-def load_questions_data(question_file="q4.json", prompt_file="ai-prompt.txt"):
+def load_questions_data(question_file, prompt_file):
     """
     @brief Loads and caches question and prompt data from files.
     @description Reads the specified question JSON and AI prompt text file. It uses
@@ -108,7 +108,7 @@ def get_readable_answer(question, answer_value):
     return answer_value
 
 
-def evaluate_answer_logic(question_id, all_answers, config):
+def evaluate_answer_logic(question_id, all_answers, config, question_file, prompt_file):
     """
     @brief Handles the core logic for evaluating a single answer using the OpenAI API.
     
@@ -135,8 +135,6 @@ def evaluate_answer_logic(question_id, all_answers, config):
     
     @related_to py_local_api_server.py: This is the primary web entry point for its logic.
     """
-    question_file = config.get("Generic", {}).get("question_set_file", "q4.json")
-    prompt_file = config.get("Generic", {}).get("ai_prompt_file", "ai-prompt.txt")
     load_questions_data(question_file, prompt_file)
     question = find_question_by_id(question_id)
 

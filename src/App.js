@@ -71,8 +71,16 @@ function App() {
       .then((response) => response.json())
       .then((config) => {
         setAppConfig(config);
-        const qId = new URLSearchParams(window.location.search).get('q') || config?.Generic?.question_set_file || 'q4';
-        setQuestionSetId(qId);
+        // Get the question set ID from the URL param or the config file. No hardcoded fallback.
+        const rawQId = new URLSearchParams(window.location.search).get('q') || config?.Generic?.question_set_file;
+        if (rawQId) {
+            // The hook expects the ID without .json, so we remove it here.
+            const qId = rawQId.replace('.json', '');
+            setQuestionSetId(qId);
+        } else {
+            console.error("No question set specified in URL or app.config.json");
+            // Handle error case, e.g., show an error message to the user
+        }
       })
       .catch((error) => {
         console.error("Failed to load app.config.json, falling back to default.", error);

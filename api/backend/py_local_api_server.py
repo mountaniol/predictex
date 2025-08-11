@@ -88,7 +88,13 @@ def handle_simple_evaluate():
         all_answers = data['allAnswers']
         config = load_app_config()
 
-        result = evaluate_answer_logic(question_id, all_answers, config)
+        question_file = config.get("Generic", {}).get("question_set_file")
+        prompt_file = config.get("Generic", {}).get("ai_prompt_file")
+
+        if not question_file or not prompt_file:
+            return jsonify({"message": "Server configuration error: file paths not specified."}), 500
+
+        result = evaluate_answer_logic(question_id, all_answers, config, question_file, prompt_file)
         return jsonify(result)
 
     except ValueError as e:
@@ -134,8 +140,11 @@ def handle_final_analysis():
             return jsonify({"message": "Missing required parameters for final analysis"}), 400
 
         config = load_app_config()
-        # Use config to determine which question set to load, with a fallback
-        question_set_file = config.get("Generic", {}).get("question_set_file", "q4.json")
+        # Use config to determine which question set to load. No fallback.
+        question_set_file = config.get("Generic", {}).get("question_set_file")
+        if not question_set_file:
+            return jsonify({"message": "Server configuration error: question_set_file not specified."}), 500
+        
         load_question_set(question_set_file)
 
         result = final_analysis_logic(

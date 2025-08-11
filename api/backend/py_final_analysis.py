@@ -10,7 +10,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..
 # --- Globals for caching ---
 _question_set = {} # Cache for question set content
 
-def load_question_set(set_id="q4.json"):
+def load_question_set(set_id):
     """
     @brief Loads and caches a question set from a file.
     @description Reads the specified question set JSON file from the public/questions
