@@ -1,7 +1,7 @@
 import os
 import json
 import time
-from openai import OpenAI, RateLimitError
+from openai import OpenAI, RateLimitError, BadRequestError
 
 # --- Globals ---
 
@@ -126,17 +126,51 @@ def final_analysis_logic(section_index, answers, scores, final_analysis_config, 
             max_tokens = model_config_from_json.get('max_output_tokens', openai_config_from_app.get('default_max_tokens', 1024))
             stream = model_config_from_json.get('stream', False)
 
-            completion = client.chat.completions.create(
-                model=model,
-                messages=[{"role": "user", "content": full_prompt}],
-                max_tokens=max_tokens,
-                temperature=temperature,
-                stream=stream,
-                response_format={"type": "json_object"}
-            )
-            
-            response_content = completion.choices[0].message.content
-            return json.loads(response_content)
+            request_payload = {
+                "model": model,
+                "messages": [{"role": "user", "content": full_prompt}],
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "stream": stream,
+                "response_format": {"type": "json_object"}
+            }
+
+            print("\n--- DEBUG: OpenAI Request Payload ---")
+            print(json.dumps(request_payload, indent=2))
+            print("-------------------------------------\n")
+
+            try:
+                completion = client.chat.completions.create(**request_payload)
+
+                response_content = ""
+                if stream:
+                    # Handle streaming response by concatenating chunks
+                    # The streaming response sends parts of the JSON object. We need to
+                    # accumulate them all to form a complete, valid JSON string.
+                    for chunk in completion:
+                        content = chunk.choices[0].delta.content
+                        if content:
+                            response_content += content
+                else:
+                    # Handle non-streaming response (the whole object comes at once)
+                    response_content = completion.choices[0].message.content
+
+                print("\n--- DEBUG: OpenAI Response Content ---")
+                print(response_content)
+                print("--------------------------------------\n")
+
+                # The rest of the logic expects a JSON object string
+                result_json = json.loads(response_content)
+                
+                return result_json
+
+            except BadRequestError as e:
+                print(f"!!! OpenAI BadRequestError: {e}")
+                # This error often happens if the prompt is malformed or violates policy
+                return {"error": f"OpenAI API request error: {e}"}
+            except Exception as e:
+                print(f"An unexpected error occurred during final analysis: {e}")
+                return {"error": "An unexpected error occurred on the server."}
 
         except RateLimitError as e:
             attempt += 1

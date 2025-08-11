@@ -108,7 +108,12 @@ def handle_final_analysis():
     """
     try:
         data = request.get_json()
-        if not data or 'section_index' is None or 'answers' is None or 'scores' is None:
+        print("\n--- DEBUG: /api/final-analysis.mjs ---")
+        print(f"Received request keys: {list(data.keys()) if data else 'No data received'}")
+        print("---------------------------------------\n")
+
+        if not data or 'section_index' not in data or 'answers' not in data or 'calculations' not in data:
+            print("Validation failed: 'section_index', 'answers', or 'calculations' key is missing.")
             return jsonify({"message": "Missing required parameters for final analysis"}), 400
 
         config = load_app_config()
@@ -119,7 +124,7 @@ def handle_final_analysis():
         result = final_analysis_logic(
             section_index=data['section_index'],
             answers=data['answers'],
-            scores=data['scores'],
+            scores=data['calculations'], # Use 'calculations' from frontend as 'scores'
             final_analysis_config=data['final_analysis_config'],
             config=config
         )

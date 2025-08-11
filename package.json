@@ -19,7 +19,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "start:local": "concurrently \"npm start\" \"nodemon --watch src/backend src/backend/local-api-server.mjs\"",
+    "start:local": "concurrently \"npm start\" \"bash ./run-backend.sh\"",
+    "start:local:js": "concurrently \"npm start\" \"nodemon --watch src/backend src/backend/local-api-server.mjs\"",
     "dev:api": "nodemon --watch src/backend src/backend/local-api-server.mjs",
     "build": "react-scripts build",
     "test": "react-scripts test",
