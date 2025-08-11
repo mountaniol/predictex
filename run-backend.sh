@@ -25,6 +25,6 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# 4. Запускаем Python backend
+# 4. Запускаем Python backend как модуль, чтобы работали относительные импорты
 echo ">>> Starting Python backend server..."
-python -u api/backend/py_local_api_server.py
+python -u -m api.backend.py_local_api_server
