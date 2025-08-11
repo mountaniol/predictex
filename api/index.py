@@ -19,7 +19,8 @@ import os
 from os.path import dirname, abspath
 
 # Add the parent directory of 'api' to the Python path
-# This allows us to use absolute imports from the project root
+# This allows us to use absolute imports from the project root,
+# making it work seamlessly on Vercel.
 sys.path.append(dirname(dirname(abspath(__file__))))
 
 # Now, we can import the Flask app object from the backend module
