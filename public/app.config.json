@@ -1,6 +1,6 @@
 {
   "Generic": {
-    "question_set_file": "q4.json",
+    "question_set_file": "q4",
     "ai_prompt_file": "ai-prompt.txt"
   },
   "Frontend": {
