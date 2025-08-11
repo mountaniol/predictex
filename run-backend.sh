@@ -27,4 +27,4 @@ fi
 
 # 4. Запускаем Python backend
 echo ">>> Starting Python backend server..."
-python -u src/backend/py_local_api_server.py
+python -u api/backend/py_local_api_server.py
