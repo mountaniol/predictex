@@ -22,9 +22,9 @@ import os
 # We are going one level up from `api/` to the project root, then into `api/`.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Import the Flask app object from the local server implementation
-# Vercel will use this 'app' object as the handler for incoming requests.
-from backend.py_local_api_server import app
+# Import the Flask app object from the local server implementation.
+# The path must be relative to the project root which we added to sys.path.
+from api.backend.py_local_api_server import app
 
 # The 'app' object is now exposed for Vercel's runtime.
 # When a request comes to /api/..., Vercel routes it to this Flask instance.
