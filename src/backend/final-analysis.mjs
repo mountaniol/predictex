@@ -126,6 +126,7 @@ export default async function handler(req, res) {
     }
 
     try {
+        const config = req.appConfig || {};
         console.log('===== API Request Received =====');
         console.log('Request body keys:', Object.keys(req.body));
         
@@ -206,13 +207,16 @@ export default async function handler(req, res) {
             try {
                 console.log(`===== [Attempt ${attempt}/${maxRetries}] Sending ${sectionConfig.name} Request to OpenAI =====`);
                 
+                const modelConfigFromJson = sectionConfig.model_config || {};
+                const openaiConfigFromApp = config?.Backend?.openai || {};
+
                 const requestPayload = {
                     model: sectionConfig.model,
                     input: [{ role: "user", content: fullPrompt }],
                     tools: sectionConfig.web_search.enabled ? [{ type: "web_search" }] : undefined,
                     tool_choice: sectionConfig.web_search.enabled ? "auto" : "none",
-                    max_output_tokens: sectionConfig.model_config.max_output_tokens || 800,
-                    temperature: sectionConfig.model_config.temperature || 0.3,
+                    max_output_tokens: modelConfigFromJson.max_output_tokens || openaiConfigFromApp.default_max_tokens || 800,
+                    temperature: modelConfigFromJson.temperature || openaiConfigFromApp.default_temperature || 0.3,
                 };
 
                 console.log('REQUEST BODY:');

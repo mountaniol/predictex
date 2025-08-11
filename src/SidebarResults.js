@@ -51,7 +51,8 @@ const SidebarResults = () => {
     setQuestionStates,
     setExplanations,
     finalReportRef,
-    setHighlightUnanswered
+    setHighlightUnanswered,
+    appConfig
   } = useContext(AppContext);
   const [clearState, setClearState] = useState(0); // 0: idle, 1: first press, 2: second press
   const [clearTimer, setClearTimer] = useState(null);
@@ -353,7 +354,8 @@ const SidebarResults = () => {
           final_analysis_config: finalAnalysisConfig
         };
 
-        const response = await fetch('/api/final-analysis.mjs', {
+        const baseUrl = appConfig?.Frontend?.api_base_url || '';
+        const response = await fetch(`${baseUrl}/final-analysis.mjs`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),

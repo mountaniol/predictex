@@ -4,7 +4,9 @@ import remarkGfm from 'remark-gfm';
 import { AppContext } from './App';
 
 function FinalReport() {
-  const { finalReport } = useContext(AppContext);
+  const { finalReport, appConfig } = useContext(AppContext);
+  const initialRows = appConfig?.Frontend?.final_report_initial_rows || 30;
+  const minHeight = initialRows * 20; // Assuming line-height is roughly 20px
 
   if (!finalReport) {
     return null;
@@ -32,7 +34,7 @@ function FinalReport() {
       <div 
         className="markdown-body"
         style={{
-          minHeight: '600px', // Примерно 30 строк (20px на строку)
+          minHeight: `${minHeight}px`,
           maxHeight: 'none', // Позволяет расти без ограничений
           overflow: 'auto', // Добавляет скролл если нужно
           lineHeight: '1.6',

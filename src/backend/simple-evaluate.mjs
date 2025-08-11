@@ -5,16 +5,18 @@ import path from 'path';
 let questionsData = null;
 let aiPrompt = '';
 
-function loadQuestionsData() {
+function loadQuestionsData(config) {
   if (questionsData) {
     return;
   }
   try {
-    const jsonPath = path.resolve(process.cwd(), 'public/questions/q4.json');
+    const questionFile = config?.Generic?.question_set_file || 'q4.json';
+    const jsonPath = path.resolve(process.cwd(), 'public/questions', questionFile);
     const jsonData = fs.readFileSync(jsonPath, 'utf-8');
     questionsData = JSON.parse(jsonData);
 
-    const promptPath = path.resolve(process.cwd(), 'public/questions/ai-prompt.txt');
+    const promptFile = config?.Generic?.ai_prompt_file || 'ai-prompt.txt';
+    const promptPath = path.resolve(process.cwd(), 'public/questions', promptFile);
     aiPrompt = fs.readFileSync(promptPath, 'utf-8');
 
   } catch (error) {
@@ -59,8 +61,9 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
-
-  loadQuestionsData(); // Ensure data is loaded
+  
+  const config = req.appConfig || {};
+  loadQuestionsData(config); // Ensure data is loaded
 
   const { questionId, allAnswers } = req.body;
 
@@ -127,21 +130,30 @@ export default async function handler(req, res) {
     Return ONLY a single JSON object with 'score' (0-100) and 'explanation' (string) keys.
   `;
 
-  let attempt = 0;
-  const maxDelay = 30000; // 30 seconds
-  const initialDelay = 1000; // 1 second
+  const openaiConfig = config?.Backend?.openai || {};
+  const model = openaiConfig.simple_evaluate_model || "gpt-4-1106-preview";
+  const temperature = openaiConfig.default_temperature || 0.3;
+  const max_tokens = openaiConfig.default_max_tokens || 1024;
 
-  while (true) {
+  const retryConfig = config?.Backend?.retry_logic || {};
+  const maxAttempts = retryConfig.max_attempts || 3;
+  const initialDelay = (retryConfig.initial_delay_seconds || 1) * 1000;
+  const maxDelay = (retryConfig.max_delay_seconds || 30) * 1000;
+  
+  let attempt = 0;
+
+  while (attempt < maxAttempts) {
+    attempt++;
     try {
       const completion = await openai.chat.completions.create({
           messages: [
             { "role": "system", "content": payload.system },
             { "role": "user", "content": fullPrompt }
           ],
-          model: "gpt-4-1106-preview",
+          model: model,
           response_format: { type: "json_object" },
-          temperature: 0.3,
-          max_tokens: 1024,
+          temperature: temperature,
+          max_tokens: max_tokens,
           frequency_penalty: 0,
           presence_penalty: 0,
         });
@@ -152,7 +164,10 @@ export default async function handler(req, res) {
     } catch (error) {
       // Only retry on rate limit errors (status 429)
       if (error.status === 429) {
-        attempt++;
+        if (attempt >= maxAttempts) {
+          console.error(`Rate limit error on final attempt (${attempt}/${maxAttempts}). Failing.`);
+          return res.status(500).json({ message: 'AI service is currently busy. Please try again later.' });
+        }
         const apiRetryAfterMs = error.headers['retry-after-ms'] ? parseInt(error.headers['retry-after-ms'], 10) : 0;
         
         // Exponential backoff calculation
@@ -164,7 +179,7 @@ export default async function handler(req, res) {
         let waitTime = Math.min(exponentialDelay + jitter, maxDelay);
         waitTime = Math.max(waitTime, apiRetryAfterMs);
 
-        console.warn(`Rate limit exceeded. Attempt ${attempt}. Retrying in ${waitTime.toFixed(0)}ms...`);
+        console.warn(`Rate limit exceeded. Attempt ${attempt}/${maxAttempts}. Retrying in ${waitTime.toFixed(0)}ms...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
       } else {
         // For any other non-retriable error, log it and return a generic 500 error
@@ -173,5 +188,7 @@ export default async function handler(req, res) {
       }
     }
   }
+  // This part is reached only if all retries for rate limit errors fail.
+  return res.status(500).json({ message: 'Failed to get a response from AI service after multiple attempts.' });
 }
 

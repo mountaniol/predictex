@@ -52,7 +52,7 @@ const QuestionSection = () => {
     sections, calculations,
     answers, setAnswers, scores, setScores, questionStates, setQuestionStates,
     explanations, setExplanations, loading: contextLoading, labels,
-    highlightUnanswered, setHighlightUnanswered
+    highlightUnanswered, setHighlightUnanswered, appConfig
   } = context || {};
 
   const [expandedExplanations, setExpandedExplanations] = useState({});
@@ -111,7 +111,8 @@ const QuestionSection = () => {
       console.log(JSON.stringify(payload, null, 2));
       console.log('---------------------------------');
 
-      const response = await fetch('/api/simple-evaluate.mjs', {
+      const baseUrl = appConfig?.Frontend?.api_base_url || '';
+      const response = await fetch(`${baseUrl}/simple-evaluate.mjs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -130,7 +131,7 @@ const QuestionSection = () => {
       alert(`Error evaluating answer: ${error.message}`);
       return null;
     }
-  }, [answers]);
+  }, [answers, appConfig]);
 
   const findNextQuestionToReevaluate = useCallback((currentStates) => {
     if (!sections || !answers) return null;

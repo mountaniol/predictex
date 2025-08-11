@@ -1,0 +1,23 @@
+{
+  "Generic": {
+    "question_set_file": "q4.json",
+    "ai_prompt_file": "ai-prompt.txt"
+  },
+  "Frontend": {
+    "api_base_url": "/api",
+    "final_report_initial_rows": 30
+  },
+  "Backend": {
+    "local_api_port": 3001,
+    "openai": {
+      "simple_evaluate_model": "gpt-4-1106-preview",
+      "default_temperature": 0.3,
+      "default_max_tokens": 1024
+    },
+    "retry_logic": {
+      "max_attempts": 5,
+      "initial_delay_seconds": 1,
+      "max_delay_seconds": 30
+    }
+  }
+}
