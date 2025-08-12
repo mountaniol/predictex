@@ -4,8 +4,8 @@ import time
 from openai import OpenAI, RateLimitError
 
 # Define the absolute path to the project root. This is robust for both local and Vercel execution.
-# We go up one level from `src/backend/` to reach the root.
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+# We go up two levels from `src/backend/` to reach the root.
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 # --- Globals for caching ---
 _questions_data = {} # Cache for question file content
