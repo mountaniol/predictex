@@ -1,7 +1,9 @@
 import os
 import json
 import time
-from openai import OpenAI, RateLimitError, BadRequestError
+import requests
+from openai import RateLimitError, BadRequestError
+from src.backend.ai_providers import get_ai_provider
 
 # Define the absolute path to the project root.
 # We go up two levels from `src/backend/` to reach the root.
@@ -106,8 +108,11 @@ def final_analysis_logic(section_index, answers, scores, final_analysis_config, 
     
     full_prompt = f"{base_prompt}\n\n{context_data_str}\n\n{specific_prompt}"
 
-    # --- OpenAI API Call with Retry Logic ---
-    client = OpenAI(api_key=os.getenv("REACT_APP_GPT_KEY"), project=os.getenv("REACT_APP_PROJECT_ID"))
+    # --- AI Provider API Call with Retry Logic ---
+    provider = get_ai_provider(config)
+    
+    backend_config = config.get("Backend", {})
+    ai_provider_type = backend_config.get("ai_provider", "openai")
     
     attempt = 0
     initial_delay = 1.0
@@ -116,63 +121,92 @@ def final_analysis_logic(section_index, answers, scores, final_analysis_config, 
     while True:
         try:
             model_config_from_json = section_config.get('model_config', {})
-            openai_config_from_app = config.get("Backend", {}).get("openai", {})
+            
+            # Get provider-specific configuration
+            if ai_provider_type == "ollama":
+                provider_config = backend_config.get("ollama", {})
+                model = model_config_from_json.get('model', provider_config.get('model', 'llama3.1:8b'))
+            else:
+                provider_config = backend_config.get("openai", {})
+                model = model_config_from_json.get('model', 'gpt-4o')
 
-            model = model_config_from_json.get('model', 'gpt-4o')
-            temperature = model_config_from_json.get('temperature', openai_config_from_app.get('default_temperature', 0.3))
-            max_tokens = model_config_from_json.get('max_output_tokens', openai_config_from_app.get('default_max_tokens', 1024))
-            stream = model_config_from_json.get('stream', False)
+            temperature = model_config_from_json.get('temperature', provider_config.get('default_temperature', 0.3))
+            max_tokens = model_config_from_json.get('max_output_tokens', provider_config.get('default_max_tokens', 1024))
+            stream = model_config_from_json.get('stream', provider_config.get('stream', False))
 
-            request_payload = {
+            messages = [{"role": "user", "content": full_prompt}]
+
+            print(f"\n--- DEBUG: {ai_provider_type.upper()} Request (Final Analysis) ---")
+            print(json.dumps({
                 "model": model,
-                "messages": [{"role": "user", "content": full_prompt}],
+                "messages": messages,
                 "max_tokens": max_tokens,
                 "temperature": temperature,
                 "stream": stream,
                 "response_format": {"type": "json_object"}
-            }
-
-            print("\n--- DEBUG: OpenAI Request (Final Analysis) ---")
-            print(json.dumps(request_payload, indent=2))
+            }, indent=2))
             print("----------------------------------------------\n")
 
             try:
-                completion = client.chat.completions.create(**request_payload)
-
                 response_content = ""
                 if stream:
                     # Handle streaming response by concatenating chunks
-                    # The streaming response sends parts of the JSON object. We need to
-                    # accumulate them all to form a complete, valid JSON string.
-                    for chunk in completion:
-                        content = chunk.choices[0].delta.content
-                        if content:
-                            response_content += content
+                    for chunk in provider.stream_chat_completion(
+                        messages=messages,
+                        model=model,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                        response_format={"type": "json_object"}
+                    ):
+                        response_content += chunk
                 else:
-                    # Handle non-streaming response (the whole object comes at once)
-                    response_content = completion.choices[0].message.content
+                    # Handle non-streaming response
+                    response = provider.chat_completion(
+                        messages=messages,
+                        model=model,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                        response_format={"type": "json_object"}
+                    )
+                    response_content = response['content']
 
-                print("\n--- DEBUG: OpenAI Response (Final Analysis) ---")
+                print(f"\n--- DEBUG: {ai_provider_type.upper()} Response (Final Analysis) ---")
                 print(response_content)
                 print("-----------------------------------------------\n")
 
-                # The rest of the logic expects a JSON object string
-                result_json = json.loads(response_content)
-                
-                return result_json
+                # Parse JSON response
+                try:
+                    result_json = json.loads(response_content)
+                    return result_json
+                except json.JSONDecodeError as je:
+                    print(f"JSON parsing error: {je}")
+                    print(f"Response content: {response_content}")
+                    # Try to extract JSON from the response
+                    import re
+                    json_match = re.search(r'\{.*\}', response_content, re.DOTALL)
+                    if json_match:
+                        return json.loads(json_match.group())
+                    else:
+                        # Return error if JSON parsing fails
+                        return {"error": f"Could not parse AI response. Raw response: {response_content[:200]}..."}
 
-            except BadRequestError as e:
-                print(f"!!! OpenAI BadRequestError: {e}")
+            except (BadRequestError, requests.exceptions.HTTPError) as e:
+                print(f"!!! {ai_provider_type} BadRequestError: {e}")
                 # This error often happens if the prompt is malformed or violates policy
-                return {"error": f"OpenAI API request error: {e}"}
+                return {"error": f"{ai_provider_type} API request error: {e}"}
             except Exception as e:
                 print(f"An unexpected error occurred during final analysis: {e}")
                 return {"error": "An unexpected error occurred on the server."}
 
-        except RateLimitError as e:
+        except (RateLimitError, requests.exceptions.HTTPError) as e:
             attempt += 1
-            retry_after_ms_str = e.response.headers.get('retry-after-ms')
-            api_wait_time = float(retry_after_ms_str) / 1000.0 if retry_after_ms_str else 0
+            
+            # Handle rate limiting
+            if hasattr(e, 'response') and hasattr(e.response, 'headers'):
+                retry_after_ms_str = e.response.headers.get('retry-after-ms')
+                api_wait_time = float(retry_after_ms_str) / 1000.0 if retry_after_ms_str else 0
+            else:
+                api_wait_time = 0
             
             exponential_delay = initial_delay * (2 ** (attempt - 1))
             jitter = (0.5 - (int.from_bytes(os.urandom(1), 'big') / 255.0)) * 0.5 # Jitter [-0.25, 0.25]

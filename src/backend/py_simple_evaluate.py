@@ -1,7 +1,9 @@
 import os
 import json
 import time
-from openai import OpenAI, RateLimitError
+import requests
+from openai import RateLimitError
+from src.backend.ai_providers import get_ai_provider
 
 # Define the absolute path to the project root.
 # We go up two levels from `src/backend/` to reach the root.
@@ -192,13 +194,22 @@ User's Answer:
 Return ONLY a single JSON object with 'score' (0-100) and 'explanation' (string) keys.
 """
 
-    # --- OpenAI API Call with Retry Logic ---
-    client = OpenAI(api_key=os.getenv("REACT_APP_GPT_KEY"), project=os.getenv("REACT_APP_PROJECT_ID"))
+    # --- AI Provider API Call with Retry Logic ---
+    provider = get_ai_provider(config)
     
-    openai_config = config.get("Backend", {}).get("openai", {})
-    model = openai_config.get("simple_evaluate_model", "gpt-4-1106-preview")
-    temperature = openai_config.get("default_temperature", 0.3)
-    max_tokens = openai_config.get("default_max_tokens", 1024)
+    backend_config = config.get("Backend", {})
+    ai_provider_type = backend_config.get("ai_provider", "openai")
+    
+    # Get provider-specific configuration
+    if ai_provider_type == "ollama":
+        provider_config = backend_config.get("ollama", {})
+        model = provider_config.get("model", "llama3.1:8b")
+    else:
+        provider_config = backend_config.get("openai", {})
+        model = provider_config.get("simple_evaluate_model", "gpt-4-1106-preview")
+    
+    temperature = provider_config.get("default_temperature", 0.3)
+    max_tokens = provider_config.get("default_max_tokens", 1024)
 
     attempt = 0
     initial_delay = 1.0  # seconds
@@ -210,29 +221,50 @@ Return ONLY a single JSON object with 'score' (0-100) and 'explanation' (string)
                 {"role": "system", "content": payload['system']},
                 {"role": "user", "content": full_prompt}
             ]
-            print("\n--- DEBUG: OpenAI Request (Simple Evaluate) ---")
+            print(f"\n--- DEBUG: {ai_provider_type.upper()} Request (Simple Evaluate) ---")
             print(json.dumps({"model": model, "messages": messages}, indent=2))
             print("-----------------------------------------------\n")
 
-            completion = client.chat.completions.create(
+            response = provider.chat_completion(
                 messages=messages,
                 model=model,
                 response_format={"type": "json_object"},
                 temperature=temperature,
                 max_tokens=max_tokens
             )
-            response_content = completion.choices[0].message.content
-            print("\n--- DEBUG: OpenAI Response (Simple Evaluate) ---")
+            
+            response_content = response['content']
+            print(f"\n--- DEBUG: {ai_provider_type.upper()} Response (Simple Evaluate) ---")
             print(response_content)
             print("------------------------------------------------\n")
-            return json.loads(response_content)
+            
+            # Parse JSON response
+            try:
+                return json.loads(response_content)
+            except json.JSONDecodeError as je:
+                print(f"JSON parsing error: {je}")
+                print(f"Response content: {response_content}")
+                # Try to extract JSON from the response
+                import re
+                json_match = re.search(r'\{.*\}', response_content, re.DOTALL)
+                if json_match:
+                    return json.loads(json_match.group())
+                else:
+                    # Return a default response if JSON parsing fails
+                    return {
+                        "score": 50,
+                        "explanation": f"Could not parse AI response. Raw response: {response_content[:200]}..."
+                    }
 
-        except RateLimitError as e:
+        except (RateLimitError, requests.exceptions.HTTPError) as e:
             attempt += 1
             
-            # Extract retry-after-ms header if available
-            retry_after_ms_str = e.response.headers.get('retry-after-ms')
-            api_wait_time = float(retry_after_ms_str) / 1000.0 if retry_after_ms_str else 0
+            # Handle rate limiting
+            if hasattr(e, 'response') and hasattr(e.response, 'headers'):
+                retry_after_ms_str = e.response.headers.get('retry-after-ms')
+                api_wait_time = float(retry_after_ms_str) / 1000.0 if retry_after_ms_str else 0
+            else:
+                api_wait_time = 0
             
             # Calculate exponential backoff with jitter to prevent thundering herd
             exponential_delay = initial_delay * (2 ** (attempt - 1))
@@ -245,5 +277,5 @@ Return ONLY a single JSON object with 'score' (0-100) and 'explanation' (string)
             print(f"Rate limit exceeded. Attempt {attempt}. Retrying in {final_wait:.2f} seconds...")
             time.sleep(final_wait)
         except Exception as e:
-            print(f"An unexpected error occurred with OpenAI API: {e}")
+            print(f"An unexpected error occurred with {ai_provider_type} API: {e}")
             raise

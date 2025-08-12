@@ -9,6 +9,15 @@
   },
   "Backend": {
     "local_api_port": 3001,
+    "ai_provider": "ollama",
+    "ai_provider_commented": "openai",
+    "ollama": {
+      "base_url": "http://localhost:11434",
+      "model": "nous-hermes:latest",
+      "default_temperature": 0.3,
+      "default_max_tokens": 1024,
+      "stream": true
+    },
     "openai": {
       "simple_evaluate_model": "gpt-4-1106-preview",
       "default_temperature": 0.3,
