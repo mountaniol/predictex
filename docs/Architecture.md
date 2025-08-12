@@ -20,7 +20,7 @@ The key principles are:
 ## 2. Component Versions
 
 - **React:** 18.2.0
-- **Node.js (for Vercel runtime):** 18.x
+- **Node.js:** 18.x
 - **OpenAI Node.js Library:** 5.12.2
 - **Python:** 3.x (as per local environment)
 - **Flask:** (as per `requirements.txt`)
@@ -63,12 +63,12 @@ A crucial feature is the question dependency system, which controls when a quest
 
 ## 4. Backend Architecture (`src/backend/`)
 
-The backend consists of a set of serverless functions responsible for securely interacting with the OpenAI API. There are two parallel implementations: Node.js/JavaScript (`.mjs`) and Python (`.py`).
+The backend consists of API functions responsible for securely interacting with the OpenAI API. There are two parallel implementations: Node.js/JavaScript (`.mjs`) and Python (`.py`).
 
-### 4.1. Node.js Implementation (for Vercel)
+### 4.1. Node.js Implementation (Legacy)
 
 -   **Location:** `src/backend/*.mjs`
--   **Server:** `local-api-server.mjs` (for local development), but primarily designed for the Vercel serverless environment.
+-   **Server:** `local-api-server.mjs` (for local development).
 -   **Key Files:**
     -   `simple-evaluate.mjs`: Handles scoring for a single question.
     -   `final-analysis.mjs`: Handles generation of the final report sections.
@@ -179,13 +179,13 @@ Communication happens via HTTP POST requests from the React frontend to the back
 ```bash
 npm run build
 ```
-This creates a production-ready build in the `build/` directory. For deployment, Vercel is configured via `vercel.json` to use this directory and the serverless functions in `src/backend/`.
+This creates a production-ready build in the `build/` directory.
 
 ---
 
 ## 9. Integration
 
-The application is designed for easy integration. The core logic is decoupled from the UI. The question set can be replaced by pointing `useLoadQuestions.js` to a different JSON file. The backend can be swapped between Node.js and Python by changing the proxy target in `package.json` or the Vercel rewrite rules.
+The application is designed for easy integration. The core logic is decoupled from the UI. The question set can be replaced by pointing `useLoadQuestions.js` to a different JSON file. The backend can be swapped between Node.js and Python by changing the proxy target in `package.json`.
 
 ---
 

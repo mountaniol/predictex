@@ -32,30 +32,15 @@ npm start
 ./start-dev.sh
 ```
 
-### Deploy to Vercel
-
-To deploy to [Vercel](https://vercel.com):
-
-1. **Install Vercel CLI:**
-```bash
-npm i -g vercel
-```
-
-2. **Deploy the project:**
-```bash
-vercel
-```
-
-3. **Configure environment variables in Vercel Dashboard:**
-   - `OPENAI_API_KEY` - your OpenAI API key
-
-Detailed instructions: [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md)
-
 ## 📁 Project Architecture
 
 ```
 qna-evaluator/
 ├── src/                    # React components
+│   ├── backend/           # Python backend
+│   │   ├── py_local_api_server.py  # Main server
+│   │   ├── py_simple_evaluate.py   # Answer evaluation
+│   │   └── py_final_analysis.py    # Final analysis
 │   ├── App.js             # Main component with AppContext
 │   ├── QuestionSection.js # Question display
 │   ├── MetaQuestionsSection.js # Meta questions
@@ -68,13 +53,11 @@ qna-evaluator/
 │   ├── q3.json           # New question format
 │   ├── questions2.json   # Legacy format
 │   └── ai-prompt.txt     # AI prompt
-├── api/                  # Vercel serverless functions
-│   └── evaluate.js       # API for answer evaluation
-├── backend/              # Local Express server
+├── backend/              # Local Express server (legacy)
 │   ├── server.js         # Main server
 │   └── package.json      # Backend dependencies
-├── vercel.json          # Vercel configuration
 ├── package.json         # Frontend dependencies
+├── run-backend.sh       # Python backend startup script
 └── start-dev.sh         # Startup script
 ```
 
@@ -112,13 +95,12 @@ qna-evaluator/
 - **CSS-in-JS** - styling
 
 ### Backend:
-- **Vercel Functions** - serverless API (production)
-- **Express.js** - local server (development)
+- **Python/Flask** - API server
+- **Express.js** - legacy local server
 - **OpenAI API** - AI answer evaluation
 - **Axios** - HTTP client
 
 ### Infrastructure:
-- **Vercel** - hosting and deployment
 - **GitHub** - version control
 - **npm** - dependency management
 
@@ -161,15 +143,9 @@ qna-evaluator/
 
 ## 🌐 Deployment
 
-### Vercel (recommended)
-- Automatic deployment from Git
-- Serverless functions
-- CDN for static files
-- SSL certificates
-- Monitoring and logs
-
 ### Local Server
-- Express.js server
+- Python Flask server for backend
+- React development server for frontend
 - For development and testing
 - Requires CORS configuration
 
@@ -194,9 +170,9 @@ MIT License
 ## 📞 Support
 
 If you encounter issues:
-1. Check [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md)
-2. Ensure all dependencies are installed
-3. Verify environment variables
+1. Ensure all dependencies are installed
+2. Verify environment variables
+3. Check that Python virtual environment is activated
 4. Create an Issue in the repository
 
 

@@ -3,7 +3,7 @@ import json
 import time
 from openai import OpenAI, RateLimitError, BadRequestError
 
-# Define the absolute path to the project root. This is robust for both local and Vercel execution.
+# Define the absolute path to the project root.
 # We go up two levels from `src/backend/` to reach the root.
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 

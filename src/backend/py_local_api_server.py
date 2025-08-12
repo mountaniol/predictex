@@ -2,7 +2,6 @@ import os
 import sys
 
 # Add the project root to the Python path to allow absolute imports
-# This makes the script runnable both locally and on Vercel
 PROJECT_ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 if PROJECT_ROOT_PATH not in sys.path:
     sys.path.append(PROJECT_ROOT_PATH)
@@ -17,7 +16,7 @@ import time
 from src.backend.py_simple_evaluate import evaluate_answer_logic
 from src.backend.py_final_analysis import final_analysis_logic, load_question_set
 
-# Define the absolute path to the project root. This is robust for both local and Vercel execution.
+# Define the absolute path to the project root.
 # We go up two levels from `src/backend/` to reach the root.
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
