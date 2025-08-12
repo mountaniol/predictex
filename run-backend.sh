@@ -27,4 +27,4 @@ fi
 
 # 4. Запускаем Python backend как модуль, чтобы работали относительные импорты
 echo ">>> Starting Python backend server..."
-python -u -m api.backend.py_local_api_server
+python -u -m src.backend.py_local_api_server
