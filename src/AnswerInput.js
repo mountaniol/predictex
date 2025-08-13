@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 
 /**
  * @brief Universal input component for rendering different question types
@@ -43,6 +43,17 @@ import React from 'react';
  * @workflow {4} Handles value changes and notifies parent component
  */
 const AnswerInput = ({ q, value, onChange, onBlur, labels, answers }) => {
+  const debounceTimerRef = useRef(null);
+
+  // Debounced onBlur for "Other" text fields to prevent excessive API calls
+  const debouncedOnBlur = useCallback((id) => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      onBlur(id);
+    }, 500); // Wait 500ms after user stops typing
+  }, [onBlur]);
 
   const handleFollowUpChange = (e, followUpQuestion) => {
     onChange(followUpQuestion.id, e.target.value, false);
@@ -121,7 +132,18 @@ const AnswerInput = ({ q, value, onChange, onBlur, labels, answers }) => {
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <select
                 value={isDropdownDisabled ? '' : inputValue}
-                onChange={(e) => onChange(q.id, e.target.value, true)}
+                onChange={(e) => {
+                  const selectedValue = e.target.value;
+                  // Don't submit immediately if selecting "other" without text
+                  let shouldSubmitNow = true;
+                  if (q.with_other && q.other_text_id && selectedValue === 'other') {
+                    const otherText = answers[q.other_text_id] || '';
+                    if (otherText.trim() === '') {
+                      shouldSubmitNow = false;
+                    }
+                  }
+                  onChange(q.id, selectedValue, shouldSubmitNow);
+                }}
                 onBlur={() => onBlur(q.id)}
                 style={{ flex: 1, padding: 8, borderRadius: 4, border: '1px solid #ddd' }}
                 disabled={isDropdownDisabled}
@@ -155,7 +177,17 @@ const AnswerInput = ({ q, value, onChange, onBlur, labels, answers }) => {
                     name={q.id}
                     value={option.code}
                     checked={inputValue === option.code}
-                    onChange={() => onChange(q.id, option.code, true)}
+                    onChange={() => {
+                      // Don't submit immediately if selecting "other" without text
+                      let shouldSubmitNow = true;
+                      if (q.with_other && q.other_text_id && option.code === 'other') {
+                        const otherText = answers[q.other_text_id] || '';
+                        if (otherText.trim() === '') {
+                          shouldSubmitNow = false;
+                        }
+                      }
+                      onChange(q.id, option.code, shouldSubmitNow);
+                    }}
                   />{' '}
                   {option.label}
                 </label>
@@ -170,8 +202,31 @@ const AnswerInput = ({ q, value, onChange, onBlur, labels, answers }) => {
             const newSelected = selectedOptions.includes(optionCode)
                 ? selectedOptions.filter(item => item !== optionCode)
                 : [...selectedOptions, optionCode];
-            onChange(q.id, newSelected, true);
+            
+            // Don't submit immediately if selecting/deselecting "other" without text
+            let shouldSubmitNow = true;
+            if (q.with_other && q.other_text_id && optionCode === 'other') {
+                const otherText = answers[q.other_text_id] || '';
+                // If selecting "other" and text field is empty, don't submit
+                if (!selectedOptions.includes('other') && otherText.trim() === '') {
+                    shouldSubmitNow = false;
+                }
+                // If only "other" will be selected and no text, don't submit
+                if (newSelected.length === 1 && newSelected[0] === 'other' && otherText.trim() === '') {
+                    shouldSubmitNow = false;
+                }
+            }
+            
+            onChange(q.id, newSelected, shouldSubmitNow);
         };
+        
+        // Handle "other" text field for multi-choice questions
+        // Priority: follow_ups over with_other to avoid duplication
+        const hasFollowUps = q.follow_ups && q.follow_ups.length > 0;
+        const otherTextId = q.other_text_id;
+        const otherTextValue = otherTextId ? answers[otherTextId] || '' : '';
+        const isOtherSelected = selectedOptions.includes('other');
+        
         return (
             <div>
                 {q.options?.map((option) => (
@@ -184,6 +239,26 @@ const AnswerInput = ({ q, value, onChange, onBlur, labels, answers }) => {
                         {option.label}
                     </label>
                 ))}
+                
+                {/* Render "Other" text field only if with_other is true, no follow_ups exist, and "other" is selected */}
+                {q.with_other && !hasFollowUps && otherTextId && isOtherSelected && (
+                    <div style={{ marginTop: '10px', marginLeft: '20px' }}>
+                        <textarea
+                            rows={3}
+                            value={otherTextValue}
+                            onChange={(e) => onChange(otherTextId, e.target.value, false)}
+                            onBlur={() => debouncedOnBlur(otherTextId)}
+                            placeholder="Please specify..."
+                            style={{
+                                width: '100%',
+                                padding: 8,
+                                borderRadius: 4,
+                                border: '1px solid #ddd',
+                                resize: 'vertical'
+                            }}
+                        />
+                    </div>
+                )}
             </div>
         );
 

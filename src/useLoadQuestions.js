@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { createDependencyReport } from './dependencyValidator.js';
 
 /**
  * @brief Custom hook to load all question data and application settings.
@@ -65,6 +66,27 @@ const useLoadQuestions = (questionSetId) => {
         // The questionSetId is the source of truth for which file to load.
         // setQuestionSetId(data.version || 'unknown'); 
         
+        // Validate dependency graph before setting sections
+        console.log('[useLoadQuestions] Validating dependency graph...');
+        const dependencyReport = createDependencyReport(data.questions);
+        
+        if (!dependencyReport.validation.isValid) {
+          console.error('[useLoadQuestions] Dependency validation failed:', dependencyReport);
+          const errorMessages = dependencyReport.validation.errors.join('; ');
+          throw new Error(`Dependency validation failed: ${errorMessages}`);
+        }
+        
+        if (dependencyReport.validation.warnings.length > 0) {
+          console.warn('[useLoadQuestions] Dependency warnings:', dependencyReport.validation.warnings);
+        }
+        
+        console.log('[useLoadQuestions] Dependency validation passed:', {
+          totalQuestions: dependencyReport.validation.stats.totalQuestions,
+          questionsWithDeps: dependencyReport.validation.stats.questionsWithDeps,
+          maxDepth: dependencyReport.validation.stats.maxDepthFound,
+          forwardReferences: dependencyReport.validation.stats.forwardReferences
+        });
+
         setSections(sections);
         setCalculations(data.calculations || null);
         setLabels(data.settings.labels || null);

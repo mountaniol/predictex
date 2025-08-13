@@ -111,7 +111,6 @@ def test_other_text_field_handling():
     print("   ✅ PASS: Regular option selection")
     
     print("\n🎉 All tests passed! 'Other' text field handling is working correctly.")
-    return True
 
 def test_ai_evaluation_integration():
     """
@@ -155,7 +154,6 @@ def test_ai_evaluation_integration():
     print("   ✅ PASS: AI evaluation receives full context from 'Other' text field")
     
     print("\n🔗 Integration test completed successfully!")
-    return True
 
 if __name__ == "__main__":
     print("🚀 Starting 'Other' text field bug fix validation...\n")

@@ -1,0 +1,44 @@
+{
+  "version": "test_circular",
+  "settings": {
+    "labels": {
+      "yes": "Yes",
+      "no": "No"
+    }
+  },
+  "questions": [
+    {
+      "id": "A",
+      "text": "Question A (depends on C)",
+      "cluster_name": "Test",
+      "position_in_cluster": 1,
+      "question_type": "text",
+      "score": "NO",
+      "ai_context": {
+        "include_answers": ["C"]
+      }
+    },
+    {
+      "id": "B",
+      "text": "Question B (depends on A)",
+      "cluster_name": "Test", 
+      "position_in_cluster": 2,
+      "question_type": "text",
+      "score": "NO",
+      "ai_context": {
+        "include_answers": ["A"]
+      }
+    },
+    {
+      "id": "C",
+      "text": "Question C (depends on B - creates cycle)",
+      "cluster_name": "Test",
+      "position_in_cluster": 3,
+      "question_type": "text", 
+      "score": "NO",
+      "ai_context": {
+        "include_answers": ["B"]
+      }
+    }
+  ]
+}

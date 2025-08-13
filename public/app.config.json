@@ -100,6 +100,8 @@
     },
     "ai_web_search_integration": {
       "enabled": true,
+      "force_search_all": true,
+      "disable_business_filters": true,
       "auto_search_triggers": ["найди", "поищи", "актуальная информация", "последние новости", "что происходит"],
       "max_search_results_in_context": 5,
       "search_result_format": "markdown"

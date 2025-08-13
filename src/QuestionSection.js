@@ -10,6 +10,11 @@
 import React, { useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { AppContext } from './App';
 import AnswerInput from './AnswerInput';
+import { useAtomicState } from './stateManager';
+import { validateQuestionAnswer, shouldTriggerAIEvaluation, isAnswerEmpty } from './validationUtils';
+import { createEvaluationProgressManager } from './evaluationProgressManager';
+import { createManagedRef } from './memoryManager';
+import { createDependencyInvalidator, createInvalidationHandler } from './dependencyInvalidator';
 
 const getQuestionDependencies = (question) => {
   return question.ai_context?.include_answers || [];
@@ -59,13 +64,62 @@ const QuestionSection = () => {
   const [submissionTrigger, setSubmissionTrigger] = useState(null);
   const startupCheckHasRun = useRef(false);
   const [evaluating, setEvaluating] = useState({});
+  
+  // Use managed ref for last evaluated answers to prevent memory accumulation
+  const lastEvaluatedAnswers = useRef(createManagedRef({
+    maxEntries: 500, // Reasonable limit for question answers
+    ttlMs: 2 * 60 * 60 * 1000, // 2 hours TTL for answer tracking
+    onCleanup: (removedCount) => console.log(`[QuestionSection] Cleaned up ${removedCount} old answer cache entries`)
+  })).current;
+
+  // Initialize atomic state manager for coordinated updates
+  const atomicState = useAtomicState({
+    scores: setScores,
+    explanations: setExplanations,
+    questionStates: setQuestionStates
+  }, {
+    scores: {},
+    explanations: {},
+    questionStates: {}
+  });
+
+  // Initialize evaluation progress manager
+  const progressManager = useRef(createEvaluationProgressManager({
+    timeoutMs: 30000, // 30 second timeout
+    maxConcurrentEvaluations: 5,
+    onTimeout: (questionId) => {
+      console.warn(`[QuestionSection] Evaluation timeout for: ${questionId}`);
+      setEvaluating(prev => {
+        const newEvaluating = { ...prev };
+        delete newEvaluating[questionId];
+        return newEvaluating;
+      });
+    }
+  })).current;
+
+  // Initialize dependency invalidator
+  const dependencyInvalidator = useRef(createDependencyInvalidator(sections, {
+    maxInvalidationDepth: 5, // Prevent excessive cascading
+    logInvalidations: true,
+    onInvalidation: (questionIds) => {
+      if (questionIds.length > 0) {
+        console.log(`[QuestionSection] Dependency invalidation triggered for ${questionIds.length} questions:`, questionIds);
+      }
+    }
+  })).current;
+
+  // Create invalidation handler
+  const handleInvalidation = useRef(createInvalidationHandler(
+    dependencyInvalidator, 
+    atomicState
+  )).current;
 
   // --- START: UTILITY AND HELPER FUNCTIONS ---
 
   const getQuestionState = useCallback((question, currentAnswers, currentScores, currentStates) => {
-    const hasStandardAnswer = currentAnswers[question.id] && currentAnswers[question.id] !== '';
-    const hasCustomAnswer = question.custom_text_input && currentAnswers[question.custom_text_input.id];
-    const hasAnswer = hasStandardAnswer || hasCustomAnswer;
+    // Use centralized validation logic
+    const validation = validateQuestionAnswer(question, currentAnswers);
+    const hasAnswer = validation.hasValidAnswer;
 
     const hasScore = currentScores[question.id] !== undefined;
     const dependencies = getQuestionDependencies(question);
@@ -90,16 +144,37 @@ const QuestionSection = () => {
 
   const computeAllStates = useCallback((currentScores, currentStates) => {
     const newStates = { ...currentStates };
-    for (const sec of sections) {
-      for (const q of sec.questions) {
-        newStates[q.id] = getQuestionState(q, answers, currentScores, newStates);
+    let statesChanged = true;
+    let iterations = 0;
+    const maxIterations = 5; // Prevent infinite loops in state computation
+    
+    // Iteratively compute states until they stabilize or max iterations reached
+    while (statesChanged && iterations < maxIterations) {
+      statesChanged = false;
+      iterations++;
+      
+      for (const sec of sections) {
+        for (const q of sec.questions) {
+          const newState = getQuestionState(q, answers, currentScores, newStates);
+          if (newStates[q.id] !== newState) {
+            newStates[q.id] = newState;
+            statesChanged = true;
+          }
+        }
       }
     }
+    
+    if (iterations >= maxIterations) {
+      console.warn('[computeAllStates] State computation did not stabilize after', maxIterations, 'iterations');
+    }
+    
     return newStates;
-  }, [sections, answers, getQuestionState]);
+  }, [sections, answers, getQuestionState, validateQuestionAnswer]);
 
   const evaluateAnswer = useCallback(async (question) => {
     if (!question) return null;
+
+    setEvaluating(prev => ({ ...prev, [question.id]: true }));
 
     try {
       const payload = {
@@ -124,12 +199,20 @@ const QuestionSection = () => {
       }
 
       const data = await response.json();
-      return (data.score !== undefined && data.explanation !== undefined) ? data : null;
+      const result = (data.score !== undefined && data.explanation !== undefined) ? data : null;
+      
+      return result;
 
     } catch (error) {
       console.error('Error evaluating answer:', error);
       alert(`Error evaluating answer: ${error.message}`);
       return null;
+    } finally {
+      setEvaluating(prev => {
+        const newEvaluating = { ...prev };
+        delete newEvaluating[question.id];
+        return newEvaluating;
+      });
     }
   }, [answers, appConfig]);
 
@@ -171,22 +254,16 @@ const QuestionSection = () => {
     let currentScores = { ...scores };
     let currentExplanations = { ...explanations };
     
-    const evaluationIds = initialQuestions.map(({question}) => question.id);
-    setEvaluating(prev => ({ ...prev, ...evaluationIds.reduce((acc, id) => ({ ...acc, [id]: true }), {}) }));
-
+    // Evaluate initial questions
     for(const {question} of initialQuestions) {
       const result = await evaluateAnswer(question);
       if (result) {
         currentScores[question.id] = result.score;
         currentExplanations[question.id] = result.explanation;
       }
+      // Complete progress tracking for this question
+      progressManager.completeEvaluation(question.id, result ? 'success' : 'no-result');
     }
-
-    setEvaluating(prev => {
-      const newEvaluating = { ...prev };
-      evaluationIds.forEach(id => delete newEvaluating[id]);
-      return newEvaluating;
-    });
 
     let currentStates = computeAllStates(currentScores, questionStates);
     let reevaluatedInPass = true;
@@ -199,24 +276,27 @@ const QuestionSection = () => {
 
       if (reevalInfo) {
         const { question: questionToReevaluate } = reevalInfo;
-        setEvaluating(prev => ({ ...prev, [questionToReevaluate.id]: true }));
         
-        const result = await evaluateAnswer(questionToReevaluate);
-        setEvaluating(prev => {
-          const newEvaluating = { ...prev };
-          delete newEvaluating[questionToReevaluate.id];
-          return newEvaluating;
-        });
-        if (result) {
-          currentScores[questionToReevaluate.id] = result.score;
-          currentExplanations[questionToReevaluate.id] = result.explanation;
-          currentStates = computeAllStates(currentScores, currentStates);
-          reevaluatedInPass = true;
+        // Start progress tracking for cascade evaluation
+        if (progressManager.startEvaluation(questionToReevaluate.id)) {
+          const result = await evaluateAnswer(questionToReevaluate);
+          
+          if (result) {
+            currentScores[questionToReevaluate.id] = result.score;
+            currentExplanations[questionToReevaluate.id] = result.explanation;
+            currentStates = computeAllStates(currentScores, currentStates);
+            reevaluatedInPass = true;
+          }
+          
+          // Complete progress tracking
+          progressManager.completeEvaluation(questionToReevaluate.id, result ? 'cascade-success' : 'cascade-no-result');
+        } else {
+          console.warn('[handleSubmitAndResolveDependencies] Could not start cascade evaluation for:', questionToReevaluate.id);
         }
       }
     }
 
-    console.log('[Orchestrator] Loop finished. Committing final state.');
+    console.log('[Orchestrator] Loop finished. Committing final state atomically.');
         if (calculations && calculations.length > 0) {
       currentScores = applyCalculations(currentScores, calculations);
     }
@@ -225,18 +305,24 @@ const QuestionSection = () => {
     console.log('[Orchestrator] Final explanations to commit:', currentExplanations);
     console.log('[Orchestrator] Final states to commit:', currentStates);
 
-    setScores(prev => ({...prev, ...currentScores}));
-    setExplanations(prev => ({...prev, ...currentExplanations}));
-    setQuestionStates(prev => ({...prev, ...currentStates}));
-  }, [calculations, computeAllStates, evaluateAnswer, explanations, findNextQuestionToReevaluate, questionStates, scores, sections, setExplanations, setQuestionStates, setScores]);
+    // Use atomic state manager to prevent intermediate renders with inconsistent state
+    atomicState.updateEvaluationResults({
+      scores: currentScores,
+      explanations: currentExplanations,
+      questionStates: currentStates
+    });
+    
+    // Progress flags are automatically cleared by progressManager.completeEvaluation calls above
+    // No manual cleanup needed here
+  }, [calculations, computeAllStates, evaluateAnswer, explanations, findNextQuestionToReevaluate, questionStates, scores, sections, setExplanations, setQuestionStates, setScores, atomicState]);
   
   const handleAnswerChange = useCallback((id, value, submitNow = false) => {
     setHighlightUnanswered(false); // Reset highlight on any answer change
 
     let newAnswers = { ...answers, [id]: value };
 
-    const question = sections.flatMap(s => s.questions).find(q => 
-        q.id === id || q.custom_text_input?.id === id
+    const question = sections.flatMap(s => s.questions).find(q =>
+        q.id === id || q.custom_text_input?.id === id || q.other_text_id === id
     );
 
     if (question && question.custom_text_input) {
@@ -249,60 +335,152 @@ const QuestionSection = () => {
         }
     }
 
+    // Handle automatic clearing of "Other" text field when "other" option is unchecked
+    if (question && question.other_text_id && id === question.id) {
+        // This is a change to the main question (selection options)
+        if (Array.isArray(value)) {
+            // For multi-choice questions
+            const isOtherSelected = value.includes('other');
+            if (!isOtherSelected && newAnswers[question.other_text_id]) {
+                // "Other" option was unchecked, clear the text field
+                console.log(`[handleAnswerChange] "Other" option unchecked, clearing text field ${question.other_text_id}`);
+                newAnswers[question.other_text_id] = '';
+            }
+        }
+    }
+
     setAnswers(newAnswers);
     
     if (question) {
-        const newState = getQuestionState(question, newAnswers, scores, questionStates);
-        setQuestionStates(prev => ({...prev, [question.id]: newState}));
+        // Use centralized validation logic
+        const validation = validateQuestionAnswer(question, newAnswers);
+        const hasAnswer = validation.hasValidAnswer;
 
-        if (submitNow && question.score !== "NO") {
+        // If answer became empty, clear score and explanation atomically
+        if (!hasAnswer) {
+            console.log(`[handleAnswerChange] Answer became empty for question ${question.id}, clearing score and explanation`);
+            atomicState.clearQuestionData(question.id);
+        }
+
+        // Trigger dependency invalidation for questions that depend on this one
+        const invalidatedQuestions = handleInvalidation(question.id, 'answer-change');
+        
+        // Update question state
+        const newState = getQuestionState(question, newAnswers, scores, questionStates);
+        const stateUpdates = { [question.id]: newState };
+        
+        // Also update states for invalidated questions (they may now be partially answered)
+        invalidatedQuestions.forEach(invalidatedId => {
+          const invalidatedQuestion = sections.flatMap(s => s.questions).find(q => q.id === invalidatedId);
+          if (invalidatedQuestion) {
+            const invalidatedState = getQuestionState(invalidatedQuestion, newAnswers, scores, questionStates);
+            stateUpdates[invalidatedId] = invalidatedState;
+          }
+        });
+        
+        setQuestionStates(prev => ({...prev, ...stateUpdates}));
+
+        if (submitNow && question.score !== "NO" && hasAnswer) {
             setSubmissionTrigger({ question });
         }
     }
-  }, [answers, getQuestionState, questionStates, scores, sections, setAnswers, setHighlightUnanswered, setQuestionStates]);
+  }, [answers, getQuestionState, questionStates, scores, sections, setAnswers, setHighlightUnanswered, setQuestionStates, atomicState, validateQuestionAnswer, handleInvalidation]);
 
   const handleAnswerBlur = useCallback((id) => {
-    const question = sections.flatMap(s => s.questions).find(q => q.id === id);
+    // Find question by id, or by other_text_id if this is an "other" text field
+    const question = sections.flatMap(s => s.questions).find(q => 
+      q.id === id || q.other_text_id === id
+    );
     if (!question) return;
     
     console.log('[handleAnswerBlur] Fired for:', question.id);
-    if (question.score !== "NO" && answers[question.id]) {
-      setSubmissionTrigger({ question });
+    
+    // Check if evaluation is already in progress for this question
+    if (progressManager.isInProgress(question.id)) {
+      console.log('[handleAnswerBlur] Evaluation already in progress for:', question.id, '- skipping');
+      return;
     }
-  }, [answers, sections]);
+    
+    // Use centralized validation logic instead of duplicated code
+    const hasValidAnswer = shouldTriggerAIEvaluation(question, answers);
+    
+    // Build a string representation of the current answer for comparison
+    const currentAnswerString = JSON.stringify({
+      main: answers[question.id],
+      other: question.other_text_id ? answers[question.other_text_id] : null,
+      custom: question.custom_text_input ? answers[question.custom_text_input.id] : null
+    });
+    
+    // Check if the answer has changed since last evaluation
+    if (lastEvaluatedAnswers.get(question.id) === currentAnswerString) {
+      console.log('[handleAnswerBlur] Answer unchanged since last evaluation for:', question.id, '- skipping');
+      return;
+    }
+    
+    // Only trigger submission if question has a valid answer
+    if (question.score !== "NO" && hasValidAnswer) {
+      console.log('[handleAnswerBlur] Triggering submission for:', question.id);
+      
+      // Try to start evaluation with progress manager
+      if (progressManager.startEvaluation(question.id)) {
+        lastEvaluatedAnswers.set(question.id, currentAnswerString);
+        setSubmissionTrigger({ question });
+      } else {
+        console.log('[handleAnswerBlur] Could not start evaluation (concurrent limit or already in progress):', question.id);
+      }
+    } else {
+      console.log('[handleAnswerBlur] No valid answer, skipping submission for:', question.id);
+    }
+  }, [answers, sections, shouldTriggerAIEvaluation]);
 
   const runStartupCheck = useCallback(async () => {
     let currentScores = { ...scores };
     let currentStates = computeAllStates(currentScores, questionStates);
 
     let reevaluatedInPass = true;
-    while (reevaluatedInPass) {
+    let passes = 0;
+    const MAX_PASSES = 10;
+
+    while (reevaluatedInPass && passes < MAX_PASSES) {
+      passes++;
       reevaluatedInPass = false;
       const reevalInfo = findNextQuestionToReevaluate(currentStates);
 
       if (reevalInfo) {
         const { question: questionToReevaluate } = reevalInfo;
-        setEvaluating(prev => ({ ...prev, [questionToReevaluate.id]: true }));
-        const result = await evaluateAnswer(questionToReevaluate);
-        setEvaluating(prev => {
-          const newEvaluating = { ...prev };
-          delete newEvaluating[questionToReevaluate.id];
-          return newEvaluating;
-        });
-        if (result) {
-          currentScores[questionToReevaluate.id] = result.score;
-          currentStates = computeAllStates(currentScores, currentStates);
-          reevaluatedInPass = true;
+        
+        // Use progress manager for startup check evaluations
+        if (progressManager.startEvaluation(questionToReevaluate.id)) {
+          const result = await evaluateAnswer(questionToReevaluate);
+          
+          if (result) {
+            currentScores[questionToReevaluate.id] = result.score;
+            currentStates = computeAllStates(currentScores, currentStates);
+            reevaluatedInPass = true;
+          }
+          
+          // Complete progress tracking
+          progressManager.completeEvaluation(questionToReevaluate.id, result ? 'startup-success' : 'startup-no-result');
+        } else {
+          console.warn('[runStartupCheck] Could not start startup evaluation for:', questionToReevaluate.id);
         }
       }
+    }
+
+    if (passes >= MAX_PASSES) {
+      console.warn('[runStartupCheck] Maximum passes reached! Possible dependency cycle detected.');
     }
 
     if (calculations && calculations.length > 0) {
       currentScores = applyCalculations(currentScores, calculations);
     }
-    setScores(currentScores);
-    setQuestionStates(currentStates);
-  }, [calculations, computeAllStates, evaluateAnswer, findNextQuestionToReevaluate, questionStates, scores, setQuestionStates, setScores]);
+    
+    // Use atomic state manager for consistent startup state updates
+    atomicState.updateAtomic({
+      scores: currentScores,
+      questionStates: currentStates
+    });
+  }, [calculations, computeAllStates, evaluateAnswer, findNextQuestionToReevaluate, questionStates, scores, setQuestionStates, setScores, atomicState]);
 
   const toggleExplanation = (questionId) => {
     setExpandedExplanations(prev => ({...prev, [questionId]: !prev[questionId]}));
@@ -337,6 +515,67 @@ const QuestionSection = () => {
       startupCheckHasRun.current = true;
     }
   }, [contextLoading, sections, runStartupCheck]);
+
+  // Update dependency invalidator when sections change
+  useEffect(() => {
+    if (sections && sections.length > 0) {
+      dependencyInvalidator.updateSections(sections);
+      
+      // Log dependency statistics for monitoring
+      const stats = dependencyInvalidator.getStats();
+      console.log('[QuestionSection] Dependency graph updated:', {
+        questions: stats.totalQuestions,
+        withDependents: stats.questionsWithDependents,
+        totalDeps: stats.totalDependencies
+      });
+      
+      // Validate dependency graph for potential issues
+      const validation = dependencyInvalidator.validateGraph();
+      if (!validation.isValid) {
+        console.error('[QuestionSection] Dependency graph validation failed:', validation.issues);
+      }
+      if (validation.warnings.length > 0) {
+        console.warn('[QuestionSection] Dependency graph warnings:', validation.warnings);
+      }
+    }
+  }, [sections, dependencyInvalidator]);
+
+  // Cleanup progress manager and memory refs on component unmount
+  useEffect(() => {
+    return () => {
+      console.log('[QuestionSection] Component unmounting, clearing all evaluation progress flags and memory refs');
+      progressManager.clearAll('component-unmount');
+      lastEvaluatedAnswers.clear();
+    };
+  }, [progressManager, lastEvaluatedAnswers]);
+
+  // Periodic memory cleanup and validation against current questions
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Clean up old entries based on TTL
+      lastEvaluatedAnswers.cleanup();
+      
+      // Validate against current question set and remove orphaned entries
+      if (sections && sections.length > 0) {
+        const currentQuestionIds = sections.flatMap(section => 
+          section.questions.map(q => q.id)
+        );
+        lastEvaluatedAnswers.validateAgainstQuestions(currentQuestionIds);
+      }
+      
+      // Log memory stats periodically for monitoring
+      const stats = lastEvaluatedAnswers.getStats();
+      if (stats.totalEntries > 100) { // Only log if significant usage
+        console.log('[QuestionSection] Memory stats:', {
+          entries: stats.totalEntries,
+          utilization: Math.round(stats.utilizationPercent) + '%',
+          avgAge: Math.round(stats.averageAge / 1000 / 60) + 'min'
+        });
+      }
+    }, 5 * 60 * 1000); // Every 5 minutes
+
+    return () => clearInterval(interval);
+  }, [sections, lastEvaluatedAnswers]);
 
   // --- END: LIFECYCLE HOOKS ---
 

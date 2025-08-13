@@ -7,6 +7,7 @@ from typing import Dict, Any, Optional, Generator, List
 from .ai_providers import AIProvider, OpenAIProvider, OllamaProvider, get_ai_provider
 from .search_router import SearchRouter
 from .search_models import SearchResult
+from .search_resource_manager import managed_search_operation
 
 
 class WebSearchEnabledAIProvider(AIProvider):
@@ -18,6 +19,8 @@ class WebSearchEnabledAIProvider(AIProvider):
         self.config = config
         self.search_config = config.get('ai_web_search_integration', {})
         self.enabled = self.search_config.get('enabled', True)
+        self.force_search_all = self.search_config.get('force_search_all', False)
+        self.disable_business_filters = self.search_config.get('disable_business_filters', False)
         self.auto_search_triggers = self.search_config.get('auto_search_triggers', [])
         self.max_search_results_in_context = self.search_config.get('max_search_results_in_context', 5)
         self.search_result_format = self.search_config.get('search_result_format', 'markdown')
@@ -26,15 +29,22 @@ class WebSearchEnabledAIProvider(AIProvider):
         """Determine if web search should be performed based on the conversation"""
         print(f"\n🔍 [WEB SEARCH DEBUG] Checking if search should be performed...")
         print(f"🔍 [WEB SEARCH DEBUG] Search enabled: {self.enabled}")
+        print(f"🔍 [WEB SEARCH DEBUG] Force search all: {self.force_search_all}")
+        print(f"🔍 [WEB SEARCH DEBUG] Disable business filters: {self.disable_business_filters}")
         
         if not self.enabled:
             print(f"🔍 [WEB SEARCH DEBUG] ❌ Search disabled in config")
             return False
             
-        # Check the last user message
+        # Check the last user message first
         if not messages:
             print(f"🔍 [WEB SEARCH DEBUG] ❌ No messages provided")
             return False
+        
+        # If force_search_all is enabled, always perform search (after message validation)
+        if self.force_search_all:
+            print(f"🔍 [WEB SEARCH DEBUG] ✅ FORCE SEARCH ALL enabled - performing search for all questions")
+            return True
             
         last_user_message = None
         for message in reversed(messages):
@@ -47,27 +57,29 @@ class WebSearchEnabledAIProvider(AIProvider):
             return False
             
         print(f"🔍 [WEB SEARCH DEBUG] Last user message: '{last_user_message[:100]}{'...' if len(last_user_message) > 100 else ''}'")
-        print(f"🔍 [WEB SEARCH DEBUG] Auto search triggers: {self.auto_search_triggers}")
         
         message_lower = last_user_message.lower()
         
-        # ВАЖНО: НЕ выполняем веб-поиск для бизнес-оценочных промптов
-        # Эти промпты содержат инструкции для оценки предоставленных данных
-        business_evaluation_indicators = [
-            'business evaluator', 'risk assessment', 'business acquisitions', 'investment',
-            'risk scores', 'risk factors', 'evaluate the provided answer',
-            'score from 0-100', 'extremely high risk', 'extremely low risk',
-            'return only a single json object', 'score.*explanation',
-            'strategic positioning', 'financial health', 'operational efficiency',
-            'regulatory compliance', 'customer concentration'
-        ]
-        
-        for indicator in business_evaluation_indicators:
-            if indicator.lower() in message_lower:
-                print(f"🔍 [WEB SEARCH DEBUG] ❌ Skipping search for business evaluation prompt containing: '{indicator}'")
-                return False
+        # Apply business evaluation filters only if not disabled
+        if not self.disable_business_filters:
+            business_evaluation_indicators = [
+                'business evaluator', 'risk assessment', 'business acquisitions', 'investment',
+                'risk scores', 'risk factors', 'evaluate the provided answer',
+                'score from 0-100', 'extremely high risk', 'extremely low risk',
+                'return only a single json object', 'score.*explanation',
+                'strategic positioning', 'financial health', 'operational efficiency',
+                'regulatory compliance', 'customer concentration'
+            ]
+            
+            for indicator in business_evaluation_indicators:
+                if indicator.lower() in message_lower:
+                    print(f"🔍 [WEB SEARCH DEBUG] ❌ Skipping search for business evaluation prompt containing: '{indicator}'")
+                    return False
+        else:
+            print(f"🔍 [WEB SEARCH DEBUG] 🔓 Business filters disabled - business evaluation questions will use search")
         
         # Check for explicit search triggers
+        print(f"🔍 [WEB SEARCH DEBUG] Auto search triggers: {self.auto_search_triggers}")
         for trigger in self.auto_search_triggers:
             if trigger.lower() in message_lower:
                 print(f"🔍 [WEB SEARCH DEBUG] ✅ EXPLICIT TRIGGER FOUND: '{trigger}'")
@@ -90,7 +102,6 @@ class WebSearchEnabledAIProvider(AIProvider):
                 return True
                 
         # Check for factual questions that might need current information
-        # Но ТОЛЬКО если это не бизнес-оценочный контекст
         factual_patterns = [
             r'\b(кто|что|где|когда|почему|как|сколько)\b.*\?',
             r'\b(who|what|where|when|why|how|how much|how many)\b.*\?',
@@ -102,7 +113,6 @@ class WebSearchEnabledAIProvider(AIProvider):
             if re.search(pattern, message_lower, re.IGNORECASE):
                 print(f"🔍 [WEB SEARCH DEBUG] FACTUAL PATTERN MATCHED: '{pattern}'")
                 # For factual questions, we might want to search if it seems to be about current data
-                # Но НЕ для бизнес-оценки
                 if any(word in message_lower for word in ['сейчас', 'now', 'текущ', 'current', 'сегодня', 'today']):
                     print(f"🔍 [WEB SEARCH DEBUG] ✅ FACTUAL + CURRENT CONTEXT FOUND")
                     return True
@@ -183,26 +193,30 @@ class WebSearchEnabledAIProvider(AIProvider):
                 # Perform search
                 try:
                     print(f"🔍 [WEB SEARCH DEBUG] Starting web search...")
-                    # Use thread executor to avoid event loop conflicts
+                    # Use resource-managed search operation
                     import concurrent.futures
                     
-                    def run_search():
-                        # Create new event loop in this thread
+                    def run_managed_search():
+                        # Create new event loop in this thread with proper resource management
                         import asyncio
                         loop = asyncio.new_event_loop()
                         asyncio.set_event_loop(loop)
                         try:
-                            from .search_models import SearchQuery
-                            query_obj = SearchQuery(text=search_query)
-                            return loop.run_until_complete(
-                                self.search_router.search(query_obj)
-                            )
+                            async def search_operation():
+                                web_search_config = self.config.get('web_search', {})
+                                async with managed_search_operation(web_search_config) as resource_manager:
+                                    from .search_models import SearchQuery
+                                    query_obj = SearchQuery(text=search_query)
+                                    return await self.search_router.search(query_obj)
+                            
+                            return loop.run_until_complete(search_operation())
                         finally:
+                            # Properly close the loop
                             loop.close()
                     
-                    # Run search in separate thread
+                    # Run search in separate thread with resource management
                     with concurrent.futures.ThreadPoolExecutor() as executor:
-                        future = executor.submit(run_search)
+                        future = executor.submit(run_managed_search)
                         search_response = future.result(timeout=30)  # 30 second timeout
                     
                     print(f"🔍 [WEB SEARCH DEBUG] Search completed. Found {len(search_response.results)} results")
@@ -255,26 +269,30 @@ class WebSearchEnabledAIProvider(AIProvider):
             if search_query:
                 # Perform search
                 try:
-                    # Use thread executor to avoid event loop conflicts
+                    # Use resource-managed search operation
                     import concurrent.futures
                     
-                    def run_search():
-                        # Create new event loop in this thread
+                    def run_managed_search():
+                        # Create new event loop in this thread with proper resource management
                         import asyncio
                         loop = asyncio.new_event_loop()
                         asyncio.set_event_loop(loop)
                         try:
-                            from .search_models import SearchQuery
-                            query_obj = SearchQuery(text=search_query)
-                            return loop.run_until_complete(
-                                self.search_router.search(query_obj)
-                            )
+                            async def search_operation():
+                                web_search_config = self.config.get('web_search', {})
+                                async with managed_search_operation(web_search_config) as resource_manager:
+                                    from .search_models import SearchQuery
+                                    query_obj = SearchQuery(text=search_query)
+                                    return await self.search_router.search(query_obj)
+                            
+                            return loop.run_until_complete(search_operation())
                         finally:
+                            # Properly close the loop
                             loop.close()
                     
-                    # Run search in separate thread
+                    # Run search in separate thread with resource management
                     with concurrent.futures.ThreadPoolExecutor() as executor:
-                        future = executor.submit(run_search)
+                        future = executor.submit(run_managed_search)
                         search_response = future.result(timeout=30)  # 30 second timeout
                         
                 except Exception as e:

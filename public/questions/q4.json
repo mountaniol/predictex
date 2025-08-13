@@ -223,22 +223,6 @@
           "label": "Other"
         }
       ],
-      "follow_ups": [
-        {
-          "when": {
-            "in": [
-              "other"
-            ]
-          },
-          "ask": {
-            "id": "SG01_OTHER",
-            "question_type": "text",
-            "ui": "textarea",
-            "placeholder": "Explain",
-            "max_chars": 160
-          }
-        }
-      ],
       "ai_context": {
         "include_answers": []
       },

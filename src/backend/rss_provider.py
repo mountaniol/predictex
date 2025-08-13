@@ -4,11 +4,12 @@
 import aiohttp
 import asyncio
 import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from datetime import datetime
 import feedparser
 from .search_providers import SearchProvider
 from .search_models import SearchQuery, SearchResult
+from .search_resource_manager import get_global_resource_manager
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ class RSSProvider(SearchProvider):
         self.cache_duration = config.get("cache_duration", 3600)  # 1 час
         self.session = None
         self._cache = {}  # Простой in-memory кэш для RSS лент
+        self._resource_manager: Optional[Any] = None
         
     def _get_default_feeds(self) -> Dict[str, List[str]]:
         """Получить стандартные RSS ленты"""
@@ -68,8 +70,11 @@ class RSSProvider(SearchProvider):
             
     async def _fetch_all_feeds(self) -> List[Dict]:
         """Получить все статьи из RSS лент"""
+        if not self._resource_manager:
+            self._resource_manager = await get_global_resource_manager(self.config)
+        
         if not self.session:
-            self.session = aiohttp.ClientSession()
+            self.session = await self._resource_manager.get_session("rss")
             
         all_articles = []
         tasks = []
@@ -271,8 +276,11 @@ class RSSProvider(SearchProvider):
         
     async def is_available(self) -> bool:
         """Проверить доступность хотя бы одной RSS ленты"""
+        if not self._resource_manager:
+            self._resource_manager = await get_global_resource_manager(self.config)
+        
         if not self.session:
-            self.session = aiohttp.ClientSession()
+            self.session = await self._resource_manager.get_session("rss")
             
         # Проверяем первую ленту из каждой категории
         for category, feeds in self.feeds.items():
@@ -296,12 +304,15 @@ class RSSProvider(SearchProvider):
         
     async def __aenter__(self):
         """Async context manager enter"""
+        if not self._resource_manager:
+            self._resource_manager = await get_global_resource_manager(self.config)
+        
         if not self.session:
-            self.session = aiohttp.ClientSession()
+            self.session = await self._resource_manager.get_session("rss")
         return self
         
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit"""
-        if self.session:
-            await self.session.close()
-            self.session = None
+        # Don't close the session directly - let resource manager handle it
+        # This prevents premature closure of shared sessions
+        self.session = None
