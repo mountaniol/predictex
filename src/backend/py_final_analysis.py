@@ -3,7 +3,7 @@ import json
 import time
 import requests
 from openai import RateLimitError, BadRequestError
-from src.backend.ai_providers import get_ai_provider
+from src.backend.ai_providers_with_search import get_ai_provider_with_search
 
 # Define the absolute path to the project root.
 # We go up two levels from `src/backend/` to reach the root.
@@ -109,7 +109,7 @@ def final_analysis_logic(section_index, answers, scores, final_analysis_config, 
     full_prompt = f"{base_prompt}\n\n{context_data_str}\n\n{specific_prompt}"
 
     # --- AI Provider API Call with Retry Logic ---
-    provider = get_ai_provider(config)
+    provider = get_ai_provider_with_search(config)
     
     backend_config = config.get("Backend", {})
     ai_provider_type = backend_config.get("ai_provider", "openai")
@@ -125,10 +125,14 @@ def final_analysis_logic(section_index, answers, scores, final_analysis_config, 
             # Get provider-specific configuration
             if ai_provider_type == "ollama":
                 provider_config = backend_config.get("ollama", {})
-                model = model_config_from_json.get('model', provider_config.get('model', 'llama3.1:8b'))
+                model = model_config_from_json.get('model', provider_config.get('model'))
+                if not model:
+                    raise ValueError("Ollama model must be specified in configuration")
             else:
                 provider_config = backend_config.get("openai", {})
-                model = model_config_from_json.get('model', 'gpt-4o')
+                model = model_config_from_json.get('model', provider_config.get('model'))
+                if not model:
+                    raise ValueError("OpenAI model must be specified in configuration")
 
             temperature = model_config_from_json.get('temperature', provider_config.get('default_temperature', 0.3))
             max_tokens = model_config_from_json.get('max_output_tokens', provider_config.get('default_max_tokens', 1024))

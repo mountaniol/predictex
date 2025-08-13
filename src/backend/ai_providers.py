@@ -40,6 +40,12 @@ class AIProvider(ABC):
             Chunks of response text
         """
         pass
+        
+    async def cleanup(self):
+        """
+        Clean up resources used by the provider
+        """
+        pass
 
 
 class OpenAIProvider(AIProvider):
@@ -52,7 +58,9 @@ class OpenAIProvider(AIProvider):
     
     def chat_completion(self, messages: list, **kwargs) -> Dict[str, Any]:
         """Send a chat completion request to OpenAI"""
-        model = kwargs.get('model', 'gpt-4-1106-preview')
+        model = kwargs.get('model')
+        if not model:
+            raise ValueError("Model is required for OpenAI chat completion")
         temperature = kwargs.get('temperature', 0.3)
         max_tokens = kwargs.get('max_tokens', 1024)
         response_format = kwargs.get('response_format', None)
@@ -80,7 +88,9 @@ class OpenAIProvider(AIProvider):
     
     def stream_chat_completion(self, messages: list, **kwargs) -> Generator[str, None, None]:
         """Stream a chat completion request from OpenAI"""
-        model = kwargs.get('model', 'gpt-4-1106-preview')
+        model = kwargs.get('model')
+        if not model:
+            raise ValueError("Model is required for OpenAI streaming chat completion")
         temperature = kwargs.get('temperature', 0.3)
         max_tokens = kwargs.get('max_tokens', 1024)
         response_format = kwargs.get('response_format', None)
@@ -102,6 +112,11 @@ class OpenAIProvider(AIProvider):
             content = chunk.choices[0].delta.content
             if content:
                 yield content
+                
+    async def cleanup(self):
+        """Clean up resources used by the provider"""
+        # OpenAI client doesn't need cleanup
+        pass
 
 
 class OllamaProvider(AIProvider):
@@ -123,7 +138,9 @@ class OllamaProvider(AIProvider):
     
     def chat_completion(self, messages: list, **kwargs) -> Dict[str, Any]:
         """Send a chat completion request to Ollama"""
-        model = kwargs.get('model', 'llama3.1:8b')
+        model = kwargs.get('model')
+        if not model:
+            raise ValueError("Model is required for Ollama chat completion")
         temperature = kwargs.get('temperature', 0.3)
         max_tokens = kwargs.get('max_tokens', 1024)
         response_format = kwargs.get('response_format', None)
@@ -177,7 +194,9 @@ class OllamaProvider(AIProvider):
     
     def stream_chat_completion(self, messages: list, **kwargs) -> Generator[str, None, None]:
         """Stream a chat completion request from Ollama"""
-        model = kwargs.get('model', 'llama3.1:8b')
+        model = kwargs.get('model')
+        if not model:
+            raise ValueError("Model is required for Ollama streaming chat completion")
         temperature = kwargs.get('temperature', 0.3)
         max_tokens = kwargs.get('max_tokens', 1024)
         response_format = kwargs.get('response_format', None)
@@ -224,6 +243,11 @@ class OllamaProvider(AIProvider):
                 chunk = json.loads(line)
                 if 'response' in chunk:
                     yield chunk['response']
+                    
+    async def cleanup(self):
+        """Clean up resources used by the provider"""
+        # Nothing to clean up for Ollama provider
+        pass
     
     def _messages_to_prompt(self, messages: list) -> str:
         """Convert OpenAI-style messages to a single prompt for Ollama"""

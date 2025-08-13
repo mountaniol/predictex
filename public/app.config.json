@@ -19,6 +19,7 @@
       "stream": true
     },
     "openai": {
+      "model": "gpt-4-1106-preview",
       "simple_evaluate_model": "gpt-4-1106-preview",
       "default_temperature": 0.3,
       "default_max_tokens": 1024
@@ -27,6 +28,81 @@
       "max_attempts": 5,
       "initial_delay_seconds": 1,
       "max_delay_seconds": 30
+    },
+    "web_search": {
+      "enabled": true,
+      "default_language": "ru",
+      "max_results": 10,
+      "timeout": 30,
+      "strategy": "smart_routing",
+      "classification": {
+        "confidence_threshold": 0.7,
+        "fallback_strategy": "all_providers"
+      },
+      "providers": {
+        "duckduckgo": {
+          "enabled": true,
+          "weight": 0.7,
+          "base_url": "https://api.duckduckgo.com/",
+          "html_url": "https://html.duckduckgo.com/html/",
+          "safe_search": "moderate",
+          "region": "ru-ru",
+          "timeout": 20
+        },
+        "wikipedia": {
+          "enabled": true,
+          "weight": 0.9,
+          "language": "ru",
+          "fallback_languages": ["en"],
+          "max_summary_length": 1000,
+          "include_images": false,
+          "timeout": 15
+        },
+        "rss": {
+          "enabled": true,
+          "weight": 0.8,
+          "cache_duration": 3600,
+          "timeout": 20,
+          "feeds": {
+            "news": [
+              "https://rss.rbc.ru/rbcnews/news.rss",
+              "https://tass.ru/rss/v2.xml",
+              "https://www.interfax.ru/rss.asp"
+            ],
+            "tech": [
+              "https://habr.com/ru/rss/hub/programming/all/",
+              "https://www.cnews.ru/inc/rss/news.xml"
+            ],
+            "international": [
+              "https://www.bbc.com/russian/news/rss.xml",
+              "https://russian.rt.com/rss"
+            ],
+            "business": [
+              "https://www.vedomosti.ru/rss/news",
+              "https://www.kommersant.ru/RSS/news.xml"
+            ]
+          }
+        }
+      },
+      "cache": {
+        "enabled": true,
+        "db_path": "data/search_cache.db",
+        "default_ttl": 3600,
+        "max_entries": 10000,
+        "cleanup_interval": 3600
+      },
+      "rate_limiting": {
+        "enabled": true,
+        "requests_per_minute": 60,
+        "requests_per_hour": 1000,
+        "burst_size": 10
+      }
+    },
+    "ai_web_search_integration": {
+      "enabled": true,
+      "auto_search_triggers": ["найди", "поищи", "актуальная информация", "последние новости", "что происходит"],
+      "max_search_results_in_context": 5,
+      "search_result_format": "markdown"
     }
   }
 }

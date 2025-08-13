@@ -3,7 +3,7 @@ import json
 import time
 import requests
 from openai import RateLimitError
-from src.backend.ai_providers import get_ai_provider
+from src.backend.ai_providers_with_search import get_ai_provider_with_search
 
 # Define the absolute path to the project root.
 # We go up two levels from `src/backend/` to reach the root.
@@ -195,7 +195,7 @@ Return ONLY a single JSON object with 'score' (0-100) and 'explanation' (string)
 """
 
     # --- AI Provider API Call with Retry Logic ---
-    provider = get_ai_provider(config)
+    provider = get_ai_provider_with_search(config)
     
     backend_config = config.get("Backend", {})
     ai_provider_type = backend_config.get("ai_provider", "openai")
@@ -203,10 +203,14 @@ Return ONLY a single JSON object with 'score' (0-100) and 'explanation' (string)
     # Get provider-specific configuration
     if ai_provider_type == "ollama":
         provider_config = backend_config.get("ollama", {})
-        model = provider_config.get("model", "llama3.1:8b")
+        model = provider_config.get("model")
+        if not model:
+            raise ValueError("Ollama model must be specified in configuration")
     else:
         provider_config = backend_config.get("openai", {})
-        model = provider_config.get("simple_evaluate_model", "gpt-4-1106-preview")
+        model = provider_config.get("simple_evaluate_model")
+        if not model:
+            raise ValueError("OpenAI simple_evaluate_model must be specified in configuration")
     
     temperature = provider_config.get("default_temperature", 0.3)
     max_tokens = provider_config.get("default_max_tokens", 1024)
