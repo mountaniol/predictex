@@ -31,5 +31,7 @@ beautifulsoup4==4.12.3
 lxml==5.3.0
 python-dateutil==2.9.0.post0
 # LangChain DuckDuckGo dependencies
-langchain-community>=0.0.10
+langchain-community>=0.3.0
 ddgs>=4.0.0
+# Исправляем предупреждения о переименованном пакете
+duckduckgo-search>=6.0.0

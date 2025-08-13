@@ -1,0 +1,10 @@
+{
+  "questions": [
+    {
+      "id": "SG01",
+      "text": "Why are you selling now?",
+      "question_type": "choice-multi",
+      "prompt_add": "Score intent of sale. Good: planned retirement/move/strategic refocus. Red: urgent cash need, lawsuits/tax issues, sale due to heavy losses. Penalize contradictions with SG02/SG04. Bands: 0–19 critical; 20–49 high; 50–79 moderate; 80–100 low."
+    }
+  ]
+}

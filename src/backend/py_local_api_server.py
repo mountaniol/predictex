@@ -174,6 +174,129 @@ def handle_final_analysis():
         return jsonify({"message": "Internal Server Error"}), 500
 
 
+@app.route('/api/test-web-search', methods=['POST'])
+def handle_test_web_search():
+    """
+    @brief Тестовый endpoint для проверки веб-поиска
+    """
+    print("\n🔍 === TEST WEB SEARCH ENDPOINT CALLED ===")
+    try:
+        data = request.get_json()
+        print(f"🔍 Received data: {data}")
+        
+        if not data or 'query' not in data:
+            return jsonify({"message": "Missing 'query' in request body"}), 400
+
+        query = data['query']
+        config = load_app_config()
+        
+        print(f"🔍 Testing search query: '{query}'")
+        print(f"🔍 Web search config enabled: {config.get('Backend', {}).get('web_search', {}).get('enabled', False)}")
+        
+        # Import here to avoid circular imports
+        from src.backend.ai_providers_with_search import get_ai_provider_with_search
+        
+        # Create test messages that should trigger search
+        test_messages = [
+            {"role": "user", "content": query}
+        ]
+        
+        print(f"🔍 Getting AI provider with search...")
+        provider = get_ai_provider_with_search(config)
+        
+        print(f"🔍 Calling chat_completion with test messages...")
+        
+        # Get AI provider type and model from config
+        backend_config = config.get("Backend", {})
+        ai_provider_type = backend_config.get("ai_provider", "openai")
+        
+        if ai_provider_type == "ollama":
+            provider_config = backend_config.get("ollama", {})
+            model = provider_config.get("model")
+            if not model:
+                return jsonify({"message": "Ollama model not configured in app.config.json"}), 500
+        else:
+            provider_config = backend_config.get("openai", {})
+            model = provider_config.get("model")
+            if not model:
+                return jsonify({"message": "OpenAI model not configured in app.config.json"}), 500
+        
+        print(f"🔍 Using model: {model}")
+        
+        response = provider.chat_completion(
+            messages=test_messages,
+            model=model,
+            max_tokens=150,
+            temperature=0.3
+        )
+        
+        print(f"🔍 Response received: {response.get('content', '')[:200]}...")
+        
+        return jsonify({
+            "success": True,
+            "query": query,
+            "response": response.get('content', ''),
+            "message": "Web search test completed"
+        })
+
+    except Exception as e:
+        print(f"🔍 ❌ Error in test web search: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"message": f"Test web search error: {str(e)}"}), 500
+
+
+@app.route('/api/direct-web-search', methods=['POST'])
+def handle_direct_web_search():
+    """
+    @brief Прямой endpoint для тестирования веб-поиска без AI
+    """
+    print("\n🔍 === DIRECT WEB SEARCH ENDPOINT CALLED ===")
+    try:
+        data = request.get_json()
+        print(f"🔍 Received data: {data}")
+        
+        if not data or 'query' not in data:
+            return jsonify({"message": "Missing 'query' in request body"}), 400
+
+        query = data['query']
+        config = load_app_config()
+        
+        print(f"🔍 Direct search query: '{query}'")
+        
+        # Import here to avoid circular imports
+        import asyncio
+        from src.backend.ai_providers_with_search import search_web
+        
+        print(f"🔍 Starting direct web search...")
+        
+        # Run the async search function
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            results = loop.run_until_complete(search_web(query, config))
+            print(f"🔍 Direct search completed. Found {len(results)} results")
+            
+            # Convert results to JSON
+            results_json = [result.to_dict() for result in results]
+            
+            return jsonify({
+                "success": True,
+                "query": query,
+                "results_count": len(results),
+                "results": results_json[:5],  # Limit to first 5 for display
+                "message": "Direct web search completed"
+            })
+        finally:
+            loop.close()
+
+    except Exception as e:
+        print(f"🔍 ❌ Error in direct web search: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"message": f"Direct web search error: {str(e)}"}), 500
+
+
 if __name__ == '__main__':
     """
     @brief Main entry point for running the Flask development server.

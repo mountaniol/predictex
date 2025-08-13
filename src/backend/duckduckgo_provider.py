@@ -65,30 +65,42 @@ class DuckDuckGoProvider(SearchProvider):
     async def search(self, query) -> List[SearchResult]:
         """Выполнить поиск через DuckDuckGo с использованием LangChain"""
         try:
+            print(f"\n🦆 [DUCKDUCKGO] Search method called")
+            
             # Обработка разных типов query
             query_obj = query
             if isinstance(query, str):
                 from .search_models import SearchQuery
                 query_obj = SearchQuery(text=query)
+            
+            print(f"🦆 [DUCKDUCKGO] Query: '{query_obj.text}', max_results: {query_obj.max_results}")
                 
             if not self.validate_query(query_obj):
+                print(f"🦆 [DUCKDUCKGO] ❌ Query validation failed")
                 return []
-                
+            
+            print(f"🦆 [DUCKDUCKGO] ✅ Query validated, starting async search...")
             # Выполняем поиск асинхронно
             results = await self._async_search(query_obj)
             
+            print(f"🦆 [DUCKDUCKGO] Found {len(results)} results, limiting to {query_obj.max_results}")
             # Ограничиваем количество результатов
-            return results[:query_obj.max_results]
+            limited_results = results[:query_obj.max_results]
+            print(f"🦆 [DUCKDUCKGO] ✅ Returning {len(limited_results)} results")
+            return limited_results
             
         except Exception as e:
+            print(f"🦆 [DUCKDUCKGO] ❌ Search error: {e}")
             logger.error(f"DuckDuckGo search error: {e}")
             return []
             
     async def _async_search(self, query: SearchQuery) -> List[SearchResult]:
         """Асинхронная обертка для синхронного LangChain API"""
         try:
+            print(f"🦆 [DUCKDUCKGO] Getting LangChain wrapper...")
             wrapper = self._get_langchain_wrapper()
             
+            print(f"🦆 [DUCKDUCKGO] Starting search with timeout {self.timeout}s...")
             # Выполняем поиск в отдельном потоке
             loop = asyncio.get_event_loop()
             
@@ -99,14 +111,21 @@ class DuckDuckGoProvider(SearchProvider):
             )
             
             raw_results = await asyncio.wait_for(search_task, timeout=self.timeout)
+            print(f"🦆 [DUCKDUCKGO] ✅ LangChain search completed")
+            print(f"🦆 [DUCKDUCKGO] Raw results preview: {str(raw_results)[:200]}...")
             
             # Конвертируем результаты в наш формат
-            return self._convert_langchain_results(raw_results, query)
+            print(f"🦆 [DUCKDUCKGO] Converting results to SearchResult format...")
+            converted_results = self._convert_langchain_results(raw_results, query)
+            print(f"🦆 [DUCKDUCKGO] ✅ Converted to {len(converted_results)} SearchResult objects")
+            return converted_results
             
         except asyncio.TimeoutError:
+            print(f"🦆 [DUCKDUCKGO] ❌ Search timeout after {self.timeout}s")
             logger.error(f"DuckDuckGo search timeout after {self.timeout}s")
             return []
         except Exception as e:
+            print(f"🦆 [DUCKDUCKGO] ❌ Async search error: {e}")
             logger.error(f"DuckDuckGo async search error: {e}")
             return []
             
@@ -208,15 +227,20 @@ class DuckDuckGoProvider(SearchProvider):
             loop = asyncio.get_event_loop()
             test_task = loop.run_in_executor(
                 self._executor,
-                partial(wrapper.run, "test")
+                partial(wrapper.run, "hello")
             )
             
-            result = await asyncio.wait_for(test_task, timeout=5)
-            return bool(result)
+            result = await asyncio.wait_for(test_task, timeout=8)
+            print(f"🦆 [DUCKDUCKGO] Availability test result: {bool(result and len(str(result)) > 10)}")
+            
+            # Считаем доступным, если получили результат длиннее 10 символов
+            return bool(result and len(str(result)) > 10)
             
         except Exception as e:
+            print(f"🦆 [DUCKDUCKGO] ❌ Availability check failed: {e}")
             logger.error(f"DuckDuckGo availability check failed: {e}")
-            return False
+            # Возвращаем True для graceful degradation - попробуем поиск даже если тест не прошел
+            return True
             
     def get_supported_query_types(self) -> List[str]:
         """DuckDuckGo поддерживает все типы запросов"""

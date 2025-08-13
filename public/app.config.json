@@ -13,7 +13,7 @@
     "ai_provider_commented": "openai",
     "ollama": {
       "base_url": "http://localhost:11434",
-      "model": "nous-hermes:latest",
+      "model": "nous-hermes2:34b",
       "default_temperature": 0.3,
       "default_max_tokens": 1024,
       "stream": true
@@ -31,8 +31,8 @@
     },
     "web_search": {
       "enabled": true,
-      "default_language": "ru",
-      "max_results": 10,
+      "default_language": "en",
+      "max_results": 5,
       "timeout": 30,
       "strategy": "smart_routing",
       "classification": {
@@ -46,7 +46,7 @@
           "base_url": "https://api.duckduckgo.com/",
           "html_url": "https://html.duckduckgo.com/html/",
           "safe_search": "moderate",
-          "region": "ru-ru",
+          "region": "us-en",
           "timeout": 20
         },
         "wikipedia": {

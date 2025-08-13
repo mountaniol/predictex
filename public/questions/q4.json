@@ -242,7 +242,7 @@
       "ai_context": {
         "include_answers": []
       },
-      "prompt_add": "Score intent of sale. Good: planned retirement/move/strategic refocus. Red: urgent cash need, lawsuits/tax issues, sale due to heavy losses. Penalize contradictions with SG02/SG04. Bands: 0–19 critical; 20–49 high; 50–79 moderate; 80–100 low."
+      "prompt_add": "Score intent of sale STRICTLY by these rules. CRITICAL RULE: If user selected 'Declining sales' answer, you MUST give score between 0-19 (critical risk), no exceptions. Good answers (score 80-100): planned retirement/move/strategic refocus. Bad answers (score 0-19): urgent cash need, lawsuits/tax issues, declining sales. Follow bands exactly: 0–19 critical; 20–49 high; 50–79 moderate; 80–100 low."
     },
     {
       "id": "SG02",

@@ -1,0 +1,10 @@
+{
+  "questions": [
+    {
+      "id": "TEST01",
+      "text": "What are the latest trends in artificial intelligence and machine learning for business applications?",
+      "question_type": "text",
+      "prompt_add": "Focus on business impact and practical applications."
+    }
+  ]
+}
