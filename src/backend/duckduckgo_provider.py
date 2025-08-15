@@ -1,269 +1,214 @@
 """
-Провайдер DuckDuckGo для общего веб-поиска с использованием LangChain
+Провайдер DuckDuckGo для общего веб-поиска с использованием нового пакета ddgs
 """
 import asyncio
 import logging
-import re
 from typing import List, Dict, Any, Optional
-from functools import partial
 from datetime import datetime
+import warnings
 
 from .search_providers import SearchProvider
 from .search_models import SearchQuery, SearchResult
 
 logger = logging.getLogger(__name__)
 
+# Suppress the deprecation warning from langchain
+warnings.filterwarnings("ignore", category=RuntimeWarning, module="langchain_community.utilities.duckduckgo_search")
+
 
 class DuckDuckGoProvider(SearchProvider):
-    """Провайдер для поиска через DuckDuckGo с использованием LangChain"""
+    """Провайдер для поиска через DuckDuckGo"""
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         self.region = config.get("region", "ru-ru")
         self.safe_search_setting = config.get("safe_search", "moderate")
         self.max_results_setting = config.get("max_results", 10)
-        self._langchain_wrapper = None
-        self._executor = None
+        self._ddgs_client = None
         
-    def _get_langchain_wrapper(self):
-        """Ленивая инициализация LangChain wrapper'а"""
-        if self._langchain_wrapper is None:
+    def _get_ddgs_client(self):
+        """Ленивая инициализация DDGS клиента"""
+        if self._ddgs_client is None:
             try:
-                from langchain_community.utilities import DuckDuckGoSearchAPIWrapper
-                
-                # Преобразуем конфигурацию для LangChain
-                safesearch = self._convert_safe_search(self.safe_search_setting)
-                
-                self._langchain_wrapper = DuckDuckGoSearchAPIWrapper(
-                    region=self.region,
-                    safesearch=safesearch,
-                    time=None,  # Не ограничиваем по времени
-                    max_results=self.max_results_setting,
-                    backend="auto"  # Используем auto вместо deprecated api
-                )
-                
-                logger.info(f"DuckDuckGo LangChain wrapper initialized with region={self.region}, safesearch={safesearch}")
-                
+                # Try to use the new ddgs package directly
+                try:
+                    from ddgs import DDGS
+                    self._ddgs_client = DDGS()
+                    logger.info("Using new DDGS package directly")
+                except ImportError:
+                    # Fallback to duckduckgo_search if ddgs not available
+                    from duckduckgo_search import DDGS
+                    self._ddgs_client = DDGS()
+                    logger.info("Using legacy duckduckgo_search package")
+                    
             except ImportError as e:
-                logger.error(f"Failed to import LangChain DuckDuckGo wrapper: {e}")
-                raise
+                logger.error(f"Failed to import DuckDuckGo search package: {e}")
+                # Final fallback to LangChain wrapper
+                return self._get_langchain_fallback()
             except Exception as e:
-                logger.error(f"Failed to initialize LangChain DuckDuckGo wrapper: {e}")
+                logger.error(f"Failed to initialize DDGS client: {e}")
                 raise
                 
-        return self._langchain_wrapper
-        
+        return self._ddgs_client
+    
+    def _get_langchain_fallback(self):
+        """Fallback to LangChain wrapper if direct DDGS fails"""
+        try:
+            from langchain_community.utilities import DuckDuckGoSearchAPIWrapper
+            
+            safesearch = self._convert_safe_search(self.safe_search_setting)
+            
+            wrapper = DuckDuckGoSearchAPIWrapper(
+                region=self.region,
+                safesearch=safesearch,
+                time=None,
+                max_results=self.max_results_setting,
+                backend="auto"
+            )
+            
+            logger.info("Using LangChain DuckDuckGoSearchAPIWrapper as fallback")
+            return wrapper
+            
+        except ImportError as e:
+            logger.error(f"Failed to import LangChain wrapper: {e}")
+            raise
+    
     def _convert_safe_search(self, safe_search: str) -> str:
-        """Конвертирует safe_search параметр в формат LangChain"""
-        safe_search_mapping = {
+        """Конвертация safe_search параметра"""
+        mapping = {
             "strict": "strict",
             "moderate": "moderate", 
             "off": "off"
         }
-        return safe_search_mapping.get(safe_search.lower(), "moderate")
+        return mapping.get(safe_search, "moderate")
         
-    async def search(self, query) -> List[SearchResult]:
-        """Выполнить поиск через DuckDuckGo с использованием LangChain"""
+    async def search(self, query: SearchQuery) -> List[SearchResult]:
+        """Выполнить поиск через DuckDuckGo"""
+        print(f"🦆 [DUCKDUCKGO] Starting search for: '{query.text}'")
+        
+        # Validate query
+        if not self.validate_query(query):
+            print(f"🦆 [DUCKDUCKGO] ❌ Query validation failed")
+            return []
+        
         try:
-            print(f"\n🦆 [DUCKDUCKGO] Search method called")
+            # Get the search client
+            client = self._get_ddgs_client()
             
-            # Обработка разных типов query
-            query_obj = query
-            if isinstance(query, str):
-                from .search_models import SearchQuery
-                query_obj = SearchQuery(text=query)
-            
-            print(f"🦆 [DUCKDUCKGO] Query: '{query_obj.text}', max_results: {query_obj.max_results}")
-                
-            if not self.validate_query(query_obj):
-                print(f"🦆 [DUCKDUCKGO] ❌ Query validation failed")
+            # Execute search based on client type
+            if hasattr(client, 'text'):  # New DDGS API
+                results = await self._search_with_ddgs(client, query)
+            elif hasattr(client, 'run'):  # LangChain wrapper
+                results = await self._search_with_langchain(client, query)
+            else:
+                logger.error("Unknown search client type")
                 return []
-            
-            print(f"🦆 [DUCKDUCKGO] ✅ Query validated, starting async search...")
-            # Выполняем поиск асинхронно
-            results = await self._async_search(query_obj)
-            
-            print(f"🦆 [DUCKDUCKGO] Found {len(results)} results, limiting to {query_obj.max_results}")
-            # Ограничиваем количество результатов
-            limited_results = results[:query_obj.max_results]
-            print(f"🦆 [DUCKDUCKGO] ✅ Returning {len(limited_results)} results")
-            return limited_results
+                
+            print(f"🦆 [DUCKDUCKGO] ✅ Found {len(results)} results")
+            return results[:query.max_results]
             
         except Exception as e:
-            print(f"🦆 [DUCKDUCKGO] ❌ Search error: {e}")
             logger.error(f"DuckDuckGo search error: {e}")
+            print(f"🦆 [DUCKDUCKGO] ❌ Search error: {e}")
             return []
-            
-    async def _async_search(self, query: SearchQuery) -> List[SearchResult]:
-        """Асинхронная обертка для синхронного LangChain API"""
+    
+    async def _search_with_ddgs(self, client, query: SearchQuery) -> List[SearchResult]:
+        """Search using direct DDGS client"""
         try:
-            print(f"🦆 [DUCKDUCKGO] Getting LangChain wrapper...")
-            wrapper = self._get_langchain_wrapper()
-            
-            print(f"🦆 [DUCKDUCKGO] Starting search with timeout {self.timeout}s...")
-            # Выполняем поиск в отдельном потоке
+            # Run in executor since DDGS is synchronous
             loop = asyncio.get_event_loop()
             
-            # Используем asyncio.wait_for для timeout
-            search_task = loop.run_in_executor(
-                self._executor,
-                partial(wrapper.run, query.text)
-            )
+            def sync_search():
+                results = []
+                # Use text search method - ddgs.text() requires query as first positional argument
+                for result in client.text(
+                    query.text,  # First positional argument
+                    region=self.region,
+                    safesearch=self.safe_search_setting,
+                    max_results=query.max_results * 2  # Get extra for filtering
+                ):
+                    results.append(result)
+                    if len(results) >= query.max_results * 2:
+                        break
+                return results
             
-            raw_results = await asyncio.wait_for(search_task, timeout=self.timeout)
-            print(f"🦆 [DUCKDUCKGO] ✅ LangChain search completed")
-            print(f"🦆 [DUCKDUCKGO] Raw results preview: {str(raw_results)[:200]}...")
+            raw_results = await loop.run_in_executor(None, sync_search)
             
-            # Конвертируем результаты в наш формат
-            print(f"🦆 [DUCKDUCKGO] Converting results to SearchResult format...")
-            converted_results = self._convert_langchain_results(raw_results, query)
-            print(f"🦆 [DUCKDUCKGO] ✅ Converted to {len(converted_results)} SearchResult objects")
-            return converted_results
-            
-        except asyncio.TimeoutError:
-            print(f"🦆 [DUCKDUCKGO] ❌ Search timeout after {self.timeout}s")
-            logger.error(f"DuckDuckGo search timeout after {self.timeout}s")
-            return []
-        except Exception as e:
-            print(f"🦆 [DUCKDUCKGO] ❌ Async search error: {e}")
-            logger.error(f"DuckDuckGo async search error: {e}")
-            return []
-            
-    def _convert_langchain_results(self, raw_results: str, query: SearchQuery) -> List[SearchResult]:
-        """Конвертирует результаты LangChain в наш формат SearchResult"""
-        results = []
-        
-        if not raw_results:
-            return results
-            
-        try:
-            logger.debug(f"Converting raw results: {raw_results}")
-            
-            # LangChain возвращает результаты в разных форматах
-            # Попробуем несколько подходов к парсингу
-            
-            # Подход 1: Разбиваем по двойным переносам (параграфы)
-            paragraphs = [p.strip() for p in raw_results.strip().split('\n\n') if p.strip()]
-            
-            if not paragraphs:
-                # Подход 2: Разбиваем по одинарным переносам
-                paragraphs = [p.strip() for p in raw_results.strip().split('\n') if p.strip()]
-            
-            for i, paragraph in enumerate(paragraphs):
-                if not paragraph:
-                    continue
-                
-                title = ""
-                url = ""
-                description = paragraph
-                
-                # Пытаемся извлечь информацию разными способами
-                
-                # Формат 1: [title](url) description
-                markdown_match = re.match(r'\[([^\]]+)\]\(([^)]+)\)\s*(.*)', paragraph)
-                if markdown_match:
-                    title = markdown_match.group(1).strip()
-                    url = markdown_match.group(2).strip()
-                    description = markdown_match.group(3).strip() or title
-                else:
-                    # Формат 2: title - description
-                    dash_match = re.match(r'^([^-]+)\s*-\s*(.+)$', paragraph)
-                    if dash_match:
-                        title = dash_match.group(1).strip()
-                        description = dash_match.group(2).strip()
-                    else:
-                        # Формат 3: просто текст, используем первые слова как заголовок
-                        words = paragraph.split()
-                        if len(words) > 5:
-                            title = " ".join(words[:5]) + "..."
-                            description = paragraph
-                        else:
-                            title = paragraph
-                            description = paragraph
-                
-                # Убираем лишние символы и пробелы
-                title = re.sub(r'\s+', ' ', title).strip()
-                description = re.sub(r'\s+', ' ', description).strip()
-                
-                # Пропускаем слишком короткие результаты
-                if len(title) < 3 and len(description) < 10:
-                    continue
-                
-                # Создаем SearchResult
-                result = SearchResult(
-                    title=title or f"DuckDuckGo Result {i+1}",
-                    content=description,
-                    url=url,
-                    source="duckduckgo",
-                    score=max(0.9 - i * 0.1, 0.1),  # Убывающий score
+            # Convert to SearchResult objects
+            search_results = []
+            for result in raw_results:
+                search_result = SearchResult(
+                    title=result.get('title', ''),
+                    content=result.get('body', result.get('snippet', '')),
+                    url=result.get('href', result.get('link', '')),
+                    source='duckduckgo',
+                    score=0.7,  # Default score
                     timestamp=datetime.now(),
                     metadata={
-                        "type": "web_result",
-                        "langchain_source": True,
-                        "query_type": query.query_type,
-                        "position": i + 1,
-                        "raw_paragraph": paragraph[:100]  # For debugging
+                        'snippet': result.get('body', ''),
+                        'source_name': 'DuckDuckGo Web Search'
                     }
                 )
+                search_results.append(search_result)
                 
-                results.append(result)
-                
-                # Ограничиваем количество результатов
-                if len(results) >= query.max_results:
-                    break
-                    
+            return search_results
+            
         except Exception as e:
-            logger.error(f"Error converting LangChain results: {e}")
-            logger.debug(f"Raw results: {raw_results}")
-            
-        return results
-        
-    async def is_available(self) -> bool:
-        """Проверить доступность DuckDuckGo через LangChain"""
+            logger.error(f"Error in DDGS search: {e}")
+            return []
+    
+    async def _search_with_langchain(self, wrapper, query: SearchQuery) -> List[SearchResult]:
+        """Search using LangChain wrapper (fallback)"""
         try:
-            wrapper = self._get_langchain_wrapper()
-            
-            # Выполняем тестовый запрос
             loop = asyncio.get_event_loop()
-            test_task = loop.run_in_executor(
-                self._executor,
-                partial(wrapper.run, "hello")
+            
+            # Run LangChain search in executor
+            raw_results = await loop.run_in_executor(
+                None,
+                wrapper.run,
+                query.text
             )
             
-            result = await asyncio.wait_for(test_task, timeout=8)
-            print(f"🦆 [DUCKDUCKGO] Availability test result: {bool(result and len(str(result)) > 10)}")
+            # Parse string results from LangChain
+            search_results = []
             
-            # Считаем доступным, если получили результат длиннее 10 символов
-            return bool(result and len(str(result)) > 10)
+            if isinstance(raw_results, str):
+                # LangChain returns a string with snippets
+                # Try to parse individual results
+                import re
+                snippets = re.split(r'\n\n+', raw_results)
+                
+                for i, snippet in enumerate(snippets[:query.max_results]):
+                    if snippet.strip():
+                        search_result = SearchResult(
+                            title=f"Result {i+1}",
+                            content=snippet.strip(),
+                            url='',
+                            source='duckduckgo',
+                            score=0.6,
+                            timestamp=datetime.now(),
+                            metadata={
+                                'snippet': snippet.strip(),
+                                'source_name': 'DuckDuckGo (via LangChain)'
+                            }
+                        )
+                        search_results.append(search_result)
+                        
+            return search_results
             
         except Exception as e:
-            print(f"🦆 [DUCKDUCKGO] ❌ Availability check failed: {e}")
-            logger.error(f"DuckDuckGo availability check failed: {e}")
-            # Возвращаем True для graceful degradation - попробуем поиск даже если тест не прошел
-            return True
+            logger.error(f"Error in LangChain search: {e}")
+            return []
+            
+    async def is_available(self) -> bool:
+        """Проверить доступность DuckDuckGo"""
+        try:
+            # Try to initialize client
+            client = self._get_ddgs_client()
+            return client is not None
+        except Exception:
+            return False
             
     def get_supported_query_types(self) -> List[str]:
-        """DuckDuckGo поддерживает все типы запросов"""
-        return ["general", "factual", "current"]
-        
-    async def __aenter__(self):
-        """Async context manager enter"""
-        # Не нужно создавать сессию как в старой версии
-        return self
-        
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """Async context manager exit"""
-        # Очищаем ресурсы если нужно
-        if self._executor:
-            self._executor.shutdown(wait=False)
-            self._executor = None
-            
-    def cleanup(self):
-        """Очистка ресурсов"""
-        if self._executor:
-            self._executor.shutdown(wait=False)
-            self._executor = None
-
-
-# Для обратной совместимости - экспортируем класс под старым именем
-DuckDuckGoLangChainProvider = DuckDuckGoProvider
+        """DuckDuckGo подходит для всех типов запросов"""
+        return ["general", "factual", "current", "news", "technical"]
