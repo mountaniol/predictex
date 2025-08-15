@@ -6,6 +6,8 @@
  * @author Predictex AI
  */
 
+import React from 'react';
+
 /**
  * Creates a managed evaluation progress tracker
  * @param {Object} options - Configuration options
