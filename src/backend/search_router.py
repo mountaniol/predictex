@@ -61,6 +61,18 @@ class SearchRouter:
             )
             logger.info("RSS provider initialized")
             
+        # Initialize mock providers if enabled
+        if self.config.get("enable_mock_providers", False):
+            from .mock_providers import get_mock_provider
+            
+            mock_types = ['statistics', 'industry_reports', 'government_data', 'academic', 'local_business']
+            for mock_type in mock_types:
+                try:
+                    providers[mock_type] = get_mock_provider(mock_type, {})
+                    logger.info(f"{mock_type} mock provider initialized")
+                except Exception as e:
+                    logger.warning(f"Failed to initialize {mock_type} mock provider: {e}")
+            
         if not providers:
             logger.warning("No search providers enabled!")
             

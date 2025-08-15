@@ -1,9 +1,10 @@
 """
-Провайдер Wikipedia для энциклопедических запросов
+Провайдер Wikipedia с полным управлением ресурсами
 """
 import aiohttp
 import asyncio
 import logging
+import ssl
 from typing import List, Dict, Any, Optional
 from urllib.parse import quote
 from .search_providers import SearchProvider
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class WikipediaProvider(SearchProvider):
-    """Провайдер для поиска в Wikipedia"""
+    """Провайдер для поиска в Wikipedia с полным управлением ресурсами"""
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
@@ -23,47 +24,70 @@ class WikipediaProvider(SearchProvider):
         self.search_url = f"https://{self.language}.wikipedia.org/w/api.php"
         self.max_summary_length = config.get("max_summary_length", 1000)
         self.include_images = config.get("include_images", False)
-        self.session = None
         
     async def search(self, query: SearchQuery) -> List[SearchResult]:
-        """Поиск в Wikipedia"""
+        """Поиск в Wikipedia с правильным управлением ресурсами"""
+        # Create connector with proper SSL and connection settings
+        connector = aiohttp.TCPConnector(
+            ssl=ssl.create_default_context(),
+            limit=10,  # Limit total connections
+            limit_per_host=5,  # Limit per host
+            ttl_dns_cache=300,  # DNS cache timeout
+            enable_cleanup_closed=True,  # Enable cleanup of closed connections
+            force_close=True  # Force close connections
+        )
+        
+        # Create timeout settings
+        timeout = aiohttp.ClientTimeout(
+            total=self.timeout,
+            connect=5,
+            sock_connect=5,
+            sock_read=10
+        )
+        
         try:
-            # Сначала ищем статьи
-            search_results = await self._search_articles(query.text, query.max_results * 2)
-            
-            if not search_results:
-                # Пробуем fallback языки
-                for lang in self.fallback_languages:
-                    self.language = lang
-                    self.base_url = f"https://{lang}.wikipedia.org/api/rest_v1/"
-                    self.search_url = f"https://{lang}.wikipedia.org/w/api.php"
-                    search_results = await self._search_articles(query.text, query.max_results * 2)
-                    if search_results:
-                        break
-            
-            results = []
-            for article in search_results[:query.max_results]:
-                # Получаем детальную информацию о статье
-                article_data = await self._get_article_data(article["title"])
-                if article_data:
-                    results.append(self._article_to_result(article_data, article))
-                    
-            return results
+            # Use connector in session
+            async with aiohttp.ClientSession(
+                connector=connector,
+                timeout=timeout,
+                connector_owner=True  # Session owns the connector
+            ) as session:
+                # Сначала ищем статьи
+                search_results = await self._search_articles(session, query.text, query.max_results * 2)
+                
+                if not search_results:
+                    # Пробуем fallback языки
+                    for lang in self.fallback_languages:
+                        self.language = lang
+                        self.base_url = f"https://{lang}.wikipedia.org/api/rest_v1/"
+                        self.search_url = f"https://{lang}.wikipedia.org/w/api.php"
+                        search_results = await self._search_articles(session, query.text, query.max_results * 2)
+                        if search_results:
+                            break
+                
+                results = []
+                for article in search_results[:query.max_results]:
+                    # Получаем детальную информацию о статье
+                    article_data = await self._get_article_data(session, article["title"])
+                    if article_data:
+                        results.append(self._article_to_result(article_data, article))
+                
+                # Ensure all responses are read before closing
+                await asyncio.sleep(0.1)  # Small delay to ensure all data is flushed
+                
+                return results
             
         except Exception as e:
             logger.error(f"Wikipedia search error: {e}")
             return []
+        finally:
+            # Explicitly close connector if it wasn't closed
+            if not connector.closed:
+                await connector.close()
             
-    async def _search_articles(self, query, limit: int = 10) -> List[Dict]:
-        """Поиск статей в Wikipedia"""
-        if not self.session:
-            self.session = aiohttp.ClientSession()
-            
-        # Обработка разных типов query
-        query_text = query
-        if not isinstance(query, str):
-            query_text = query.text
-            
+    async def _search_articles(self, session: aiohttp.ClientSession, 
+                              query_text: str, limit: int = 10) -> List[Dict]:
+        """Поиск статей по запросу"""
         params = {
             "action": "query",
             "format": "json",
@@ -75,16 +99,14 @@ class WikipediaProvider(SearchProvider):
         }
         
         try:
-            async with self.session.get(
-                self.search_url,
-                params=params,
-                timeout=aiohttp.ClientTimeout(total=self.timeout)
-            ) as response:
+            async with session.get(self.search_url, params=params) as response:
                 if response.status != 200:
                     logger.warning(f"Wikipedia search API returned status {response.status}")
                     return []
-                    
+                
+                # Ensure we read all data
                 data = await response.json()
+                await response.release()  # Explicitly release the response
                 return data.get("query", {}).get("search", [])
                 
         except asyncio.TimeoutError:
@@ -94,11 +116,9 @@ class WikipediaProvider(SearchProvider):
             logger.error(f"Wikipedia search error: {e}")
             return []
             
-    async def _get_article_data(self, title: str) -> Optional[Dict]:
+    async def _get_article_data(self, session: aiohttp.ClientSession, 
+                               title: str) -> Optional[Dict]:
         """Получить данные о статье включая summary"""
-        if not self.session:
-            self.session = aiohttp.ClientSession()
-            
         # URL encode title
         encoded_title = quote(title)
         
@@ -106,97 +126,94 @@ class WikipediaProvider(SearchProvider):
         summary_url = f"{self.base_url}page/summary/{encoded_title}"
         
         try:
-            async with self.session.get(
-                summary_url,
-                timeout=aiohttp.ClientTimeout(total=self.timeout)
-            ) as response:
+            async with session.get(summary_url) as response:
                 if response.status == 200:
                     summary_data = await response.json()
+                    await response.release()  # Explicitly release
                     
                     # Получаем дополнительные данные через основной API
-                    extra_data = await self._get_extra_article_data(title)
+                    extra_data = await self._get_extra_article_data(session, title)
                     
                     return {
-                        **summary_data,
+                        "title": summary_data.get("title", title),
+                        "extract": summary_data.get("extract", ""),
+                        "description": summary_data.get("description", ""),
+                        "thumbnail": summary_data.get("thumbnail"),
+                        "timestamp": summary_data.get("timestamp"),
+                        "content_urls": summary_data.get("content_urls", {}),
                         "extra": extra_data
                     }
-                elif response.status == 404:
-                    logger.debug(f"Article not found: {title}")
-                    return None
                 else:
-                    logger.warning(f"Wikipedia summary API returned status {response.status}")
+                    logger.warning(f"Wikipedia article API returned status {response.status} for '{title}'")
+                    await response.release()
                     return None
                     
         except Exception as e:
-            logger.error(f"Error getting article data: {e}")
+            logger.error(f"Error fetching Wikipedia article '{title}': {e}")
             return None
             
-    async def _get_extra_article_data(self, title: str) -> Dict:
+    async def _get_extra_article_data(self, session: aiohttp.ClientSession, 
+                                     title: str) -> Dict:
         """Получить дополнительные данные о статье"""
         params = {
             "action": "query",
             "format": "json",
-            "prop": "info|categories|links",
-            "inprop": "url",
             "titles": title,
-            "cllimit": "10",
-            "pllimit": "10"
+            "prop": "categories|info|links",
+            "inprop": "url",
+            "cllimit": 10,
+            "pllimit": 10
         }
         
         try:
-            async with self.session.get(
-                self.search_url,
-                params=params,
-                timeout=aiohttp.ClientTimeout(total=self.timeout)
-            ) as response:
+            async with session.get(self.search_url, params=params) as response:
                 if response.status == 200:
                     data = await response.json()
+                    await response.release()  # Explicitly release
                     pages = data.get("query", {}).get("pages", {})
+                    
                     if pages:
                         page_data = list(pages.values())[0]
                         return {
-                            "categories": [
-                                cat["title"].replace("Категория:", "").strip()
-                                for cat in page_data.get("categories", [])
-                            ],
+                            "categories": [cat.get("title", "") for cat in page_data.get("categories", [])],
                             "links_count": len(page_data.get("links", [])),
-                            "full_url": page_data.get("fullurl", "")
+                            "fullurl": page_data.get("fullurl", "")
                         }
+                else:
+                    await response.release()
                         
         except Exception as e:
-            logger.debug(f"Error getting extra data: {e}")
+            logger.error(f"Error fetching extra Wikipedia data: {e}")
             
         return {}
         
     def _article_to_result(self, article_data: Dict, search_data: Dict) -> SearchResult:
-        """Конвертация данных статьи в SearchResult"""
-        # Извлекаем основные данные
-        title = article_data.get("title", search_data.get("title", ""))
+        """Преобразовать данные статьи в SearchResult"""
+        title = article_data.get("title", "")
         
         # Формируем контент
         extract = article_data.get("extract", "")
         if len(extract) > self.max_summary_length:
             extract = extract[:self.max_summary_length] + "..."
             
-        # Добавляем snippet из поиска если extract пустой
-        if not extract and search_data.get("snippet"):
-            extract = self._clean_snippet(search_data["snippet"])
-            
-        # URL
+        # Добавляем snippet из поиска если есть
+        snippet = search_data.get("snippet", "")
+        if snippet:
+            snippet = self._clean_snippet(snippet)
+            if snippet not in extract:
+                extract = f"{snippet}\n\n{extract}"
+                
+        # URL статьи
         url = article_data.get("content_urls", {}).get("desktop", {}).get("page", "")
-        if not url and article_data.get("extra", {}).get("full_url"):
-            url = article_data["extra"]["full_url"]
-        if not url:
-            url = f"https://{self.language}.wikipedia.org/wiki/{quote(title)}"
+        if not url and article_data.get("extra", {}).get("fullurl"):
+            url = article_data["extra"]["fullurl"]
             
         # Метаданные
         metadata = {
-            "type": article_data.get("type", "standard"),
-            "language": self.language,
-            "page_id": article_data.get("pageid", search_data.get("pageid")),
+            "description": article_data.get("description", ""),
+            "timestamp": article_data.get("timestamp"),
+            "word_count": search_data.get("wordcount", 0),
             "size": search_data.get("size", 0),
-            "wordcount": search_data.get("wordcount", 0),
-            "timestamp": search_data.get("timestamp", ""),
             "categories": article_data.get("extra", {}).get("categories", []),
             "links_count": article_data.get("extra", {}).get("links_count", 0)
         }
@@ -233,32 +250,30 @@ class WikipediaProvider(SearchProvider):
         
     async def is_available(self) -> bool:
         """Проверить доступность Wikipedia API"""
+        connector = aiohttp.TCPConnector(
+            ssl=ssl.create_default_context(),
+            force_close=True
+        )
+        
         try:
-            if not self.session:
-                self.session = aiohttp.ClientSession()
-                
-            # Проверяем доступность API через простой запрос
-            async with self.session.get(
-                f"https://{self.language}.wikipedia.org/api/rest_v1/page/random/summary",
-                timeout=aiohttp.ClientTimeout(total=5)
-            ) as response:
-                return response.status == 200
+            async with aiohttp.ClientSession(
+                connector=connector,
+                connector_owner=True
+            ) as session:
+                async with session.get(
+                    f"https://{self.language}.wikipedia.org/api/rest_v1/page/random/summary",
+                    timeout=aiohttp.ClientTimeout(total=5)
+                ) as response:
+                    result = response.status == 200
+                    await response.release()
+                    return result
         except Exception as e:
             logger.error(f"Wikipedia availability check failed: {e}")
             return False
+        finally:
+            if not connector.closed:
+                await connector.close()
             
     def get_supported_query_types(self) -> List[str]:
         """Wikipedia лучше всего подходит для фактических запросов"""
         return ["factual", "general"]
-        
-    async def __aenter__(self):
-        """Async context manager enter"""
-        if not self.session:
-            self.session = aiohttp.ClientSession()
-        return self
-        
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """Async context manager exit"""
-        if self.session:
-            await self.session.close()
-            self.session = None

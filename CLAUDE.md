@@ -1590,3 +1590,5 @@ python test_websearch_no_leaks.py
 - ✅ **Configuration**: Flexible behavior control via app.config.json
 
 **Production Readiness:** Both critical WebSearch issues have been resolved and extensively tested. The system now provides reliable, leak-free web search capabilities for all question types.
+- после того, как ты делаешь такой анализ, запиши его результаты в документ CURRENTWORK.md. В ходе работы сверяйся с этим документом, и отмечай в нем, что сделано, что нет. Документ должен быть построен таким образом, что если твоя работа прервалась, и ты потерял контекст, ты сможешь понять что ты делал, и продолжить с того места, где остановился. Также это предотвратит тебя от забывания контекста в ходе длинных задач
+- все тесты которые ты создаешь должны быть в директории tests/

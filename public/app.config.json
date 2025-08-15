@@ -31,6 +31,7 @@
     },
     "web_search": {
       "enabled": true,
+      "enable_mock_providers": true,
       "default_language": "en",
       "max_results": 5,
       "timeout": 30,
@@ -102,6 +103,7 @@
       "enabled": true,
       "force_search_all": true,
       "disable_business_filters": true,
+      "ai_powered_queries": true,
       "auto_search_triggers": ["найди", "поищи", "актуальная информация", "последние новости", "что происходит"],
       "max_search_results_in_context": 5,
       "search_result_format": "markdown"

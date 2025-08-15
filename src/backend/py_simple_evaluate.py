@@ -142,40 +142,185 @@ def get_readable_answer(question, answer_value, all_answers=None):
     return answer_value
 
 
-async def perform_web_search_for_question(question, config):
+async def perform_web_search_for_question(question, answer, all_answers, config):
     """
-    Выполняет веб-поиск для получения дополнительного контекста по вопросу
+    Performs AI-powered web search based on user's answer
     """
     try:
+        from .search_query_generator import SearchQueryGenerator
         from .ai_providers_with_search import search_web
         from .search_models import SearchQuery
+        from .search_router import SearchRouter
         
-        # Формируем поисковый запрос на английском языке
-        search_query = generate_search_query_from_question(question)
+        # Check if AI-powered search is enabled
+        use_ai_search = config.get('Backend', {}).get('ai_web_search_integration', {}).get('ai_powered_queries', True)
         
-        if not search_query:
-            print(f"🔍 No search query generated for question: {question.get('text', '')[:50]}...")
-            return ""
-        
-        print(f"🔍 Performing web search for question evaluation: '{search_query}'")
-        
-        # Выполняем поиск
-        results = await search_web(search_query, config)
-        
-        if not results:
-            print(f"🔍 No search results found for query: {search_query}")
-            return ""
-        
-        print(f"🔍 Found {len(results)} search results for question evaluation")
-        
-        # Форматируем результаты для включения в контекст
-        search_context = format_search_results_for_evaluation(results[:3])  # Используем только первые 3 результата
-        
-        return search_context
+        if use_ai_search:
+            # Use AI to generate search strategy
+            print(f"🔍 [AI SEARCH] Generating intelligent search strategy...")
+            generator = SearchQueryGenerator(config.get('Backend', {}))
+            search_strategy = generator.generate_search_strategy(question, answer, all_answers)
+            
+            print(f"🔍 [AI SEARCH] Strategy: {search_strategy.get('analysis_goal', 'Unknown')}")
+            print(f"🔍 [AI SEARCH] Total queries planned: {search_strategy.get('total_searches', 0)}")
+            
+            # Execute searches based on AI strategy
+            all_results = []
+            search_router = SearchRouter(config.get('Backend', {}).get('web_search', {}))
+            
+            for query_obj in search_strategy.get('search_queries', [])[:5]:  # Limit to 5 for now
+                query_text = query_obj.get('query', '')
+                if not query_text:
+                    continue
+                    
+                print(f"🔍 [AI SEARCH] Executing: '{query_text}' (Priority: {query_obj.get('priority', 2)})")
+                print(f"🔍 [AI SEARCH] Purpose: {query_obj.get('purpose', 'General search')}")
+                
+                # Map sources to providers
+                providers = generator.map_sources_to_providers(query_obj.get('sources', ['WEB_SEARCH']))
+                
+                # Create SearchQuery object
+                search_query = SearchQuery(
+                    text=query_text,
+                    max_results=3,  # Limit per query
+                    language='en'
+                )
+                
+                # Execute search
+                response = await search_router.search(search_query)
+                if response.results:
+                    all_results.extend(response.results[:2])  # Take top 2 from each query
+                    
+            print(f"🔍 [AI SEARCH] Collected {len(all_results)} total results")
+            
+            # Format results for context
+            return format_search_results_for_evaluation(all_results[:5])  # Return top 5 overall
+            
+        else:
+            # Fallback to simple search
+            print(f"🔍 [SIMPLE SEARCH] Using basic search generation")
+            search_query = generate_search_query_from_answer(
+                question, answer, all_answers
+            )
+            
+            if not search_query:
+                return ""
+            
+            print(f"🔍 WebSearch query: '{search_query}'")
+            results = await search_web(search_query, config)
+            return format_search_results_for_evaluation(results[:3])
         
     except Exception as e:
-        print(f"🔍 ❌ Web search error during question evaluation: {e}")
+        print(f"🔍 WebSearch error: {e}")
+        import traceback
+        traceback.print_exc()
         return ""
+
+
+def generate_search_query_from_answer(question, answer, all_answers):
+    """
+    Генерирует поисковый запрос на основе ОТВЕТА пользователя
+    """
+    import re
+    from typing import List
+    
+    def extract_keywords(text: str, max_words: int = 5) -> List[str]:
+        """Извлекает ключевые слова из текста"""
+        # Удаляем стоп-слова
+        stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 
+                     'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 
+                     'was', 'were', 'been', 'have', 'has', 'had'}
+        
+        # Извлекаем слова длиннее 3 символов
+        words = re.findall(r'\b[a-zA-Z]{4,}\b', text.lower())
+        
+        # Фильтруем стоп-слова
+        keywords = [w for w in words if w not in stop_words]
+        
+        # Возвращаем уникальные слова
+        seen = set()
+        result = []
+        for word in keywords:
+            if word not in seen:
+                seen.add(word)
+                result.append(word)
+                if len(result) >= max_words:
+                    break
+        
+        return result
+    
+    search_terms = []
+    
+    # 1. Обработка ответа в зависимости от типа
+    if isinstance(answer, list):
+        # Для множественного выбора - используем выбранные опции
+        for option_code in answer:
+            if option_code != 'other':
+                # Получаем label опции
+                for opt in question.get('options', []):
+                    if opt['code'] == option_code:
+                        search_terms.extend(extract_keywords(opt['label']))
+                        break
+            else:
+                # Для "Other" используем текст из other_text_id
+                other_text_id = question.get('other_text_id')
+                if other_text_id and all_answers.get(other_text_id):
+                    search_terms.extend(extract_keywords(all_answers[other_text_id]))
+    
+    elif isinstance(answer, str):
+        # Для текстовых ответов
+        if len(answer) > 20:  # Достаточно длинный ответ
+            search_terms.extend(extract_keywords(answer))
+        else:
+            # Короткий ответ - используем полностью
+            search_terms.append(answer.lower())
+    
+    # 2. Добавляем контекст из зависимых ответов
+    context_terms = []
+    
+    # Локация компании (важный контекст)
+    if 'MET.LOC' in all_answers and all_answers['MET.LOC']:
+        location = all_answers['MET.LOC']
+        # Извлекаем город/страну
+        location_parts = location.split(',')
+        if location_parts:
+            context_terms.append(location_parts[0].strip())
+    
+    # Индустрия/сектор
+    if 'MET.INDUSTRY' in all_answers and all_answers['MET.INDUSTRY']:
+        context_terms.extend(extract_keywords(all_answers['MET.INDUSTRY'], 2))
+    
+    # Размер компании
+    if 'MET.SIZE' in all_answers and all_answers['MET.SIZE']:
+        size = all_answers['MET.SIZE']
+        if 'small' in size.lower():
+            context_terms.append('SME')
+        elif 'large' in size.lower():
+            context_terms.append('enterprise')
+    
+    # 3. Формируем финальный запрос
+    if not search_terms and not context_terms:
+        # Если нет ключевых слов, используем тип вопроса
+        question_type = question.get('cluster_name', '')
+        if question_type:
+            search_terms.append(question_type.lower())
+    
+    # Объединяем термины
+    all_terms = search_terms[:3]  # Максимум 3 основных термина
+    if context_terms:
+        all_terms.extend(context_terms[:2])  # Максимум 2 контекстных термина
+    
+    # Добавляем модификаторы для улучшения результатов
+    query = ' '.join(all_terms)
+    
+    # Добавляем временной контекст если нужны актуальные данные
+    if any(word in question.get('text', '').lower() 
+           for word in ['current', 'latest', 'recent', 'текущий', 'последний']):
+        query += ' 2024 2025 latest trends'
+    else:
+        query += ' best practices industry analysis'
+    
+    return query.strip()
 
 
 def generate_search_query_from_question(question):
@@ -189,25 +334,9 @@ def generate_search_query_from_question(question):
     if not question_text:
         return ""
     
-    # ВАЖНО: НЕ выполняем веб-поиск для стратегических/оценочных вопросов из q4.json
-    # Эти вопросы требуют анализа предоставленных данных, а не внешней информации
-    strategic_question_prefixes = ['SG', 'MET.', 'SGA']
-    for prefix in strategic_question_prefixes:
-        if question_id.startswith(prefix):
-            print(f"🔍 Skipping web search for strategic/evaluation question: {question_id}")
-            return ""
+    # NOTE: Strategic question filtering has been removed to allow web search for all questions
     
-    # Также пропускаем вопросы, которые явно про оценку бизнеса
-    business_evaluation_keywords = [
-        'selling', 'buyers', 'revenue', 'margin', 'customer', 'contract', 'backlog',
-        'debt', 'tax', 'lawsuit', 'owner', 'employee', 'equipment', 'lease',
-        'insurance', 'license', 'permit', 'violation', 'investigation'
-    ]
-    
-    for keyword in business_evaluation_keywords:
-        if keyword in question_text.lower():
-            print(f"🔍 Skipping web search for business evaluation question containing '{keyword}': {question_text[:50]}...")
-            return ""
+    # NOTE: Business evaluation keyword filtering has been removed to allow web search for all questions
     
     # Базовые ключевые слова для извлечения темы
     import re
@@ -334,18 +463,32 @@ def evaluate_answer_logic(question_id, all_answers, config, question_file, promp
     try:
         import asyncio
         
-        # Проверяем, есть ли уже запущенный event loop
+        # Передаем answer в функцию поиска
+        answer_value = all_answers.get(question_id)
+        
         try:
-            # Если event loop уже запущен, создаем новый поток
             loop = asyncio.get_running_loop()
-            # Используем run_in_executor для запуска в отдельном потоке
             import concurrent.futures
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(asyncio.run, perform_web_search_for_question(question, config))
+                future = executor.submit(
+                    asyncio.run, 
+                    perform_web_search_for_question(
+                        question, 
+                        answer_value,  # Передаем ответ
+                        all_answers,   # И все ответы для контекста
+                        config
+                    )
+                )
                 web_search_context = future.result(timeout=30)
         except RuntimeError:
-            # Если event loop не запущен, используем обычный asyncio.run
-            web_search_context = asyncio.run(perform_web_search_for_question(question, config))
+            web_search_context = asyncio.run(
+                perform_web_search_for_question(
+                    question, 
+                    answer_value,
+                    all_answers,
+                    config
+                )
+            )
             
     except Exception as e:
         print(f"🔍 ❌ Web search failed during evaluation: {e}")
