@@ -33,9 +33,12 @@ CORS(app)
 # Debug middleware to log all requests
 @app.before_request
 def log_requests():
-    print(f"📡 [DEBUG] {request.method} {request.path} from {request.remote_addr}")
-    if request.is_json:
-        print(f"📡 [DEBUG] JSON body size: {len(request.get_data())} bytes")
+    try:
+        app.logger.info(f"📡 [DEBUG] {request.method} {request.path} from {request.remote_addr}")
+        if request.is_json:
+            app.logger.info(f"📡 [DEBUG] JSON body size: {len(request.get_data())} bytes")
+    except Exception:
+        pass  # Ignore logging errors
 
 # Configuration
 QUESTIONS_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'public', 'questions')
@@ -65,16 +68,47 @@ class QuestionParser:
         question = {}
         options = []
         
-        lines = [line.strip() for line in text.split('\n') if line.strip()]
+        lines = text.split('\n')
+        keywords = {'id', 'text', 'cluster', 'cluster_name', 'position', 'type', 'hint', 
+                   'info', 'ui', 'option', 'with_other', 'other_text_id', 'max_selections', 
+                   'ranked', 'include_answers', 'dependencies', 'include_meta', 
+                   'prompt_add', 'prompt_additional', 'score', 'prompt', 'role'}
         
         try:
-            for line in lines:
-                if ':' not in line:
+            i = 0
+            while i < len(lines):
+                line = lines[i].strip()
+                if not line or ':' not in line:
+                    i += 1
                     continue
-                    
+                
                 key, value = line.split(':', 1)
                 key = key.strip().lower()
                 value = value.strip()
+                
+                # Check if this is a known keyword
+                if key not in keywords:
+                    i += 1
+                    continue
+                
+                # For multiline fields, collect all lines until next keyword
+                multiline_fields = {'text', 'prompt', 'role', 'prompt_add', 'prompt_additional', 'hint', 'info'}
+                if key in multiline_fields and i + 1 < len(lines):
+                    # Look ahead for continuation lines
+                    j = i + 1
+                    while j < len(lines):
+                        next_line = lines[j].strip()
+                        if not next_line:
+                            j += 1
+                            continue
+                        if ':' in next_line:
+                            next_key = next_line.split(':', 1)[0].strip().lower()
+                            if next_key in keywords:
+                                break
+                        # Add this line to current field
+                        value += '\n' + next_line
+                        j += 1
+                    i = j - 1
                 
                 # Required fields
                 if key == 'id':
@@ -116,14 +150,22 @@ class QuestionParser:
                     question['ui'] = value
                 
                 elif key == 'option':
-                    if '->' in value:
-                        code, label = value.split('->', 1)
-                        options.append({
-                            'code': code.strip(),
-                            'label': label.strip()
-                        })
+                    # Simple format: OPTION: Label (no code needed)
+                    label = value.strip()
+                    if not label:
+                        errors.append("Option cannot be empty")
                     else:
-                        errors.append(f"Invalid option format: {value}. Use 'code -> label'")
+                        # Generate code from label (lowercase, replace spaces with underscores)
+                        code = label.lower().replace(' ', '_').replace('-', '_')
+                        options.append({
+                            'code': code,
+                            'label': label
+                        })
+                        
+                        # If option is "Other" (case insensitive), enable with_other
+                        if label.lower() == 'other':
+                            question['with_other'] = True
+                            question['other_text_id'] = f"{question.get('id', 'Q')}_OTHER"
                 
                 elif key == 'with_other':
                     question['with_other'] = value.lower() in ['true', 'yes', '1']
@@ -140,7 +182,7 @@ class QuestionParser:
                 elif key == 'ranked':
                     question['ranked'] = value.lower() in ['true', 'yes', '1']
                 
-                elif key in ['include_answers', 'dependencies']:
+                elif key in ['include', 'include_answers', 'dependencies']:
                     if not question.get('ai_context'):
                         question['ai_context'] = {}
                     question['ai_context']['include_answers'] = [
@@ -157,11 +199,24 @@ class QuestionParser:
                 elif key in ['prompt_add', 'prompt_additional']:
                     question['prompt_add'] = value
                 
+                elif key == 'prompt':
+                    question['prompt_add'] = value  # Map PROMPT to prompt_add
+                
+                elif key == 'role':
+                    # Combine ROLE with existing prompt_add
+                    existing_prompt = question.get('prompt_add', '')
+                    if existing_prompt:
+                        question['prompt_add'] = existing_prompt + '\n\nRole: ' + value
+                    else:
+                        question['prompt_add'] = 'Role: ' + value
+                
                 elif key == 'score':
                     if value.upper() in ['NO', 'AUTO']:
                         question['score'] = value.upper()
                     else:
                         errors.append(f"Score must be 'NO' or 'AUTO': {value}")
+                
+                i += 1
             
             # Check required fields
             for field in self.required_fields:
@@ -200,6 +255,48 @@ class QuestionParser:
 
 # Initialize parser
 parser = QuestionParser()
+
+@app.route('/api/config', methods=['GET'])
+def get_config():
+    """Get backend configuration including current AI provider and model"""
+    print("⚙️ [DEBUG] GET /api/config - Getting backend configuration")
+    try:
+        # Load config from main project
+        config_path = os.path.join(os.path.dirname(__file__), '..', '..', 'public', 'app.config.json')
+        
+        if os.path.exists(config_path):
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+            
+            backend_config = config.get('Backend', {})
+            current_provider = backend_config.get('ai_provider', 'openai')
+            
+            # Get model based on provider
+            current_model = None
+            if current_provider == 'openai':
+                current_model = backend_config.get('openai', {}).get('model', 'gpt-4-1106-preview')
+            elif current_provider == 'ollama':
+                current_model = backend_config.get('ollama', {}).get('model', 'nous-hermes2:34b')
+            
+            result = {
+                'current_provider': current_provider,
+                'current_model': current_model,
+                'current_selection': f"{current_provider}:{current_model}" if current_model else current_provider
+            }
+            
+            print(f"⚙️ [DEBUG] Config loaded - Provider: {current_provider}, Model: {current_model}")
+            return jsonify(result)
+        else:
+            print("⚠️ [DEBUG] Config file not found, using defaults")
+            return jsonify({
+                'current_provider': 'openai',
+                'current_model': 'gpt-4-1106-preview',
+                'current_selection': 'openai:gpt-4-1106-preview'
+            })
+            
+    except Exception as e:
+        print(f"❌ [DEBUG] Error in get_config: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/providers', methods=['GET'])
 def get_providers():
@@ -289,67 +386,152 @@ def parse_text():
 
 @app.route('/api/evaluate', methods=['POST'])
 def evaluate_question():
-    """Evaluate question using AI (delegates to existing backend)"""
+    """Evaluate question using AI directly"""
+    print("🤖 [DEBUG] POST /api/evaluate - AI evaluation requested")
     try:
+        print("📨 [DEBUG] Getting request data...")
         data = request.get_json()
+        print(f"📨 [DEBUG] Request data: {data}")
         question = data.get('question')
         provider = data.get('provider', 'openai:gpt-4-1106-preview')
+        print(f"📨 [DEBUG] Parsed - question: {question}, provider: {provider}")
         
         if not question:
+            print("❌ [DEBUG] No question provided")
             return jsonify({'success': False, 'error': 'No question provided'})
         
-        # Create a mock answer for evaluation
-        mock_answer = "Sample answer for evaluation"
-        if question.get('question_type') == 'choice-single' and question.get('options'):
-            mock_answer = question['options'][0]['code']
-        elif question.get('question_type') == 'choice-multi' and question.get('options'):
-            mock_answer = [question['options'][0]['code']]
-        elif question.get('question_type') == 'yes-no':
-            mock_answer = 'yes'
+        print(f"🤖 [DEBUG] Evaluating question {question.get('id', 'N/A')} with provider {provider}")
         
-        # Prepare evaluation request for existing backend
-        eval_request = {
-            'questionId': question['id'],
-            'allAnswers': {
-                question['id']: mock_answer
-            }
-        }
+        # Import AI providers from main backend
+        try:
+            sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'backend'))
+            from ai_providers import get_ai_provider
+            print("✅ [DEBUG] Successfully imported ai_providers")
+        except ImportError as e:
+            print(f"❌ [DEBUG] Failed to import ai_providers: {e}")
+            return jsonify({'success': False, 'error': f'Failed to import AI providers: {e}'})
         
-        # Configure AI provider if specified
+        # Load config
+        config_path = os.path.join(os.path.dirname(__file__), '..', '..', 'public', 'app.config.json')
+        config = {}
+        if os.path.exists(config_path):
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+        
+        # Parse provider parameter from frontend
+        backend_config = config.get('Backend', {})
         if provider and ':' in provider:
             provider_name, model_name = provider.split(':', 1)
-            eval_request['provider'] = provider_name
-            eval_request['model'] = model_name
+            print(f"🤖 [DEBUG] Using provider: {provider_name}, model: {model_name}")
+            
+            # Override config based on selected provider
+            if provider_name == 'ollama':
+                backend_config = dict(backend_config)
+                backend_config['ai_provider'] = 'ollama'
+                backend_config['ollama'] = backend_config.get('ollama', {})
+                backend_config['ollama']['model'] = model_name
+                print(f"🦙 [DEBUG] Using Ollama with model: {model_name}")
+            elif provider_name == 'openai':
+                backend_config = dict(backend_config)
+                backend_config['ai_provider'] = 'openai'
+                backend_config['openai'] = backend_config.get('openai', {})
+                backend_config['openai']['model'] = model_name
+                print(f"🤖 [DEBUG] Using OpenAI with model: {model_name}")
         
-        # Send to existing backend
-        response = requests.post(
-            f'{EXISTING_BACKEND_URL}/api/simple-evaluate.mjs',
-            json=eval_request,
-            timeout=30
-        )
+        # Get AI provider with updated config
+        print(f"🔧 [DEBUG] Final backend_config: {backend_config}")
+        # get_ai_provider expects full config with 'Backend' key
+        full_config = {'Backend': backend_config}
+        print(f"🔧 [DEBUG] Full config for provider: {full_config}")
+        ai_provider = get_ai_provider(full_config)
+        print(f"🔧 [DEBUG] AI provider created: {type(ai_provider).__name__}")
         
-        if response.status_code == 200:
-            result = response.json()
+        # Create evaluation prompt
+        evaluation_prompt = f"""
+Evaluate the following question for a business risk assessment questionnaire:
+
+Question ID: {question.get('id', 'N/A')}
+Question Text: {question.get('text', 'N/A')}
+Question Type: {question.get('question_type', 'N/A')}
+Cluster: {question.get('cluster_name', 'N/A')}
+
+Please evaluate this question on the following criteria:
+1. Clarity and understandability
+2. Relevance for business risk assessment
+3. Potential to elicit useful information
+4. Appropriate difficulty level
+
+Provide a score from 0-100 (where 0 is very poor and 100 is excellent) and explain your reasoning.
+
+Return only a single JSON object with this exact format:
+{{"score": <number>, "explanation": "<detailed explanation>"}}
+"""
+        
+        print(f"🤖 [DEBUG] Sending prompt to AI provider")
+        
+        # Call AI provider
+        messages = [{"role": "user", "content": evaluation_prompt}]
+        
+        # Extract model from provider parameter
+        model_name = None
+        if provider and ':' in provider:
+            _, model_name = provider.split(':', 1)
+        
+        # Call with model parameter if needed (for Ollama)
+        if model_name:
+            response = ai_provider.chat_completion(messages, model=model_name)
+        else:
+            response = ai_provider.chat_completion(messages)
+        
+        print(f"🤖 [DEBUG] AI response received: {response}")
+        
+        # Extract text content from response (different formats for different providers)
+        if isinstance(response, dict):
+            # Ollama returns dict with 'content' key
+            response_text = response.get('content', str(response))
+        else:
+            # OpenAI returns string directly
+            response_text = str(response)
+        
+        print(f"🤖 [DEBUG] Response text: {response_text[:200]}...")
+        
+        # Parse AI response
+        try:
+            # Try to extract JSON from response
+            import re
+            json_match = re.search(r'\{[^}]*"score"[^}]*\}', response_text, re.DOTALL)
+            if json_match:
+                result = json.loads(json_match.group())
+                score = result.get('score', 50)
+                explanation = result.get('explanation', 'No explanation provided')
+            else:
+                # Fallback parsing
+                score_match = re.search(r'score["\s:]*(\d+)', response_text, re.IGNORECASE)
+                score = int(score_match.group(1)) if score_match else 50
+                explanation = response_text[:500] + "..." if len(response_text) > 500 else response_text
+                
+            print(f"✅ [DEBUG] Parsed result - Score: {score}, Explanation length: {len(explanation)}")
+            
             return jsonify({
                 'success': True,
-                'score': result.get('score', 0),
-                'explanation': result.get('explanation', 'No explanation provided')
-            })
-        else:
-            return jsonify({
-                'success': False,
-                'error': f'Backend evaluation failed: {response.status_code}'
+                'score': score,
+                'explanation': explanation
             })
             
-    except requests.RequestException as e:
-        return jsonify({
-            'success': False,
-            'error': f'Failed to connect to evaluation backend: {str(e)}'
-        })
+        except Exception as parse_error:
+            print(f"⚠️ [DEBUG] Failed to parse AI response: {str(parse_error)}")
+            # Return raw response with default score
+            return jsonify({
+                'success': True,
+                'score': 50,
+                'explanation': f"AI evaluation completed but response format was unclear. Raw response: {response_text[:200]}..."
+            })
+            
     except Exception as e:
+        print(f"💥 [DEBUG] Evaluation error: {str(e)}")
         return jsonify({
             'success': False,
-            'error': f'Server error: {str(e)}'
+            'error': f'AI evaluation failed: {str(e)}'
         }), 500
 
 @app.route('/api/files', methods=['GET'])

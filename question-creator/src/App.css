@@ -24,15 +24,15 @@ body {
 
 /* Left Panel - matching original sidebar */
 .left-panel {
-  width: 280px;
+  min-width: 200px;
   background-color: #fff;
   border-right: 1px solid #e9ecef;
   padding: 20px;
   overflow-y: auto;
   box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-  position: sticky;
-  top: 0;
+  position: relative;
   height: 100vh;
+  flex-shrink: 0;
 }
 
 /* Main Content */
@@ -41,13 +41,14 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
 }
 
 .content-row {
   display: flex;
   flex: 1;
-  gap: 20px;
-  padding: 20px;
+  gap: 10px;
+  padding: 10px;
   overflow: hidden;
 }
 
@@ -228,9 +229,62 @@ body {
   cursor: not-allowed;
 }
 
+.btn-template {
+  background-color: #f8f9fa;
+  color: #495057;
+  border: 1px solid #ced4da;
+  padding: 8px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  white-space: nowrap;
+}
+
+.btn-template:hover:not(:disabled) {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+  transform: translateY(-1px);
+}
+
 .upload-btn {
   display: inline-block;
   text-align: center;
+}
+
+/* Template Buttons Section */
+.template-buttons {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.template-buttons-header {
+  margin-bottom: 10px;
+}
+
+.template-buttons-header label {
+  font-weight: bold;
+  color: #333;
+  font-size: 14px;
+}
+
+.template-buttons-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .template-buttons-row {
+    flex-direction: column;
+  }
+  
+  .btn-template {
+    text-align: left;
+  }
 }
 
 /* Question Editor Styles */
@@ -480,7 +534,13 @@ body {
   padding: 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  background-color: #f8f9fa;
+  background-color: #fff;
+}
+
+.preview-input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
 }
 
 .radio-group, .checkbox-group {
@@ -493,7 +553,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  cursor: not-allowed;
+  cursor: pointer;
 }
 
 .radio-option input, .checkbox-option input {
@@ -541,16 +601,63 @@ body {
 }
 
 .question-item {
-  padding: 10px;
-  border: 1px solid #ddd;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
   border-radius: 4px;
-  margin-bottom: 10px;
-  background-color: #f8f9fa;
-  cursor: pointer;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #495057;
+  transition: all 0.2s ease;
 }
 
-.question-item:hover {
-  background-color: #e9ecef;
+.question-header {
+  padding: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+.question-header:hover {
+  background: #e9ecef;
+}
+
+.toggle-icon {
+  margin-right: 8px;
+  font-size: 12px;
+  color: #6c757d;
+  min-width: 12px;
+}
+
+.question-summary {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.question-details {
+  padding: 0 12px 12px 12px;
+  border-top: 1px solid #e9ecef;
+  background: #ffffff;
+}
+
+.question-details p {
+  margin: 8px 0;
+  line-height: 1.4;
+}
+
+.question-details strong {
+  color: #343a40;
+}
+
+.question-details ul {
+  margin: 4px 0;
+  padding-left: 16px;
+}
+
+.question-details ul li {
+  margin: 2px 0;
 }
 
 .no-questions {
@@ -558,4 +665,210 @@ body {
   font-style: italic;
   text-align: center;
   padding: 20px;
+}
+
+/* Drag and Drop Styles */
+.drag-handle {
+  cursor: grab;
+  padding: 8px 4px;
+  color: #6c757d;
+  font-size: 20px;
+  line-height: 1;
+  user-select: none;
+  margin-right: 8px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.drag-handle:hover {
+  color: #495057;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.question-item.dragging {
+  opacity: 0.5;
+  background-color: #f8f9fa;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.question-header-content {
+  display: inline-flex;
+  align-items: center;
+  flex: 1;
+  cursor: pointer;
+}
+
+.questions-container {
+  overflow-y: auto;
+  max-height: calc(100% - 40px);
+  padding: 10px;
+}
+
+/* Resizable Panels */
+.resize-handle-horizontal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  cursor: ns-resize;
+  background: linear-gradient(to bottom, #dee2e6 0%, transparent 100%);
+  z-index: 10;
+}
+
+.resize-handle-horizontal:hover {
+  background: linear-gradient(to bottom, #adb5bd 0%, transparent 100%);
+}
+
+.resize-handle-vertical {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: ew-resize;
+  background: linear-gradient(to right, transparent 0%, #dee2e6 100%);
+  z-index: 10;
+}
+
+.resize-handle-vertical:hover {
+  background: linear-gradient(to right, transparent 0%, #adb5bd 100%);
+}
+
+.left-panel {
+  position: relative;
+  transition: none;
+}
+
+.main-content {
+  transition: none;
+  flex: 1;
+}
+
+.questions-list {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: none;
+}
+
+/* Update question header for drag handle */
+.question-header {
+  display: flex;
+  align-items: center;
+}
+
+/* Prevent text selection during resize */
+body.resizing {
+  user-select: none;
+  cursor: ns-resize;
+}
+
+body.resizing-horizontal {
+  cursor: ew-resize;
+}
+
+/* File Selection Dialog */
+.file-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.file-dialog {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  width: 500px;
+  max-width: 90%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.file-dialog h3 {
+  margin: 0;
+  padding: 20px;
+  border-bottom: 1px solid #e9ecef;
+  color: #333;
+  font-size: 18px;
+}
+
+.file-dialog-content {
+  padding: 20px;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.file-filter-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.file-filter-input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.file-list {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+}
+
+.file-item {
+  padding: 10px 15px;
+  cursor: pointer;
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s;
+  user-select: none;
+}
+
+.file-item:last-child {
+  border-bottom: none;
+}
+
+.file-item:hover {
+  background-color: #e2e6ea;
+}
+
+.file-item.selected {
+  background-color: #3498db;
+  color: white;
+}
+
+.file-item.selected:hover {
+  background-color: #2980b9;
+}
+
+.file-dialog-buttons {
+  padding: 15px 20px;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.file-dialog-buttons .btn {
+  min-width: 80px;
 }

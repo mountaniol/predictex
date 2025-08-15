@@ -35,15 +35,28 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   selectedProvider,
   onProviderChange
 }) => {
-  const [sections, setSections] = useState<string[]>(['Basic Information', 'Strategic Fundamentals']);
+  const [sections, setSections] = useState<string[]>([]);
   const [newSection, setNewSection] = useState<string>('');
   const [showSectionInput, setShowSectionInput] = useState<boolean>(false);
+  const [showFileDialog, setShowFileDialog] = useState(false);
+  const [availableFiles, setAvailableFiles] = useState<string[]>([]);
+  const [fileFilter, setFileFilter] = useState('');
+  const [selectedFileInDialog, setSelectedFileInDialog] = useState('');
   const [overallScore, setOverallScore] = useState<number>(0);
 
   // Calculate overall score based on questions (mock calculation)
   React.useEffect(() => {
     if (questions.length > 0) {
       setOverallScore(Math.round(Math.random() * 100)); // Mock score
+    }
+  }, [questions]);
+
+  // Initialize sections from questions
+  React.useEffect(() => {
+    if (questions.length > 0) {
+      const sectionsSet = new Set(questions.map(q => q.cluster_name).filter(Boolean));
+      const questionSections = Array.from(sectionsSet) as string[];
+      setSections(questionSections);
     }
   }, [questions]);
 
@@ -129,27 +142,38 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
     try {
       const response = await fetch(`${API_BASE_URL}/api/files`);
       const files = await response.json();
-      
-      // Show a simple selection dialog (you might want to implement a proper modal)
-      const selectedFile = prompt('Available files:\n' + files.join('\n') + '\n\nEnter filename:');
-      
-      if (selectedFile && files.includes(selectedFile)) {
-        const fileResponse = await fetch(`${API_BASE_URL}/api/file/${selectedFile}`);
-        const jsonData = await fileResponse.json();
-        
-        onQuestionsChange(jsonData.questions || []);
-        onFileChange(selectedFile);
-        
-        // Extract sections
-        const questionsArray = jsonData.questions?.map((q: any) => q.cluster_name as string) || [];
-        const sectionsSet = new Set(questionsArray);
-        const loadedSections = Array.from(sectionsSet) as string[];
-        setSections(loadedSections);
-      }
+      setAvailableFiles(files);
+      setShowFileDialog(true);
+      setFileFilter('');
+      setSelectedFileInDialog('');
     } catch (error) {
       alert('Failed to load files from server.');
     }
   };
+
+  const handleFileSelect = async (filename: string) => {
+    try {
+      const fileResponse = await fetch(`${API_BASE_URL}/api/file/${filename}`);
+      const jsonData = await fileResponse.json();
+      
+      onQuestionsChange(jsonData.questions || []);
+      onFileChange(filename);
+      
+      // Extract sections
+      const questionsArray = jsonData.questions?.map((q: any) => q.cluster_name as string) || [];
+      const sectionsSet = new Set(questionsArray);
+      const loadedSections = Array.from(sectionsSet) as string[];
+      setSections(loadedSections);
+      
+      setShowFileDialog(false);
+    } catch (error) {
+      alert('Failed to load file from server.');
+    }
+  };
+
+  const filteredFiles = availableFiles.filter(file => 
+    file.toLowerCase().includes(fileFilter.toLowerCase())
+  );
 
   return (
     <div className="settings-panel">
@@ -256,6 +280,53 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           <span>{sections.length}</span>
         </div>
       </div>
+
+      {/* File Selection Dialog */}
+      {showFileDialog && (
+        <div className="file-dialog-overlay">
+          <div className="file-dialog">
+            <h3>Select a file from server</h3>
+            <input
+              type="text"
+              placeholder="Filter files..."
+              value={fileFilter}
+              onChange={(e) => setFileFilter(e.target.value)}
+              className="file-filter-input"
+              autoFocus
+            />
+            <div className="file-list">
+              {filteredFiles.map((file) => (
+                <div
+                  key={file}
+                  className={`file-item ${selectedFileInDialog === file ? 'selected' : ''}`}
+                  onClick={() => setSelectedFileInDialog(file)}
+                  onDoubleClick={() => handleFileSelect(file)}
+                >
+                  {file}
+                </div>
+              ))}
+              {filteredFiles.length === 0 && (
+                <div className="no-files">No files match your filter</div>
+              )}
+            </div>
+            <div className="dialog-buttons">
+              <button 
+                onClick={() => handleFileSelect(selectedFileInDialog)}
+                disabled={!selectedFileInDialog}
+                className="btn btn-primary"
+              >
+                Open
+              </button>
+              <button 
+                onClick={() => setShowFileDialog(false)}
+                className="btn btn-secondary"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

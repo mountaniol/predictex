@@ -50,19 +50,17 @@ const QuestionPreview: React.FC<QuestionPreviewProps> = ({ question, hasErrors }
         return (
           <input
             type="text"
-            placeholder="User input..."
+            placeholder="Type text..."
             className="preview-input text-input"
-            disabled
           />
         );
 
       case 'textarea':
         return (
           <textarea
-            placeholder="User input..."
+            placeholder="Type text..."
             className="preview-input textarea-input"
             rows={4}
-            disabled
           />
         );
 
@@ -72,7 +70,6 @@ const QuestionPreview: React.FC<QuestionPreviewProps> = ({ question, hasErrors }
             type="number"
             placeholder="0"
             className="preview-input number-input"
-            disabled
           />
         );
 
@@ -80,11 +77,11 @@ const QuestionPreview: React.FC<QuestionPreviewProps> = ({ question, hasErrors }
         return (
           <div className="preview-input radio-group">
             <label className="radio-option">
-              <input type="radio" name="yes-no-preview" disabled />
+              <input type="radio" name="yes-no-preview" />
               <span>Yes</span>
             </label>
             <label className="radio-option">
-              <input type="radio" name="yes-no-preview" disabled />
+              <input type="radio" name="yes-no-preview" />
               <span>No</span>
             </label>
           </div>
@@ -93,7 +90,7 @@ const QuestionPreview: React.FC<QuestionPreviewProps> = ({ question, hasErrors }
       case 'choice-single':
         if (question.ui === 'dropdown') {
           return (
-            <select className="preview-input dropdown-input" disabled>
+            <select className="preview-input dropdown-input">
               <option>Select an option...</option>
               {question.options?.map((option, index) => (
                 <option key={index} value={option.code}>
@@ -113,7 +110,6 @@ const QuestionPreview: React.FC<QuestionPreviewProps> = ({ question, hasErrors }
                     type="radio"
                     name={`choice-single-${question.id}`}
                     value={option.code}
-                    disabled
                   />
                   <span>{option.label}</span>
                 </label>
@@ -124,7 +120,6 @@ const QuestionPreview: React.FC<QuestionPreviewProps> = ({ question, hasErrors }
                     type="radio"
                     name={`choice-single-${question.id}`}
                     value="other"
-                    disabled
                   />
                   <span>Other</span>
                 </label>
@@ -141,14 +136,13 @@ const QuestionPreview: React.FC<QuestionPreviewProps> = ({ question, hasErrors }
                 <input
                   type="checkbox"
                   value={option.code}
-                  disabled
                 />
                 <span>{option.label}</span>
               </label>
             ))}
             {question.with_other && (
               <label className="checkbox-option">
-                <input type="checkbox" value="other" disabled />
+                <input type="checkbox" value="other" />
                 <span>Other</span>
               </label>
             )}
@@ -217,7 +211,6 @@ const QuestionPreview: React.FC<QuestionPreviewProps> = ({ question, hasErrors }
               type="text"
               placeholder="Please specify..."
               className="preview-input other-input"
-              disabled
             />
           </div>
         )}

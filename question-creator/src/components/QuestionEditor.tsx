@@ -8,6 +8,7 @@ interface QuestionEditorProps {
   aiExplanation: string;
   onSendToAI: () => void;
   onSaveQuestion: () => void;
+  onTemplateClick: (type: string) => void;
   canSendToAI: boolean;
   canSave: boolean;
 }
@@ -20,6 +21,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({
   aiExplanation,
   onSendToAI,
   onSaveQuestion,
+  onTemplateClick,
   canSendToAI,
   canSave
 }) => {
@@ -36,60 +38,136 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({
   };
 
   const helpContent = `
-Question Format Help:
+🎯 QUESTIONNAIRE BUILDER GUIDE
+═══════════════════════════════════════════════════════════════════════════
 
-Required Fields:
-• id: SG02                    (Unique question identifier)
-• text: Question text?        (The actual question)
-• cluster: Section Name       (Groups questions together)
-• position: 2                 (Order within the section)
-• type: question_type         (See types below)
+📝 What is this?
+This tool helps you create business risk assessment questionnaires. Think of it as 
+building a survey where each question gets automatically scored by AI to assess 
+business risks. No programming knowledge needed!
 
-Optional Fields:
-• hint: Brief tooltip         (Shown under question)
-• info: Detailed explanation  (Info bubble)
-• ui: interface_variant       (Override default UI)
-• score: AUTO/NO             (AUTO=evaluate, NO=skip)
+✅ REQUIRED FIELDS (Every question needs these):
 
-Question Types:
-• text                       (Single line text input)
-• textarea                   (Multi-line text area)  
-• number                     (Numeric input)
-• yes-no                     (Yes/No radio buttons)
-• choice-single              (Single selection)
-• choice-multi               (Multiple selection)
+• id: SG02                    🆔 Unique name for your question (like SG01, MET.LOC)
+• text: Question text?        ❓ The actual question you want to ask
+• cluster: Section Name       📂 Which section/group this belongs to
+• position: 2                 📊 Order within the section (1, 2, 3...)
+• type: question_type         🔧 What kind of answer you want (see types below)
 
-For Choice Questions:
-• option: code -> Label      (Answer options)
-• with_other: true/false     (Enable "Other" option)
-• other_text_id: ID_OTHER    (ID for "Other" text field)
-• max_selections: 2          (For multi-choice only)
+🔧 QUESTION TYPES (How people will answer):
 
-UI Variants:
-• radio                      (Radio buttons)
-• dropdown                   (Select dropdown)
-• multiselect               (Checkbox group)
+• text                       📝 Single line text box (names, short answers)
+• textarea                   📄 Multi-line text box (longer explanations)  
+• number                     🔢 Numbers only (revenue, employees, etc.)
+• yes-no                     ✅ Simple Yes/No choice
+• choice-single              ⚪ Pick one option from a list
+• choice-multi               ☑️ Pick multiple options from a list
 
-Dependencies:
-• include_answers: Q1, Q2    (Questions this depends on)
-• include_meta: MET.LOC      (Meta information to include)
+⚙️ OPTIONAL FIELDS (Add these if you want):
 
-AI Instructions:
-• prompt_add: Additional scoring instructions for AI
+• hint: Brief tooltip         💡 Helpful text shown under the question
+• info: Detailed explanation  ℹ️ More info in a popup bubble
+• ui: interface_variant       🎨 Change how the question looks (see UI types)
+• score: AUTO/NO             🤖 Should AI score this? (explained below)
 
-Example:
-id: SG02
-text: Have there been serious buyers in the last 6 months?
-hint: LOI or DD access counts as serious
-cluster: Strategic Fundamentals
+🎨 UI VARIANTS (How questions look):
+
+• radio                      ⚪ Round buttons (for single choice)
+• dropdown                   📋 Dropdown menu (saves space)
+• multiselect               ☑️ Checkboxes (for multiple choice)
+
+📋 FOR CHOICE QUESTIONS (when type is choice-single or choice-multi):
+
+• option: Label              📝 Each possible answer (code auto-generated)
+• option: Other              ✨ Special "Other" option (enables text field)
+• max_selections: 2          🔢 Limit how many options can be picked (multi only)
+
+🔗 DEPENDENCIES (Make questions depend on others):
+
+• include: Q1, Q2            🔗 This question needs answers from Q1 and Q2 first
+
+🤖 AI INSTRUCTIONS:
+
+• prompt: Explain to AI how to process the question
+                            💭 Tell the AI exactly how to score this question
+
+🎯 SCORING SYSTEM:
+
+• score: AUTO               ✅ AI will automatically score this (0-100 points)
+• score: NO                 📋 Question provides context but isn't scored itself
+                               (useful for background info that helps AI score other questions)
+
+📚 EXAMPLES:
+
+💼 Basic Text Question:
+id: BIZ01
+text: What is your primary revenue source?
+cluster: Business Basics
+position: 1
+type: text
+hint: Main source of income
+score: AUTO
+
+✅ Yes/No Question:
+id: REV01
+text: Has revenue grown in the last 12 months?
+cluster: Financial Health
+position: 1
+type: yes-no
+prompt: Score based on growth trajectory and market conditions
+score: AUTO
+
+⚪ Single Choice with Dependencies:
+id: RISK02
+text: What is your biggest operational risk?
+cluster: Risk Assessment
 position: 2
 type: choice-single
 ui: radio
-option: no -> No
-option: initial -> Only initial inquiries
-option: loi -> LOI or due diligence access
-include_answers: SG01
+option: Staff shortage
+option: Supply chain disruption
+option: Technology failure
+option: Other
+include: BIZ01, REV01
+prompt: Consider the business context from previous answers
 score: AUTO
+
+☑️ Multiple Choice Question:
+id: MARKET01
+text: Which markets do you operate in?
+cluster: Market Position
+position: 1
+type: choice-multi
+max_selections: 3
+option: Local/Regional
+option: National
+option: International
+option: Online only
+score: AUTO
+
+📋 Context-Only Question (not scored):
+id: META01
+text: Company location
+cluster: Company Info
+position: 1
+type: text
+hint: Used for context in other questions
+score: NO
+
+🚀 GETTING STARTED:
+
+1. Use the template buttons above to start quickly
+2. Start with id, text, cluster, position, and type
+3. Add options if using choice types
+4. Add other fields as needed
+5. Click "Add Question" to see the preview
+
+💡 TIPS:
+• Keep question text clear and specific
+• Use hints for clarification
+• Group related questions in the same cluster
+• Start with score: AUTO for most questions
+• Use score: NO for background/context questions
   `;
 
   return (
@@ -121,6 +199,57 @@ score: AUTO
         </div>
       )}
 
+      {/* Template Buttons */}
+      <div className="template-buttons">
+        <div className="template-buttons-header">
+          <label>Quick Templates:</label>
+        </div>
+        <div className="template-buttons-row">
+          <button 
+            className="btn btn-template" 
+            onClick={() => onTemplateClick('text')}
+            title="Single line text input"
+          >
+            📝 Text
+          </button>
+          <button 
+            className="btn btn-template"
+            onClick={() => onTemplateClick('textarea')}
+            title="Multi-line text area"
+          >
+            📄 TextArea
+          </button>
+          <button 
+            className="btn btn-template"
+            onClick={() => onTemplateClick('number')}
+            title="Numeric input"
+          >
+            🔢 Number
+          </button>
+          <button 
+            className="btn btn-template"
+            onClick={() => onTemplateClick('yes-no')}
+            title="Yes/No radio buttons"
+          >
+            ✅ Yes/No
+          </button>
+          <button 
+            className="btn btn-template"
+            onClick={() => onTemplateClick('choice-single')}
+            title="Single selection"
+          >
+            ⚪ Single Choice
+          </button>
+          <button 
+            className="btn btn-template"
+            onClick={() => onTemplateClick('choice-multi')}
+            title="Multiple selection"
+          >
+            ☑️ Multi Choice
+          </button>
+        </div>
+      </div>
+
       <div className="editor-content">
         <div className="text-input-section">
           <label>The question showed to user</label>
@@ -135,9 +264,9 @@ hint: LOI or DD access counts as serious
 cluster: Strategic Fundamentals
 position: 2
 type: choice-single
-option: no -> No
-option: initial -> Only initial inquiries
-option: loi -> LOI or due diligence access`}
+option: No
+option: Only initial inquiries
+option: LOI or due diligence access`}
             className={`question-input ${parseErrors.length > 0 ? 'error' : ''}`}
             rows={12}
           />
