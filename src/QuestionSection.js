@@ -15,6 +15,7 @@ import { validateQuestionAnswer, shouldTriggerAIEvaluation, isAnswerEmpty } from
 import { createEvaluationProgressManager } from './evaluationProgressManager';
 import { createManagedRef } from './memoryManager';
 import { createDependencyInvalidator, createInvalidationHandler } from './dependencyInvalidator';
+import { useDebouncedCallback } from './debounceUtils';
 
 const getQuestionDependencies = (question) => {
   return question.ai_context?.include_answers || [];
@@ -113,6 +114,17 @@ const QuestionSection = () => {
     dependencyInvalidator, 
     atomicState
   )).current;
+
+  // Initialize debounced submission trigger
+  const requestSendDelay = appConfig?.Frontend?.request_send_delay || 1000;
+  const debouncedSubmissionTrigger = useDebouncedCallback(
+    (trigger) => {
+      console.log('[QuestionSection] Debounced submission triggered for:', trigger.question.id);
+      setSubmissionTrigger(trigger);
+    },
+    requestSendDelay,
+    [requestSendDelay]
+  );
 
   // --- START: UTILITY AND HELPER FUNCTIONS ---
 
@@ -319,6 +331,13 @@ const QuestionSection = () => {
   const handleAnswerChange = useCallback((id, value, submitNow = false) => {
     setHighlightUnanswered(false); // Reset highlight on any answer change
 
+    // Cancel any pending debounced submissions for this question (user is still interacting)
+    const currentQuestion = sections?.flatMap(s => s.questions).find(q => q.id === id || q.other_text_id === id);
+    if (currentQuestion && !submitNow) {
+      console.log('[handleAnswerChange] Canceling pending submission due to continued interaction with:', currentQuestion.id);
+      debouncedSubmissionTrigger.cancel();
+    }
+
     let newAnswers = { ...answers, [id]: value };
 
     const question = sections.flatMap(s => s.questions).find(q =>
@@ -381,10 +400,11 @@ const QuestionSection = () => {
         setQuestionStates(prev => ({...prev, ...stateUpdates}));
 
         if (submitNow && question.score !== "NO" && hasAnswer) {
-            setSubmissionTrigger({ question });
+            console.log('[handleAnswerChange] Scheduling debounced submission for:', question.id);
+            debouncedSubmissionTrigger.run({ question });
         }
     }
-  }, [answers, getQuestionState, questionStates, scores, sections, setAnswers, setHighlightUnanswered, setQuestionStates, atomicState, validateQuestionAnswer, handleInvalidation]);
+  }, [answers, getQuestionState, questionStates, scores, sections, setAnswers, setHighlightUnanswered, setQuestionStates, atomicState, validateQuestionAnswer, handleInvalidation, debouncedSubmissionTrigger]);
 
   const handleAnswerBlur = useCallback((id) => {
     // Find question by id, or by other_text_id if this is an "other" text field
@@ -419,19 +439,19 @@ const QuestionSection = () => {
     
     // Only trigger submission if question has a valid answer
     if (question.score !== "NO" && hasValidAnswer) {
-      console.log('[handleAnswerBlur] Triggering submission for:', question.id);
+      console.log('[handleAnswerBlur] Scheduling debounced submission for:', question.id);
       
       // Try to start evaluation with progress manager
       if (progressManager.startEvaluation(question.id)) {
         lastEvaluatedAnswers.set(question.id, currentAnswerString);
-        setSubmissionTrigger({ question });
+        debouncedSubmissionTrigger.run({ question });
       } else {
         console.log('[handleAnswerBlur] Could not start evaluation (concurrent limit or already in progress):', question.id);
       }
     } else {
       console.log('[handleAnswerBlur] No valid answer, skipping submission for:', question.id);
     }
-  }, [answers, sections, shouldTriggerAIEvaluation]);
+  }, [answers, sections, shouldTriggerAIEvaluation, progressManager, lastEvaluatedAnswers, debouncedSubmissionTrigger]);
 
   const runStartupCheck = useCallback(async () => {
     let currentScores = { ...scores };

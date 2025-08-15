@@ -5,7 +5,8 @@
   },
   "Frontend": {
     "api_base_url": "/api",
-    "final_report_initial_rows": 30
+    "final_report_initial_rows": 30,
+    "request_send_delay": 1000
   },
   "Backend": {
     "local_api_port": 3001,
