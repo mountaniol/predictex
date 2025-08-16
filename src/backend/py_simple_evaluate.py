@@ -31,7 +31,7 @@ def load_questions_data(question_file, prompt_file):
     @param question_file The name of the question set JSON file (e.g., "q4.json").
     @param prompt_file The name of the AI prompt file (e.g., "ai-prompt.txt").
     @return A tuple containing the loaded questions data (dict) and AI prompt (str).
-    @related_to app.config.json: The filenames are read from the app config.
+    @related_to app.config.toml: The filenames are read from the app config.
     """
     global _questions_data, _ai_prompt
 

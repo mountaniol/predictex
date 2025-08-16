@@ -1,0 +1,25 @@
+# Question Creator Configuration
+# All network and service settings are centralized here
+
+[backend]
+host = "0.0.0.0"       # Listen on all interfaces
+port = 3004            # Backend server port
+description = "Question Creator Backend API Server"
+
+[frontend]
+host = "192.168.1.50"  # Frontend server IP address
+port = 3003            # Frontend development server port
+description = "Question Creator Frontend Development Server"
+
+[api]
+local_url = "http://localhost:3004"
+network_url = "http://192.168.1.50:3004"
+production_url = "https://creator.predictex.ai/api-creator"
+proxy_path = "/api-creator"
+description = "API endpoint configurations for different environments"
+
+[cloudflare.tunnel]
+hostname = "creator.predictex.ai"
+frontend_service = "http://192.168.1.50:3003"
+backend_service = "http://localhost:3004"  # Cloudflare connects to localhost
+api_path = "/api-creator"

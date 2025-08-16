@@ -6,7 +6,6 @@ PROJECT_ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'
 if PROJECT_ROOT_PATH not in sys.path:
     sys.path.append(PROJECT_ROOT_PATH)
 
-import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -15,6 +14,7 @@ import time
 # --- Import business logic from other modules ---
 from src.backend.py_simple_evaluate import evaluate_answer_logic
 from src.backend.py_final_analysis import final_analysis_logic, load_question_set
+from src.backend.config_loader import load_app_config
 
 # Define the absolute path to the project root.
 # We go up two levels from `src/backend/` to reach the root.
@@ -30,36 +30,8 @@ app = Flask(__name__)
 #: Enables Cross-Origin Resource Sharing for the Flask app, allowing the frontend to make requests.
 CORS(app)
 
-_app_config = None
-_config_mtime = 0 # To track file modification time for caching
-
-def load_app_config():
-    """
-    @brief Loads the application configuration from public/app.config.json.
-    @description This function reads the main JSON configuration file. It also
-    implements a simple caching mechanism by checking the file's modification
-    time, reloading it only if it has changed. This is useful for local
-    development.
-    @return A dictionary containing the application configuration.
-    @related_to app.config.json
-    """
-    global _app_config, _config_mtime
-    config_path = os.path.join(PROJECT_ROOT, 'public', 'app.config.json')
-
-    try:
-        # For serverless environments, caching based on modification time might not be effective,
-        # but it doesn't hurt. We'll rely on it mostly for local dev.
-        mtime = os.path.getmtime(config_path) if os.path.exists(config_path) else 0
-        if mtime > _config_mtime or _app_config is None:
-            print(f"[Config] Loading configuration from {config_path}")
-            with open(config_path, 'r', encoding='utf-8') as f:
-                _app_config = json.load(f)
-            _config_mtime = mtime
-        return _app_config
-    except Exception as e:
-        print(f"!!! CRITICAL: Could not load or parse app.config.json from {config_path}. Error: {e}")
-        # Return a default/empty config to prevent a hard crash
-        return {}
+# Configuration loading is now handled by config_loader module
+# The load_app_config function is imported from config_loader
 
 
 @app.route('/api/simple-evaluate.mjs', methods=['POST'])
@@ -99,7 +71,7 @@ def handle_simple_evaluate():
         prompt_file = config.get("Generic", {}).get("ai_prompt_file")
 
         if not question_file or not prompt_file:
-            print("!!! CRITICAL: 'question_set_file' or 'ai_prompt_file' not found in app.config.json")
+            print("!!! CRITICAL: 'question_set_file' or 'ai_prompt_file' not found in app.config.toml")
             return jsonify({"message": "Server configuration error: file paths not specified."}), 500
 
         result = evaluate_answer_logic(question_id, all_answers, config, question_file, prompt_file)
@@ -155,7 +127,7 @@ def handle_final_analysis():
         # Use config to determine which question set to load. No fallback.
         question_set_file = config.get("Generic", {}).get("question_set_file")
         if not question_set_file:
-            print("!!! CRITICAL: 'question_set_file' not found in app.config.json")
+            print("!!! CRITICAL: 'question_set_file' not found in app.config.toml")
             return jsonify({"message": "Server configuration error: question_set_file not specified."}), 500
         
         load_question_set(question_set_file)
@@ -214,12 +186,12 @@ def handle_test_web_search():
             provider_config = backend_config.get("ollama", {})
             model = provider_config.get("model")
             if not model:
-                return jsonify({"message": "Ollama model not configured in app.config.json"}), 500
+                return jsonify({"message": "Ollama model not configured in app.config.toml"}), 500
         else:
             provider_config = backend_config.get("openai", {})
             model = provider_config.get("model")
             if not model:
-                return jsonify({"message": "OpenAI model not configured in app.config.json"}), 500
+                return jsonify({"message": "OpenAI model not configured in app.config.toml"}), 500
         
         print(f"🔍 Using model: {model}")
         

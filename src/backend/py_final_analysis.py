@@ -21,7 +21,7 @@ def load_question_set(set_id):
     root to ensure it works in both local and serverless environments.
     @param set_id The name of the question set JSON file (e.g., "q4.json").
     @return A dictionary containing the question set data.
-    @related_to app.config.json: The filename is read from the app config.
+    @related_to app.config.toml: The filename is read from the app config.
     """
     global _question_set
     # Construct absolute path
@@ -91,7 +91,7 @@ def final_analysis_logic(section_index, answers, scores, final_analysis_config, 
     @param scores (dict): All AI-generated scores.
     @param final_analysis_config (dict): The complete configuration object for the final report
                                          from the question JSON file.
-    @param config (dict): The global application configuration object from app.config.json.
+    @param config (dict): The global application configuration object from app.config.toml.
 
     @returns {dict}: A dictionary containing the generated 'report' content as a string.
 

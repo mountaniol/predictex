@@ -1,0 +1,23 @@
+# Generated Cloudflare Tunnel Configuration
+# Copy this to your Cloudflare config file
+# Generated from config.toml
+
+ingress:
+  # API Backend for Question Creator (MUST BE FIRST!)
+  - hostname: creator.predictex.ai
+    path: /api-creator
+    service: http://localhost:3004
+    originRequest:
+      noTLSVerify: true
+
+  # Frontend for Question Creator
+  - hostname: creator.predictex.ai
+    service: http://192.168.1.50:3003
+
+  # Your other rules...
+  # - hostname: www.predictex.ai
+  #   service: http://127.0.0.1:3000
+  #   ...
+  
+  # Catch-all (required)
+  - service: http_status:404

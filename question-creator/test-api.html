@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API URL Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #0f0;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            background: #222;
+            border: 1px solid #0f0;
+        }
+        .error {
+            color: #f00;
+        }
+        .success {
+            color: #0f0;
+        }
+        pre {
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Question Creator API Test</h1>
+    
+    <div class="result">
+        <h2>Environment Check:</h2>
+        <pre id="env-check"></pre>
+    </div>
+    
+    <div class="result">
+        <h2>Testing API URLs:</h2>
+        <pre id="api-test"></pre>
+    </div>
+
+    <script>
+        // Check environment
+        const envCheck = document.getElementById('env-check');
+        envCheck.innerHTML = `
+Current Location:
+- Protocol: ${window.location.protocol}
+- Hostname: ${window.location.hostname}
+- Port: ${window.location.port || '(default)'}
+- Full URL: ${window.location.href}
+
+Environment Variables:
+- REACT_APP_API_BASE_URL: ${process?.env?.REACT_APP_API_BASE_URL || 'Not available in plain HTML'}
+        `;
+
+        // Test different API configurations
+        const apiTest = document.getElementById('api-test');
+        
+        const testUrls = [
+            '/api-creator/api/providers',
+            'https://creator.predictex.ai/api-creator/api/providers',
+            'http://192.168.1.50:3004/api/providers',
+            'http://localhost:3004/api/providers'
+        ];
+
+        async function testUrl(url) {
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    return { url, status: 'SUCCESS', data: JSON.stringify(data, null, 2).substring(0, 200) };
+                } else {
+                    return { url, status: 'FAILED', error: `HTTP ${response.status}` };
+                }
+            } catch (error) {
+                return { url, status: 'ERROR', error: error.message };
+            }
+        }
+
+        async function runTests() {
+            apiTest.innerHTML = 'Testing API endpoints...\n\n';
+            
+            for (const url of testUrls) {
+                const result = await testUrl(url);
+                const statusClass = result.status === 'SUCCESS' ? 'success' : 'error';
+                
+                apiTest.innerHTML += `<span class="${statusClass}">
+[${result.status}] ${result.url}
+${result.error ? '  Error: ' + result.error : ''}
+${result.data ? '  Response: ' + result.data : ''}
+
+</span>`;
+            }
+            
+            apiTest.innerHTML += '\n\nRecommendation:\n';
+            apiTest.innerHTML += 'Use the URL that returns SUCCESS above.\n';
+            apiTest.innerHTML += 'For HTTPS access through Cloudflare, use: /api-creator\n';
+        }
+
+        // Run tests
+        runTests();
+    </script>
+</body>
+</html>

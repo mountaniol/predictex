@@ -5,12 +5,25 @@
 
 echo "🚀 Starting Question Creator services..."
 
+# Function to kill processes on specific port
+kill_port() {
+    local port=$1
+    echo "Checking port $port..."
+    if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
+        echo "  Killing process on port $port..."
+        lsof -Pi :$port -sTCP:LISTEN -t | xargs kill -9 2>/dev/null || true
+        sleep 1
+    fi
+}
+
 # Function to kill processes on exit
 cleanup() {
     echo ""
     echo "🛑 Shutting down Question Creator..."
     pkill -f "question-creator.*server.py"
     pkill -f "question-creator.*react-scripts"
+    pkill -f "serve.*3003"
+    pkill -f "npx serve"
     exit 0
 }
 
@@ -46,6 +59,10 @@ cd ..
 
 # Wait for backend to start
 sleep 3
+
+# Kill any existing process on port 3003
+kill_port 3003
+kill_port 3004
 
 # Start frontend (port 3003) on 0.0.0.0
 echo "⚛️  Starting Question Creator frontend on 0.0.0.0:3003..."

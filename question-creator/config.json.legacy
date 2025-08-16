@@ -1,0 +1,27 @@
+{
+  "backend": {
+    "host": "192.168.1.50",
+    "port": 3004,
+    "description": "Question Creator Backend API Server"
+  },
+  "frontend": {
+    "host": "192.168.1.50",
+    "port": 3003,
+    "description": "Question Creator Frontend Development Server"
+  },
+  "api": {
+    "localUrl": "http://localhost:3004",
+    "networkUrl": "http://192.168.1.50:3004",
+    "productionUrl": "https://creator.predictex.ai/api-creator",
+    "proxyPath": "/api-creator",
+    "description": "API endpoint configurations for different environments"
+  },
+  "cloudflare": {
+    "tunnel": {
+      "hostname": "creator.predictex.ai",
+      "frontendService": "http://192.168.1.50:3003",
+      "backendService": "http://192.168.1.50:3004",
+      "apiPath": "/api-creator"
+    }
+  }
+}

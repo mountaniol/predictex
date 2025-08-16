@@ -342,7 +342,7 @@ def get_ai_provider_with_search(config: Dict[str, Any]) -> AIProvider:
     Factory function to get an AI provider with optional web search capabilities
     
     Args:
-        config: Configuration dictionary from app.config.json
+        config: Configuration dictionary from app.config.toml
         
     Returns:
         An instance of the appropriate AI provider, potentially wrapped with web search

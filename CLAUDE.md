@@ -44,6 +44,16 @@ npm run lint
 
 ⚠️ **ВАЖНОЕ ПРИМЕЧАНИЕ**: Папка `/legacy/` содержит устаревшую Node.js реализацию backend и **НЕ ИСПОЛЬЗУЕТСЯ**. При работе с проектом игнорируйте эту папку полностью.
 
+## Configuration
+
+### Configuration Format
+The application uses **TOML format** for configuration (`public/app.config.toml`). TOML provides better readability, supports comments, and has strict typing.
+
+To convert existing JSON configs to TOML:
+```bash
+python tools/json_to_toml_converter.py
+```
+
 ## Architecture Overview
 
 ### Core Philosophy
@@ -1592,3 +1602,4 @@ python test_websearch_no_leaks.py
 **Production Readiness:** Both critical WebSearch issues have been resolved and extensively tested. The system now provides reliable, leak-free web search capabilities for all question types.
 - после того, как ты делаешь такой анализ, запиши его результаты в документ CURRENTWORK.md. В ходе работы сверяйся с этим документом, и отмечай в нем, что сделано, что нет. Документ должен быть построен таким образом, что если твоя работа прервалась, и ты потерял контекст, ты сможешь понять что ты делал, и продолжить с того места, где остановился. Также это предотвратит тебя от забывания контекста в ходе длинных задач
 - все тесты которые ты создаешь должны быть в директории tests/
+- Use TOML format for configuration files

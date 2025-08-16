@@ -1,6 +1,68 @@
-# Getting Started with Create React App
+# Question Creator
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A visual editor for creating and managing business questionnaires with AI evaluation capabilities.
+
+## Features
+
+- 📝 Visual question editor with live preview
+- 🤖 AI-powered question evaluation  
+- 🎯 Multiple question types (text, multi-choice, yes/no, etc.)
+- 📁 Save/load questionnaires
+- 🔄 Drag & drop question reordering
+- 🎨 Resizable panels
+- 🌐 Cloudflare Tunnel support for secure remote access
+
+## Quick Start
+
+### 1. Configure Services
+
+Edit `config.json` to set your network configuration:
+```json
+{
+  "backend": {
+    "host": "192.168.1.50",  // Your IP address
+    "port": 3004              // Backend port
+  },
+  "frontend": {
+    "host": "192.168.1.50",  // Your IP address  
+    "port": 3003              // Frontend port
+  }
+}
+```
+
+### 2. Generate Configurations
+
+```bash
+# Generate Cloudflare and environment configs
+python3 cloudflare-config-generator.py
+```
+
+### 3. Start Services
+
+```bash
+# Terminal 1: Start backend
+./start-backend.sh
+
+# Terminal 2: Start frontend
+npm install  # First time only
+npm start
+```
+
+### 4. Access Application
+
+- **Local**: http://localhost:3003
+- **Network**: http://192.168.1.50:3003
+- **Cloudflare**: https://creator.predictex.ai
+
+## Configuration Management
+
+All configuration is centralized in `config.json`. To change backend address or port:
+
+1. Edit `config.json`
+2. Run `python3 cloudflare-config-generator.py`
+3. Restart services
+
+See [CONFIG_MANAGEMENT.md](CONFIG_MANAGEMENT.md) for detailed configuration guide.
 
 ## Available Scripts
 

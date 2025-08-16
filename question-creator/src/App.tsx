@@ -4,6 +4,7 @@ import SettingsPanel from './components/SettingsPanel';
 import QuestionEditor from './components/QuestionEditor';
 import QuestionPreview from './components/QuestionPreview';
 import { SortableQuestion } from './components/SortableQuestion';
+import { getApiBaseUrl, debugLog } from './config';
 import {
   DndContext,
   closestCenter,
@@ -20,8 +21,18 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 
-// Backend API base URL - Using specific IP address
-const API_BASE_URL = 'http://192.168.1.50:3004';
+// Backend API base URL from config
+const API_BASE_URL = getApiBaseUrl();
+
+// Log the API URL being used
+if (typeof window !== 'undefined') {
+  debugLog('API Base URL:', API_BASE_URL);
+  debugLog('Current location:', {
+    hostname: window.location.hostname,
+    protocol: window.location.protocol,
+    port: window.location.port,
+  });
+}
 
 interface QuestionData {
   id: string;
@@ -67,6 +78,7 @@ function App() {
   const [isResizingQuestions, setIsResizingQuestions] = useState<boolean>(false);
   const [isResizingLeft, setIsResizingLeft] = useState<boolean>(false);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+  const [previewAnswer, setPreviewAnswer] = useState<any>(null);
   
   // Setup drag and drop sensors
   const sensors = useSensors(
@@ -146,12 +158,16 @@ function App() {
     }
   };
 
-  const evaluateQuestion = async (question: QuestionData) => {
+  const evaluateQuestion = async (question: QuestionData, answer?: any) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/evaluate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, provider: selectedProvider })
+        body: JSON.stringify({ 
+          question, 
+          answer: answer || previewAnswer,
+          provider: selectedProvider 
+        })
       });
       
       const result = await response.json();
@@ -172,7 +188,7 @@ function App() {
 
   const handleSendToAI = async () => {
     if (currentQuestion && currentQuestion.score !== 'NO') {
-      await evaluateQuestion(currentQuestion);
+      await evaluateQuestion(currentQuestion, previewAnswer);
     }
   };
 
@@ -357,37 +373,50 @@ score: AUTO`
     setAiExplanation('');
   };
 
-  // Convert question object to text format
+  // Convert question object to text format (matching the template format)
   const questionToText = (q: QuestionData): string => {
-    let text = `ID: ${q.id}\n`;
-    text += `Text: ${q.text}\n`;
-    text += `Type: ${q.question_type}\n`;
-    text += `Cluster: ${q.cluster_name}\n`;
-    text += `Position: ${q.position_in_cluster}\n`;
+    // Use lowercase keywords to match the template format
+    let text = `id: ${q.id}\n`;
+    text += `text: ${q.text}\n`;
+    text += `cluster: ${q.cluster_name}\n`;
+    text += `position: ${q.position_in_cluster}\n`;
+    text += `type: ${q.question_type}\n`;
     
-    if (q.hint) text += `Hint: ${q.hint}\n`;
-    if (q.info) text += `Info: ${q.info}\n`;
-    if (q.ui) text += `UI: ${q.ui}\n`;
-    if (q.score) text += `Score: ${q.score}\n`;
+    // Add UI if present
+    if (q.ui) text += `ui: ${q.ui}\n`;
     
+    // Add options in simple format (just the label)
     if (q.options && q.options.length > 0) {
-      text += `Options:\n`;
       q.options.forEach(opt => {
-        text += `  - ${opt.code}: ${opt.label}\n`;
+        text += `option: ${opt.label}\n`;
       });
     }
     
+    // Add max_selections for multi-choice
+    if (q.question_type === 'choice-multi' && q.max_selections) {
+      text += `max_selections: ${q.max_selections}\n`;
+    }
+    
+    // Add optional fields
+    if (q.hint) text += `hint: ${q.hint}\n`;
+    if (q.info) text += `info: ${q.info}\n`;
+    
+    // Add AI context
     if (q.ai_context?.include_answers && q.ai_context.include_answers.length > 0) {
-      text += `Include answers: ${q.ai_context.include_answers.join(', ')}\n`;
+      text += `include: ${q.ai_context.include_answers.join(', ')}\n`;
     }
     
     if (q.ai_context?.include_meta && q.ai_context.include_meta.length > 0) {
-      text += `Include meta: ${q.ai_context.include_meta.join(', ')}\n`;
+      text += `include_meta: ${q.ai_context.include_meta.join(', ')}\n`;
     }
     
+    // Add prompt
     if (q.prompt_add) {
-      text += `Prompt add: ${q.prompt_add}\n`;
+      text += `prompt: ${q.prompt_add}\n`;
     }
+    
+    // Score at the end
+    if (q.score) text += `score: ${q.score}\n`;
     
     return text;
   };
@@ -407,8 +436,8 @@ score: AUTO`
   const handleTextChange = async (text: string) => {
     setTextInput(text);
     
-    // Extract ID from text to track last used
-    const idMatch = text.match(/^ID:\s*([A-Z][A-Z0-9.]*)/im);
+    // Extract ID from text to track last used (support both uppercase and lowercase)
+    const idMatch = text.match(/^id:\s*([A-Z][A-Z0-9.]*)/im);
     if (idMatch) {
       setLastUsedId(idMatch[1]);
     }
@@ -470,6 +499,7 @@ score: AUTO`
               <QuestionPreview
                 question={currentQuestion}
                 hasErrors={parseErrors.length > 0}
+                onAnswerChange={setPreviewAnswer}
               />
             </div>
           </div>

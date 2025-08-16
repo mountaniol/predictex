@@ -276,7 +276,7 @@ def get_ai_provider(config: Dict[str, Any]) -> AIProvider:
     Factory function to get the appropriate AI provider based on configuration
     
     Args:
-        config: Configuration dictionary from app.config.json
+        config: Configuration dictionary from app.config.toml
         
     Returns:
         An instance of the appropriate AI provider

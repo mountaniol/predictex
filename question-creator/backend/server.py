@@ -24,6 +24,15 @@ from typing import Dict, List, Any, Optional, Tuple
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
+# Try to import toml, fall back to JSON if not available
+try:
+    import toml
+    TOML_AVAILABLE = True
+except ImportError:
+    print("⚠️ toml module not found. Using JSON fallback.")
+    print("   To use TOML config, install: pip install toml")
+    TOML_AVAILABLE = False
+
 # Add parent directory to path to import from existing backend
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'backend'))
 
@@ -39,6 +48,39 @@ def log_requests():
             app.logger.info(f"📡 [DEBUG] JSON body size: {len(request.get_data())} bytes")
     except Exception:
         pass  # Ignore logging errors
+
+# Load configuration
+CONFIG_TOML = os.path.join(os.path.dirname(__file__), '..', 'config.toml')
+CONFIG_JSON = os.path.join(os.path.dirname(__file__), '..', 'config.json.legacy')
+
+# Try TOML first if available
+if TOML_AVAILABLE and os.path.exists(CONFIG_TOML):
+    try:
+        with open(CONFIG_TOML, 'r') as f:
+            config = toml.load(f)
+            BACKEND_HOST = config['backend']['host']
+            BACKEND_PORT = config['backend']['port']
+            print(f"🔧 Loaded config from TOML: Backend will run on {BACKEND_HOST}:{BACKEND_PORT}")
+    except Exception as e:
+        print(f"⚠️ Could not load config.toml: {e}")
+        BACKEND_HOST = '0.0.0.0'
+        BACKEND_PORT = 3004
+# Fall back to JSON if TOML not available
+elif os.path.exists(CONFIG_JSON):
+    try:
+        with open(CONFIG_JSON, 'r') as f:
+            config = json.load(f)
+            BACKEND_HOST = config.get('backend', {}).get('host', '0.0.0.0')
+            BACKEND_PORT = config.get('backend', {}).get('port', 3004)
+            print(f"🔧 Loaded config from JSON (legacy): Backend will run on {BACKEND_HOST}:{BACKEND_PORT}")
+    except Exception as e:
+        print(f"⚠️ Could not load config.json.legacy: {e}")
+        BACKEND_HOST = '0.0.0.0'
+        BACKEND_PORT = 3004
+else:
+    print(f"⚠️ No config file found, using defaults")
+    BACKEND_HOST = '0.0.0.0'  # Listen on all interfaces
+    BACKEND_PORT = 3004
 
 # Configuration
 QUESTIONS_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'public', 'questions')
@@ -256,7 +298,9 @@ class QuestionParser:
 # Initialize parser
 parser = QuestionParser()
 
+# Support both direct and proxied paths
 @app.route('/api/config', methods=['GET'])
+@app.route('/api-creator/api/config', methods=['GET'])
 def get_config():
     """Get backend configuration including current AI provider and model"""
     print("⚙️ [DEBUG] GET /api/config - Getting backend configuration")
@@ -299,6 +343,7 @@ def get_config():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/providers', methods=['GET'])
+@app.route('/api-creator/api/providers', methods=['GET'])
 def get_providers():
     """Get available AI providers and models"""
     print("🔌 [DEBUG] GET /api/providers - Getting AI providers and models")
@@ -348,6 +393,7 @@ def get_providers():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/parse', methods=['POST'])
+@app.route('/api-creator/api/parse', methods=['POST'])
 def parse_text():
     """Parse text input into JSON question format"""
     print("📝 [DEBUG] POST /api/parse - Parsing text input")
@@ -385,6 +431,7 @@ def parse_text():
         }), 500
 
 @app.route('/api/evaluate', methods=['POST'])
+@app.route('/api-creator/api/evaluate', methods=['POST'])
 def evaluate_question():
     """Evaluate question using AI directly"""
     print("🤖 [DEBUG] POST /api/evaluate - AI evaluation requested")
@@ -393,8 +440,9 @@ def evaluate_question():
         data = request.get_json()
         print(f"📨 [DEBUG] Request data: {data}")
         question = data.get('question')
+        answer = data.get('answer')
         provider = data.get('provider', 'openai:gpt-4-1106-preview')
-        print(f"📨 [DEBUG] Parsed - question: {question}, provider: {provider}")
+        print(f"📨 [DEBUG] Parsed - question: {question}, answer: {answer}, provider: {provider}")
         
         if not question:
             print("❌ [DEBUG] No question provided")
@@ -454,17 +502,56 @@ Question ID: {question.get('id', 'N/A')}
 Question Text: {question.get('text', 'N/A')}
 Question Type: {question.get('question_type', 'N/A')}
 Cluster: {question.get('cluster_name', 'N/A')}
+"""
+        
+        # Add answer information if provided
+        if answer:
+            answer_data = answer.get('answer')
+            other_text = answer.get('otherText')
+            question_id = answer.get('questionId')
+            
+            if answer_data is not None:
+                evaluation_prompt += f"\n\n📝 USER'S ANSWER:\n"
+                if isinstance(answer_data, list):
+                    # Multi-choice answer
+                    evaluation_prompt += f"Selected options: {', '.join(answer_data)}"
+                else:
+                    # Single answer
+                    evaluation_prompt += f"Answer: {answer_data}"
+                
+            if other_text:
+                evaluation_prompt += f"\nAdditional text (Other field): {other_text}"
+                
+            evaluation_prompt += "\n"
+
+        evaluation_prompt += """
 
 Please evaluate this question on the following criteria:
 1. Clarity and understandability
 2. Relevance for business risk assessment
 3. Potential to elicit useful information
 4. Appropriate difficulty level
+"""
+
+        # If answer is provided, add answer evaluation criteria
+        if answer and answer.get('answer') is not None:
+            evaluation_prompt += """
+5. Quality and completeness of the provided answer
+6. Whether the answer appropriately addresses the question
+"""
+
+        evaluation_prompt += """
 
 Provide a score from 0-100 (where 0 is very poor and 100 is excellent) and explain your reasoning.
+"""
+
+        if answer and answer.get('answer') is not None:
+            evaluation_prompt += "\nInclude feedback on both the question quality AND the answer quality."
+
+        evaluation_prompt += """
 
 Return only a single JSON object with this exact format:
-{{"score": <number>, "explanation": "<detailed explanation>"}}
+{"score": <number>, "explanation": "<detailed explanation>"}
 """
         
         print(f"🤖 [DEBUG] Sending prompt to AI provider")
@@ -497,18 +584,39 @@ Return only a single JSON object with this exact format:
         
         # Parse AI response
         try:
-            # Try to extract JSON from response
+            # Clean response text - remove newlines within JSON strings
             import re
-            json_match = re.search(r'\{[^}]*"score"[^}]*\}', response_text, re.DOTALL)
-            if json_match:
-                result = json.loads(json_match.group())
+            # Replace \n with actual newlines for better parsing
+            cleaned_text = response_text.replace('\\n', '\n')
+            
+            # Try direct JSON parsing first
+            try:
+                result = json.loads(cleaned_text)
                 score = result.get('score', 50)
                 explanation = result.get('explanation', 'No explanation provided')
-            else:
-                # Fallback parsing
-                score_match = re.search(r'score["\s:]*(\d+)', response_text, re.IGNORECASE)
-                score = int(score_match.group(1)) if score_match else 50
-                explanation = response_text[:500] + "..." if len(response_text) > 500 else response_text
+                print(f"✅ [DEBUG] Direct JSON parsing successful")
+            except json.JSONDecodeError:
+                # Try to find JSON object in the text
+                json_match = re.search(r'\{.*?"score"\s*:\s*(\d+).*?"explanation"\s*:\s*"([^"]*(?:\\.[^"]*)*)".*?\}', response_text, re.DOTALL)
+                if json_match:
+                    score = int(json_match.group(1))
+                    # Clean up the explanation text
+                    explanation = json_match.group(2)
+                    # Replace escaped quotes and newlines
+                    explanation = explanation.replace('\\"', '"').replace('\\n', '\n').replace('nn', '\n\n')
+                    print(f"✅ [DEBUG] Regex extraction successful")
+                else:
+                    # Fallback parsing
+                    score_match = re.search(r'score["\s:]*(\d+)', response_text, re.IGNORECASE)
+                    score = int(score_match.group(1)) if score_match else 50
+                    
+                    # Try to extract explanation part
+                    expl_match = re.search(r'explanation["\s:]*"([^"]+)"', response_text, re.IGNORECASE | re.DOTALL)
+                    if expl_match:
+                        explanation = expl_match.group(1).replace('\\n', '\n').replace('nn', '\n\n')
+                    else:
+                        explanation = "Evaluation completed but explanation format was unclear."
+                    print(f"⚠️ [DEBUG] Using fallback parsing")
                 
             print(f"✅ [DEBUG] Parsed result - Score: {score}, Explanation length: {len(explanation)}")
             
@@ -520,11 +628,14 @@ Return only a single JSON object with this exact format:
             
         except Exception as parse_error:
             print(f"⚠️ [DEBUG] Failed to parse AI response: {str(parse_error)}")
-            # Return raw response with default score
+            # Try to at least extract the score
+            score_match = re.search(r'score["\s:]*(\d+)', response_text, re.IGNORECASE)
+            score = int(score_match.group(1)) if score_match else 50
+            
             return jsonify({
                 'success': True,
-                'score': 50,
-                'explanation': f"AI evaluation completed but response format was unclear. Raw response: {response_text[:200]}..."
+                'score': score,
+                'explanation': f"Evaluation completed. Score extracted: {score}. (Full response parsing failed)"
             })
             
     except Exception as e:
@@ -597,6 +708,7 @@ def save_file():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/health', methods=['GET'])
+@app.route('/api-creator/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
     print("🩺 [DEBUG] GET /api/health - Health check requested")
@@ -622,5 +734,5 @@ if __name__ == '__main__':
     os.makedirs(BACKUP_DIR, exist_ok=True)
     print(f"✅ Backup directory ensured: {BACKUP_DIR}")
     
-    print("🎯 Starting Flask development server...")
-    app.run(host='0.0.0.0', port=3004, debug=True)
+    print(f"🎯 Starting Flask development server on {BACKEND_HOST}:{BACKEND_PORT}...")
+    app.run(host=BACKEND_HOST, port=BACKEND_PORT, debug=True)
