@@ -66,6 +66,7 @@ function App() {
   const [leftPanelWidth, setLeftPanelWidth] = useState<number>(300);
   const [isResizingQuestions, setIsResizingQuestions] = useState<boolean>(false);
   const [isResizingLeft, setIsResizingLeft] = useState<boolean>(false);
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
   
   // Setup drag and drop sensors
   const sensors = useSensors(
@@ -92,6 +93,7 @@ function App() {
   useEffect(() => {
     loadAIProviders();
     loadCurrentConfig();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadAIProviders = async () => {
@@ -176,9 +178,18 @@ function App() {
 
   const handleSaveQuestion = () => {
     if (currentQuestion) {
-      setQuestions(prev => [...prev, currentQuestion]); // Add to bottom in order of creation
-      // New questions start collapsed
-      setCollapsedQuestions(prev => new Set(prev).add(currentQuestion.id));
+      if (editingQuestionId) {
+        // Update existing question
+        setQuestions(prev => prev.map(q => 
+          q.id === editingQuestionId ? currentQuestion : q
+        ));
+        setEditingQuestionId(null);
+      } else {
+        // Add new question to bottom in order of creation
+        setQuestions(prev => [...prev, currentQuestion]);
+        // New questions start collapsed
+        setCollapsedQuestions(prev => new Set(prev).add(currentQuestion.id));
+      }
       setTextInput('');
       setCurrentQuestion(null);
       setAiScore(null);
@@ -203,8 +214,8 @@ function App() {
     const handleMouseMove = (e: MouseEvent) => {
       if (isResizingQuestions) {
         const newHeight = window.innerHeight - e.clientY;
-        // Allow panel to expand much higher, minimum 100px
-        setQuestionsPanelHeight(Math.min(Math.max(newHeight, 100), window.innerHeight - 100));
+        // Allow panel to resize freely, from 50px minimum to full screen
+        setQuestionsPanelHeight(Math.max(newHeight, 50));
       }
       if (isResizingLeft) {
         setLeftPanelWidth(Math.min(Math.max(e.clientX, 200), window.innerWidth - 400));
@@ -333,6 +344,65 @@ score: AUTO`
     handleTextChange(template);
   };
 
+  // Load question into editor for editing
+  const handleEditQuestion = (question: QuestionData) => {
+    setEditingQuestionId(question.id);
+    
+    // Convert question to text format
+    const questionText = questionToText(question);
+    setTextInput(questionText);
+    setCurrentQuestion(question);
+    setParseErrors([]);
+    setAiScore(null);
+    setAiExplanation('');
+  };
+
+  // Convert question object to text format
+  const questionToText = (q: QuestionData): string => {
+    let text = `ID: ${q.id}\n`;
+    text += `Text: ${q.text}\n`;
+    text += `Type: ${q.question_type}\n`;
+    text += `Cluster: ${q.cluster_name}\n`;
+    text += `Position: ${q.position_in_cluster}\n`;
+    
+    if (q.hint) text += `Hint: ${q.hint}\n`;
+    if (q.info) text += `Info: ${q.info}\n`;
+    if (q.ui) text += `UI: ${q.ui}\n`;
+    if (q.score) text += `Score: ${q.score}\n`;
+    
+    if (q.options && q.options.length > 0) {
+      text += `Options:\n`;
+      q.options.forEach(opt => {
+        text += `  - ${opt.code}: ${opt.label}\n`;
+      });
+    }
+    
+    if (q.ai_context?.include_answers && q.ai_context.include_answers.length > 0) {
+      text += `Include answers: ${q.ai_context.include_answers.join(', ')}\n`;
+    }
+    
+    if (q.ai_context?.include_meta && q.ai_context.include_meta.length > 0) {
+      text += `Include meta: ${q.ai_context.include_meta.join(', ')}\n`;
+    }
+    
+    if (q.prompt_add) {
+      text += `Prompt add: ${q.prompt_add}\n`;
+    }
+    
+    return text;
+  };
+
+  // Expand all questions
+  const expandAll = () => {
+    setCollapsedQuestions(new Set());
+  };
+
+  // Collapse all questions
+  const collapseAll = () => {
+    const allIds = questions.map(q => q.id);
+    setCollapsedQuestions(new Set(allIds));
+  };
+
   // Track last used ID when text changes
   const handleTextChange = async (text: string) => {
     setTextInput(text);
@@ -365,6 +435,8 @@ score: AUTO`
             aiProviders={aiProviders}
             selectedProvider={selectedProvider}
             onProviderChange={setSelectedProvider}
+            onExpandAll={expandAll}
+            onCollapseAll={collapseAll}
           />
           {/* Resize handle for left panel */}
           <div 
@@ -431,6 +503,7 @@ score: AUTO`
                       index={questions.indexOf(q)}
                       isCollapsed={collapsedQuestions.has(q.id)}
                       onToggle={() => toggleQuestionCollapse(q.id)}
+                      onEdit={handleEditQuestion}
                     />
                   ))}
                 </SortableContext>

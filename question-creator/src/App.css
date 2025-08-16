@@ -42,11 +42,13 @@ body {
   flex-direction: column;
   overflow: hidden;
   position: relative;
+  height: 100vh;
 }
 
 .content-row {
   display: flex;
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 100px;
   gap: 10px;
   padding: 10px;
   overflow: hidden;
@@ -591,8 +593,8 @@ body {
   padding: 20px;
   background-color: #fff;
   border-top: 1px solid #ddd;
-  max-height: 300px;
   overflow-y: auto;
+  flex-shrink: 0;
 }
 
 .questions-list h3 {
@@ -871,4 +873,30 @@ body.resizing-horizontal {
 
 .file-dialog-buttons .btn {
   min-width: 80px;
+}
+
+/* Question Controls */
+.question-controls {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #ddd;
+  display: flex;
+  gap: 10px;
+}
+
+.question-controls .btn {
+  flex: 1;
+}
+
+/* Edit Button in Question Header */
+.btn-edit {
+  margin-left: auto;
+  background-color: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+.btn-edit:hover:not(:disabled) {
+  background-color: #218838;
+  border-color: #1e7e34;
 }

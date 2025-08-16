@@ -24,6 +24,8 @@ interface SettingsPanelProps {
   aiProviders: AIProvider[];
   selectedProvider: string;
   onProviderChange: (provider: string) => void;
+  onExpandAll?: () => void;
+  onCollapseAll?: () => void;
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({
@@ -33,7 +35,9 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onQuestionsChange,
   aiProviders,
   selectedProvider,
-  onProviderChange
+  onProviderChange,
+  onExpandAll,
+  onCollapseAll
 }) => {
   const [sections, setSections] = useState<string[]>([]);
   const [newSection, setNewSection] = useState<string>('');
@@ -279,6 +283,24 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           <label>Sections:</label>
           <span>{sections.length}</span>
         </div>
+      </div>
+
+      {/* Question List Controls */}
+      <div className="question-controls">
+        <button
+          onClick={onExpandAll}
+          className="btn btn-secondary"
+          title="Expand all questions in the list"
+        >
+          Expand All
+        </button>
+        <button
+          onClick={onCollapseAll}
+          className="btn btn-secondary"
+          title="Collapse all questions in the list"
+        >
+          Collapse All
+        </button>
       </div>
 
       {/* File Selection Dialog */}

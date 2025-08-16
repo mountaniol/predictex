@@ -7,13 +7,15 @@ interface SortableQuestionProps {
   index: number;
   isCollapsed: boolean;
   onToggle: () => void;
+  onEdit: (question: any) => void;
 }
 
 export const SortableQuestion: React.FC<SortableQuestionProps> = ({
   question,
   index,
   isCollapsed,
-  onToggle
+  onToggle,
+  onEdit
 }) => {
   const {
     attributes,
@@ -54,6 +56,16 @@ export const SortableQuestion: React.FC<SortableQuestionProps> = ({
             {question.id}: {question.text.substring(0, 50)}{question.text.length > 50 ? '...' : ''}
           </span>
         </div>
+        <button 
+          className="btn btn-small btn-edit"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(question);
+          }}
+          title="Edit this question"
+        >
+          Edit
+        </button>
       </div>
       {!isCollapsed && (
         <div className="question-details">
