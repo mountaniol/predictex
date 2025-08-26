@@ -178,9 +178,11 @@ export const useAtomicState = (stateSetters, initialState = {}) => {
   };
 };
 
-export default {
+const StateManagerAPI = {
   createBatchedStateUpdater,
   createAtomicStateManager,
   mergeStateUpdates,
   useAtomicState
 };
+
+export default StateManagerAPI;

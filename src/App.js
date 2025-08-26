@@ -74,8 +74,8 @@ function App() {
         // Get the question set ID from the URL param or the config file. No hardcoded fallback.
         const rawQId = new URLSearchParams(window.location.search).get('q') || config?.Generic?.question_set_file;
         if (rawQId) {
-            // The hook expects the ID without .json, so we remove it here.
-            const qId = rawQId.replace('.json', '');
+            // The hook expects the ID without any file extension, so we remove all common extensions
+            const qId = rawQId.replace(/\.(json|toml)$/, '');
             setQuestionSetId(qId);
         } else {
             console.error("No question set specified in URL or app.config.json");

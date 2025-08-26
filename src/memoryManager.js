@@ -71,7 +71,6 @@ export const createManagedRef = (options = {}) => {
      */
     cleanup: (force = false) => {
       const now = Date.now();
-      const initialSize = data.size;
       let removedCount = 0;
 
       // Remove expired entries (TTL-based cleanup)
@@ -301,8 +300,10 @@ export const createBatchCleanupManager = (managedRefs = []) => {
   };
 };
 
-export default {
+const MemoryManagerAPI = {
   createManagedRef,
   createManagedRefWrapper,
   createBatchCleanupManager
 };
+
+export default MemoryManagerAPI;

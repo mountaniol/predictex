@@ -2,8 +2,10 @@ import os
 import json
 import time
 import requests
+import toml
 from openai import RateLimitError
 from src.backend.ai_providers_with_search import get_ai_provider_with_search
+from src.backend.follow_up_parser import FollowUpParser, FollowUpParserError
 
 # Define the absolute path to the project root.
 # We go up two levels from `src/backend/` to reach the root.
@@ -24,11 +26,15 @@ def clear_cache():
 def load_questions_data(question_file, prompt_file):
     """
     @brief Loads and caches question and prompt data from files.
-    @description Reads the specified question JSON and AI prompt text file. It uses
-    global variables to cache the data, preventing repeated file reads.
+    @description Reads the specified question configuration file (JSON or TOML) and AI prompt text file.
+    It uses global variables to cache the data, preventing repeated file reads.
     The paths are constructed relative to the project root to ensure they work
     in both local and serverless environments.
-    @param question_file The name of the question set JSON file (e.g., "q4.json").
+    
+    For TOML files, it processes follow_up_rules using the DSL parser to convert them
+    back to the original JSON format for backward compatibility.
+    
+    @param question_file The name of the question set file (e.g., "q4.json" or "q4.toml").
     @param prompt_file The name of the AI prompt file (e.g., "ai-prompt.txt").
     @return A tuple containing the loaded questions data (dict) and AI prompt (str).
     @related_to app.config.toml: The filenames are read from the app config.
@@ -43,8 +49,25 @@ def load_questions_data(question_file, prompt_file):
     if not _questions_data:
         try:
             print(f"[Data] Loading questions from: {questions_path}")
+            
+            # Determine file format based on extension
+            file_extension = os.path.splitext(question_file)[1].lower()
+            
             with open(questions_path, 'r', encoding='utf-8') as f:
-                _questions_data = json.load(f)
+                if file_extension == '.toml':
+                    print("[Data] Detected TOML format - parsing with TOML loader")
+                    _questions_data = toml.load(f)
+                    
+                    # Process follow-up rules using DSL parser
+                    _process_toml_follow_up_rules(_questions_data)
+                    
+                    # Process flattened analysis configuration if present
+                    _process_toml_analysis_config(_questions_data)
+                    
+                else:
+                    print("[Data] Detected JSON format - parsing with JSON loader")
+                    _questions_data = json.load(f)
+                    
         except Exception as e:
             print(f"!!! CRITICAL: Could not load or parse question file {questions_path}. Error: {e}")
             # Return empty data to prevent a hard crash
@@ -61,6 +84,99 @@ def load_questions_data(question_file, prompt_file):
             _ai_prompt = "No prompt loaded."
 
     return _questions_data, _ai_prompt
+
+
+def _process_toml_follow_up_rules(data):
+    """
+    Process follow_up_rules from TOML DSL format to JSON format for backward compatibility.
+    
+    @param data: The loaded TOML data dictionary (modified in place)
+    """
+    if 'questions' not in data:
+        return
+        
+    parser = FollowUpParser()
+    processed_count = 0
+    
+    for question in data['questions']:
+        if 'follow_up_rules' in question:
+            try:
+                # Convert DSL rules to JSON format
+                follow_up_rules = question['follow_up_rules']
+                if follow_up_rules and len(follow_up_rules) > 0:
+                    question['follow_ups'] = parser.rules_to_json(follow_up_rules)
+                    processed_count += 1
+                    print(f"[Data] Processed {len(follow_up_rules)} follow-up rules for question {question.get('id', 'UNKNOWN')}")
+                
+                # Remove DSL rules from final data to maintain JSON compatibility
+                del question['follow_up_rules']
+                
+            except FollowUpParserError as e:
+                question_id = question.get('id', 'UNKNOWN')
+                print(f"!!! WARNING: Failed to parse follow-up rules for question {question_id}: {e}")
+                # Leave the original rules in place for debugging
+        
+        # Process flattened AI context fields
+        if 'ai_context_include_answers' in question:
+            question['ai_context'] = {
+                'include_answers': question['ai_context_include_answers']
+            }
+            del question['ai_context_include_answers']
+    
+    if processed_count > 0:
+        print(f"[Data] Successfully processed follow-up rules for {processed_count} questions")
+
+
+def _process_toml_analysis_config(data):
+    """
+    Process flattened analysis configuration from TOML to nested JSON format.
+    
+    @param data: The loaded TOML data dictionary (modified in place)
+    """
+    if 'analysis' not in data:
+        return
+    
+    analysis_data = data['analysis']
+    sections = []
+    
+    # Extract base configuration
+    loading_message = analysis_data.pop('loading_message', '')
+    base_prompt = analysis_data.pop('base_prompt', '')
+    
+    # Process each analysis section
+    for key, section_data in analysis_data.items():
+        if not isinstance(section_data, dict):
+            continue
+            
+        section = {
+            'name': section_data.get('name', key.replace('_', ' ').title()),
+            'model': section_data.get('model', 'gpt-4o'),
+            'web_search': {
+                'enabled': section_data.get('web_search_enabled', False),
+                'max_searches': section_data.get('web_search_max_searches', 3)
+            },
+            'ai_context': {
+                'include_answers': section_data.get('ai_context_include_answers', []),
+                'include_scores': section_data.get('ai_context_include_scores', False),
+                'include_overall_score': section_data.get('ai_context_include_overall_score', False)
+            },
+            'specific_prompt': section_data.get('specific_prompt', ''),
+            'output_constraint': section_data.get('output_constraint', ''),
+            'model_config': section_data.get('model_config', {})
+        }
+        sections.append(section)
+    
+    # Replace with nested structure for backward compatibility
+    data['final_analysis_config'] = {
+        'loading_message': loading_message,
+        'base_prompt': base_prompt,
+        'sections': sections
+    }
+    
+    # Remove flattened analysis config
+    del data['analysis']
+    
+    print(f"[Data] Processed {len(sections)} analysis sections from TOML format")
 
 def find_question_by_id(question_id):
     """

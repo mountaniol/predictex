@@ -272,9 +272,11 @@ export const createEvaluationQueue = (progressManager, evaluationFn) => {
   };
 };
 
-export default {
+const EvaluationProgressAPI = {
   createEvaluationProgressManager,
   useEvaluationProgress,
   withProgressTracking,
   createEvaluationQueue
 };
+
+export default EvaluationProgressAPI;

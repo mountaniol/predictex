@@ -35,3 +35,5 @@ langchain-community>=0.3.0
 ddgs>=4.0.0
 # Исправляем предупреждения о переименованном пакете
 duckduckgo-search>=6.0.0
+# TOML support for configuration migration
+toml>=0.10.2

@@ -241,7 +241,7 @@ export const validateByQuestionType = (question, answer, otherText) => {
   return validator(question, answer, otherText);
 };
 
-export default {
+const ValidationUtilsAPI = {
   validateOtherField,
   validateQuestionAnswer,
   shouldTriggerAIEvaluation,
@@ -252,3 +252,5 @@ export default {
   validateByQuestionType,
   questionTypeValidators
 };
+
+export default ValidationUtilsAPI;

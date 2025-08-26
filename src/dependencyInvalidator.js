@@ -100,7 +100,6 @@ export const createDependencyInvalidator = (sections, options = {}) => {
   const {
     maxInvalidationDepth = 10,
     logInvalidations = true,
-    preventCircularInvalidation = true,
     onInvalidation = (questionIds) => {
       if (logInvalidations && questionIds.length > 0) {
         console.log(`[DependencyInvalidator] Invalidating ${questionIds.length} dependent questions:`, questionIds);
@@ -302,9 +301,11 @@ export const createInvalidationHandler = (dependencyInvalidator, atomicState) =>
   };
 };
 
-export default {
+const DependencyInvalidatorAPI = {
   buildReverseDependencyGraph,
   findInvalidationTargets,
   createDependencyInvalidator,
   createInvalidationHandler
 };
+
+export default DependencyInvalidatorAPI;

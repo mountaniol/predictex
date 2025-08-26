@@ -11,7 +11,7 @@ import React, { useContext, useState, useEffect, useCallback, useRef } from 'rea
 import { AppContext } from './App';
 import AnswerInput from './AnswerInput';
 import { useAtomicState } from './stateManager';
-import { validateQuestionAnswer, shouldTriggerAIEvaluation, isAnswerEmpty } from './validationUtils';
+import { validateQuestionAnswer, shouldTriggerAIEvaluation } from './validationUtils';
 import { createEvaluationProgressManager } from './evaluationProgressManager';
 import { createManagedRef } from './memoryManager';
 import { createDependencyInvalidator, createInvalidationHandler } from './dependencyInvalidator';
@@ -181,7 +181,7 @@ const QuestionSection = () => {
     }
     
     return newStates;
-  }, [sections, answers, getQuestionState, validateQuestionAnswer]);
+  }, [sections, answers, getQuestionState]);
 
   const evaluateAnswer = useCallback(async (question) => {
     if (!question) return null;
@@ -326,7 +326,7 @@ const QuestionSection = () => {
     
     // Progress flags are automatically cleared by progressManager.completeEvaluation calls above
     // No manual cleanup needed here
-  }, [calculations, computeAllStates, evaluateAnswer, explanations, findNextQuestionToReevaluate, questionStates, scores, sections, setExplanations, setQuestionStates, setScores, atomicState]);
+  }, [calculations, computeAllStates, evaluateAnswer, explanations, findNextQuestionToReevaluate, questionStates, scores, sections, atomicState, progressManager]);
   
   const handleAnswerChange = useCallback((id, value, submitNow = false) => {
     setHighlightUnanswered(false); // Reset highlight on any answer change
@@ -404,7 +404,7 @@ const QuestionSection = () => {
             debouncedSubmissionTrigger.run({ question });
         }
     }
-  }, [answers, getQuestionState, questionStates, scores, sections, setAnswers, setHighlightUnanswered, setQuestionStates, atomicState, validateQuestionAnswer, handleInvalidation, debouncedSubmissionTrigger]);
+  }, [answers, getQuestionState, questionStates, scores, sections, setAnswers, setHighlightUnanswered, setQuestionStates, atomicState, handleInvalidation, debouncedSubmissionTrigger]);
 
   const handleAnswerBlur = useCallback((id) => {
     // Find question by id, or by other_text_id if this is an "other" text field
@@ -451,7 +451,7 @@ const QuestionSection = () => {
     } else {
       console.log('[handleAnswerBlur] No valid answer, skipping submission for:', question.id);
     }
-  }, [answers, sections, shouldTriggerAIEvaluation, progressManager, lastEvaluatedAnswers, debouncedSubmissionTrigger]);
+  }, [answers, sections, progressManager, lastEvaluatedAnswers, debouncedSubmissionTrigger]);
 
   const runStartupCheck = useCallback(async () => {
     let currentScores = { ...scores };
@@ -500,7 +500,7 @@ const QuestionSection = () => {
       scores: currentScores,
       questionStates: currentStates
     });
-  }, [calculations, computeAllStates, evaluateAnswer, findNextQuestionToReevaluate, questionStates, scores, setQuestionStates, setScores, atomicState]);
+  }, [calculations, computeAllStates, evaluateAnswer, findNextQuestionToReevaluate, questionStates, scores, atomicState, progressManager]);
 
   const toggleExplanation = (questionId) => {
     setExpandedExplanations(prev => ({...prev, [questionId]: !prev[questionId]}));

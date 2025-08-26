@@ -78,7 +78,6 @@ export const validateDependencyGraph = (questions) => {
   // Detect cycles using DFS
   const visited = new Set();
   const recursionStack = new Set();
-  const pathStack = [];
 
   const hasCycleDFS = (nodeId, currentPath) => {
     if (recursionStack.has(nodeId)) {
@@ -281,8 +280,10 @@ const generateRecommendations = (validation, topoSort) => {
   return recommendations;
 };
 
-export default {
+const DependencyValidatorAPI = {
   validateDependencyGraph,
   topologicalSort,
   createDependencyReport
 };
+
+export default DependencyValidatorAPI;
