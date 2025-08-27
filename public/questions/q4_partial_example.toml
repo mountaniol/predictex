@@ -1,0 +1,254 @@
+# QnA Evaluator Configuration - TOML Format
+# This is a partial example showing the conversion from JSON to TOML
+# Demonstrates improved readability and maintainability
+
+version = "1.2"
+
+[settings.labels]
+yes = "Yes"
+no = "No"
+unknown = "I'm not sure"
+role = "buyer"
+
+# =================================================================
+# BASIC INFORMATION SECTION
+# Questions collecting fundamental business data
+# =================================================================
+
+# Simple text question - no AI scoring needed
+[[questions]]
+id = "MET.LOC"
+text = "Where is the business located (country, state, city)?"
+hint = "List main operating location(s)."
+info = """
+Write the country, state or province if applicable, and the city where 
+the business mainly operates. If there are multiple locations, list them all. 
+Example: USA, North Carolina, Charlotte.
+"""
+cluster_name = "Basic Information"
+position_in_cluster = 1
+question_type = "text"
+score = "NO"
+ai_validate_prompt = """
+Rephrase the following location and confirm your understanding. 
+Start your response with 'As I understand, the business is located in...'. 
+If the input is unclear, ask for clarification. 
+The user's input is: {answer}
+"""
+
+[[questions]]
+id = "MET.IND"
+text = "What is the primary industry or activity of the business?"
+hint = "Describe in simple words what the business does."
+info = """
+Describe in simple words what the business does, such as coffee shop, 
+plumbing services, online clothing store, small factory. If there are 
+several activities, pick the one that brings the most revenue.
+"""
+cluster_name = "Basic Information"
+position_in_cluster = 2
+question_type = "text"
+score = "NO"
+ai_validate_prompt = """
+Summarize the following business activity in 1-3 words and confirm your understanding. 
+Start your response with 'So, the business operates in the...'. 
+If the input is unclear, state that. 
+The user's input is: {answer}
+"""
+
+# Choice question with dropdown UI and custom text input
+[[questions]]
+id = "MET.SIZE"
+text = "Approximate annual revenue bracket"
+hint = "Pick a rough yearly sales range."
+info = """
+Pick the rough yearly sales before expenses. If you do not know the exact number, 
+choose the closest range. Ask the seller for last year sales totals or tax filings if needed.
+"""
+cluster_name = "Basic Information"
+position_in_cluster = 3
+question_type = "choice-single"
+ui = "dropdown"
+score = "NO"
+options_sort = "as_is"
+# Using TOML inline tables for cleaner options syntax
+options = [
+  {code = "lt250k", label = "< $250k"},
+  {code = "250k_1m", label = "$250k to $1m"},
+  {code = "1m_5m", label = "$1m to $5m"},
+  {code = "gt5m", label = ">$5m"}
+]
+# Flattened custom text input configuration
+custom_text_input_id = "MET.SIZE_CUSTOM"
+custom_text_input_placeholder = "Or enter exact annual revenue"
+
+[[questions]]
+id = "MET.YOU"
+text = "Do you have experience in this business?"
+hint = "Pick from the list"
+info = "Pick the rough years of experience in this business"
+cluster_name = "Basic Information"
+position_in_cluster = 4
+question_type = "choice-single"
+ui = "dropdown"
+score = "NO"
+options_sort = "as_is"
+options = [
+  {code = "exp_no", label = "No experience"},
+  {code = "exp_some", label = "Some experience but not like an owner"},
+  {code = "exp_1y", label = "1 year or less as an owner"},
+  {code = "exp_3", label = "1-3 years as an owner"}
+]
+custom_text_input_id = "MET.YOU_CUSTOM"
+custom_text_input_placeholder = "Or enter here what is your experience"
+
+[[questions]]
+id = "MET.HC"
+text = "How many people work in the business (FTE including owner)?"
+hint = "Full-time equivalents (FTE)."
+info = """
+Count everyone who works regularly. Two half time workers are about one 
+full time equivalent. Include the owner if they work in the business.
+"""
+cluster_name = "Basic Information"
+position_in_cluster = 4
+question_type = "choice-single"
+ui = "dropdown"
+score = "NO"
+options_sort = "as_is"
+options = [
+  {code = "solo", label = "1 (owner only)"},
+  {code = "micro_2_5", label = "2 to 5"},
+  {code = "small_6_20", label = "6 to 20"},
+  {code = "med_21_100", label = "21 to 100"},
+  {code = "gt100", label = ">100"}
+]
+
+# Yes/No question - simplest format
+[[questions]]
+id = "MET.PUBLIC"
+text = "Do you sell to government or state-owned customers?"
+hint = "Government, public agencies, or SOEs."
+info = """
+Choose Yes if any customer is a government office, public agency, or state owned enterprise. 
+This affects approvals and compliance checks.
+"""
+cluster_name = "Basic Information"
+position_in_cluster = 5
+question_type = "yes-no"
+score = "NO"
+
+[[questions]]
+id = "MET.DATA"
+text = "Do you process personal or financial customer data (PII)?"
+hint = "None, limited, or high sensitivity."
+info = """
+If the business stores names, emails, phone numbers, or health or financial details, 
+choose the level. None means almost no personal data. Limited means basic contacts 
+or payments. High means sensitive data such as health or finance.
+"""
+cluster_name = "Basic Information"
+position_in_cluster = 6
+question_type = "choice-single"
+ui = "dropdown"
+score = "NO"
+options_sort = "as_is"
+options = [
+  {code = "none", label = "None"},
+  {code = "limited", label = "Limited"},
+  {code = "high", label = "High"}
+]
+
+# Internal question type
+[[questions]]
+id = "MET.RISKCTX"
+text = "Regional corruption and informality context (auto)"
+hint = "Internal only."
+info = """
+Internal field. The system sets a country or region risk factor from public indices 
+to adjust scoring. You do not need to answer this.
+"""
+cluster_name = "Basic Information"
+position_in_cluster = 7
+question_type = "internal"
+score = "NO"
+
+# =================================================================
+# STRATEGIC FUNDAMENTALS SECTION
+# Questions assessing core business strategy and sale motivation
+# =================================================================
+
+# Multi-choice question with "other" option and AI scoring
+[[questions]]
+id = "SG01"
+text = "Why are you selling now?"
+hint = "Select up to two reasons (rank them)."
+info = """
+We want to know if the sale is planned (retirement, moving) or forced 
+(falling sales, lawsuits, urgent cash needs). Ask the seller directly.
+"""
+cluster_name = "Strategic Fundamentals"
+position_in_cluster = 1
+question_type = "choice-multi"
+ui = "multiselect"
+max_selections = 2
+ranked = true
+with_other = true
+other_text_id = "SG01_OTHER"
+options_sort = "as_is"
+options = [
+  {code = "retirement_move", label = "Retirement or move"},
+  {code = "health", label = "Health or personal"},
+  {code = "strategic_refocus", label = "Strategic refocus"},
+  {code = "declining_sales", label = "Declining sales"},
+  {code = "lawsuits_tax", label = "Lawsuits or tax issues"},
+  {code = "urgent_cash", label = "Urgent cash need"},
+  {code = "other", label = "Other"}
+]
+# Flattened AI context - no dependencies needed for this question
+ai_context_include_answers = []
+# Multi-line AI prompt with clear formatting
+prompt_add = """
+Score intent of sale STRICTLY by these rules.
+
+CRITICAL RULE: If user selected 'Declining sales' answer, 
+you MUST give score between 0-19 (critical risk), no exceptions.
+
+Good answers (score 80-100): 
+  - planned retirement/move/strategic refocus
+
+Bad answers (score 0-19): 
+  - urgent cash need
+  - lawsuits/tax issues
+  - declining sales
+
+Follow bands exactly: 
+  - 0–19 critical
+  - 20–49 high  
+  - 50–79 moderate
+  - 80–100 low
+"""
+
+# =================================================================
+# BENEFITS OF TOML FORMAT DEMONSTRATED ABOVE:
+# 
+# 1. IMPROVED READABILITY:
+#    - Multi-line strings for long prompts and info fields
+#    - Comments for section organization and explanation
+#    - Cleaner inline table syntax for options
+#
+# 2. BETTER CONFIGURATION MANAGEMENT:
+#    - Flattened structure (custom_text_input_* fields)
+#    - Clear separation of concerns
+#    - Native support for multi-line text
+#
+# 3. ENHANCED MAINTAINABILITY:
+#    - Comments explain business logic
+#    - Grouped questions by sections
+#    - Self-documenting configuration
+#
+# 4. FUTURE EXTENSIBILITY:
+#    - Easy to add new fields
+#    - Clear structure for complex configurations
+#    - Better version control diffs
+# =================================================================
