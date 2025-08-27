@@ -1,0 +1,19 @@
+version = "1.0"
+
+[monitoring]
+log_evaluations = true
+metrics_enabled = true
+
+[flags.server_driven_ui]
+enabled = false
+percentage = 0
+description = ""
+user_overrides = []
+user_excludes = []
+
+[flags.gradual_rollout]
+enabled = true
+percentage = 0
+description = "Gradual rollout control flag"
+user_overrides = []
+user_excludes = []
