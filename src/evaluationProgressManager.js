@@ -23,6 +23,7 @@ export const createEvaluationProgressManager = (options = {}) => {
 
   const progressFlags = new Map();
   const timeouts = new Map();
+  const subscribers = new Set();
   
   const manager = {
     /**
@@ -65,6 +66,7 @@ export const createEvaluationProgressManager = (options = {}) => {
       timeouts.set(questionId, timeoutId);
       
       console.log(`[EvaluationProgress] Started: ${questionId}`);
+      notifySubscribers();
       return true;
     },
 
@@ -93,6 +95,7 @@ export const createEvaluationProgressManager = (options = {}) => {
       progressFlags.delete(questionId);
       
       console.log(`[EvaluationProgress] Completed: ${questionId} (${duration}ms, reason: ${reason})`);
+      notifySubscribers();
     },
 
     /**
@@ -140,6 +143,28 @@ export const createEvaluationProgressManager = (options = {}) => {
     },
 
     /**
+     * Get evaluation state for UI rendering
+     * @returns {Object} Map of questionId to boolean
+     */
+    getEvaluatingState: () => {
+      const state = {};
+      progressFlags.forEach((value, questionId) => {
+        state[questionId] = true;
+      });
+      return state;
+    },
+
+    /**
+     * Subscribe to progress changes
+     * @param {Function} callback - Function to call on changes
+     * @returns {Function} Unsubscribe function
+     */
+    subscribe: (callback) => {
+      subscribers.add(callback);
+      return () => subscribers.delete(callback);
+    },
+
+    /**
      * Get statistics about evaluations
      * @returns {Object} Statistics object
      */
@@ -158,6 +183,11 @@ export const createEvaluationProgressManager = (options = {}) => {
         timeoutMs
       };
     }
+  };
+  
+  const notifySubscribers = () => {
+    const state = manager.getEvaluatingState();
+    subscribers.forEach(callback => callback(state));
   };
   
   return manager;

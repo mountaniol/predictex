@@ -64,7 +64,6 @@ const QuestionSection = () => {
   const [expandedExplanations, setExpandedExplanations] = useState({});
   const [submissionTrigger, setSubmissionTrigger] = useState(null);
   const startupCheckHasRun = useRef(false);
-  const [evaluating, setEvaluating] = useState({});
   
   // Use managed ref for last evaluated answers to prevent memory accumulation
   const lastEvaluatedAnswers = useRef(createManagedRef({
@@ -90,13 +89,12 @@ const QuestionSection = () => {
     maxConcurrentEvaluations: 5,
     onTimeout: (questionId) => {
       console.warn(`[QuestionSection] Evaluation timeout for: ${questionId}`);
-      setEvaluating(prev => {
-        const newEvaluating = { ...prev };
-        delete newEvaluating[questionId];
-        return newEvaluating;
-      });
+      // No need to manually update state - handled by observer pattern
     }
   })).current;
+
+  // State for tracking evaluating questions (managed by progressManager)
+  const [evaluatingState, setEvaluatingState] = useState({});
 
   // Initialize dependency invalidator
   const dependencyInvalidator = useRef(createDependencyInvalidator(sections, {
@@ -186,7 +184,8 @@ const QuestionSection = () => {
   const evaluateAnswer = useCallback(async (question) => {
     if (!question) return null;
 
-    setEvaluating(prev => ({ ...prev, [question.id]: true }));
+    // Progress is now tracked by caller via progressManager
+    // No local progress tracking needed
 
     try {
       const payload = {
@@ -219,13 +218,8 @@ const QuestionSection = () => {
       console.error('Error evaluating answer:', error);
       alert(`Error evaluating answer: ${error.message}`);
       return null;
-    } finally {
-      setEvaluating(prev => {
-        const newEvaluating = { ...prev };
-        delete newEvaluating[question.id];
-        return newEvaluating;
-      });
     }
+    // No finally block needed - progress managed by caller
   }, [answers, appConfig]);
 
   const findNextQuestionToReevaluate = useCallback((currentStates) => {
@@ -268,12 +262,25 @@ const QuestionSection = () => {
     
     // Evaluate initial questions
     for(const {question} of initialQuestions) {
+      // Progress already started in handleAnswerBlur or previous cascade
+      // Check if we need to start it here
+      let needsProgressStart = !progressManager.isInProgress(question.id);
+      
+      if (needsProgressStart) {
+        if (!progressManager.startEvaluation(question.id)) {
+          console.warn('[handleSubmitAndResolveDependencies] Could not start evaluation for:', question.id);
+          continue;
+        }
+      }
+
       const result = await evaluateAnswer(question);
+      
       if (result) {
         currentScores[question.id] = result.score;
         currentExplanations[question.id] = result.explanation;
       }
-      // Complete progress tracking for this question
+      
+      // Complete progress tracking
       progressManager.completeEvaluation(question.id, result ? 'success' : 'no-result');
     }
 
@@ -560,6 +567,21 @@ const QuestionSection = () => {
     }
   }, [sections, dependencyInvalidator]);
 
+  // Subscribe to progress manager updates for UI synchronization
+  useEffect(() => {
+    // Subscribe to progress manager updates
+    const unsubscribe = progressManager.subscribe((state) => {
+      setEvaluatingState(state);
+    });
+
+    // Initial state sync
+    setEvaluatingState(progressManager.getEvaluatingState());
+
+    return () => {
+      unsubscribe();
+    };
+  }, [progressManager]);
+
   // Cleanup progress manager and memory refs on component unmount
   useEffect(() => {
     return () => {
@@ -650,7 +672,7 @@ const QuestionSection = () => {
                   questionState={questionStates[q.id]}
                 />
                 <div style={{ display: 'flex', alignItems: 'center', marginTop: 16 }}>
-                  {evaluating[q.id] ? (
+                  {evaluatingState[q.id] ? (
                     <div 
                       style={{
                         padding: '4px 10px',
