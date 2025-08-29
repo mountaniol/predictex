@@ -170,7 +170,7 @@ def main():
             print("✅ Question Evaluation Integration:")
             print("  - Business evaluation questions can be processed")
             print("  - Search integration works with question evaluation")
-            print("  - force_search_all configuration is effective")
+            print("  - Search works for all question types without filtering")
             print()
             print("🔍 RESULT: WebSearch integration is working correctly!")
             

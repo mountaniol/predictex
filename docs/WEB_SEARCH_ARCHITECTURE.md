@@ -235,7 +235,7 @@ CREATE TABLE search_cache (
     "ollama": {
       "web_search": {
         "enabled": true,
-        "auto_search_triggers": ["найди", "поищи", "актуальная информация"],
+        "auto_search_triggers": ["find", "search", "current information", "latest news", "what's happening", "how much", "what price", "current data", "recent", "today", "latest"],
         "max_search_results": 5
       }
     }

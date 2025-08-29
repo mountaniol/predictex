@@ -19,8 +19,7 @@ class WebSearchEnabledAIProvider(AIProvider):
         self.config = config
         self.search_config = config.get('ai_web_search_integration', {})
         self.enabled = self.search_config.get('enabled', True)
-        self.force_search_all = self.search_config.get('force_search_all', False)
-        self.disable_business_filters = self.search_config.get('disable_business_filters', False)
+        # Web search is enabled for all questions without any filtering
         self.auto_search_triggers = self.search_config.get('auto_search_triggers', [])
         self.max_search_results_in_context = self.search_config.get('max_search_results_in_context', 5)
         self.search_result_format = self.search_config.get('search_result_format', 'markdown')
@@ -29,98 +28,25 @@ class WebSearchEnabledAIProvider(AIProvider):
         """Determine if web search should be performed based on the conversation"""
         print(f"\n🔍 [WEB SEARCH DEBUG] Checking if search should be performed...")
         print(f"🔍 [WEB SEARCH DEBUG] Search enabled: {self.enabled}")
-        print(f"🔍 [WEB SEARCH DEBUG] Force search all: {self.force_search_all}")
-        print(f"🔍 [WEB SEARCH DEBUG] Disable business filters: {self.disable_business_filters}")
+        print(f"🔍 [WEB SEARCH DEBUG] Search enabled for ALL questions - no filtering logic")
         
         if not self.enabled:
             print(f"🔍 [WEB SEARCH DEBUG] ❌ Search disabled in config")
             return False
             
-        # Check the last user message first
+        # Validate we have messages
         if not messages:
             print(f"🔍 [WEB SEARCH DEBUG] ❌ No messages provided")
             return False
         
-        # If force_search_all is enabled, always perform search (after message validation)
-        if self.force_search_all:
-            print(f"🔍 [WEB SEARCH DEBUG] ✅ FORCE SEARCH ALL enabled - performing search for all questions")
+        # Check if we have user messages
+        has_user_message = any(msg.get('role') == 'user' for msg in messages)
+        if has_user_message:
+            print(f"🔍 [WEB SEARCH DEBUG] ✅ Search will execute for this question")
             return True
-            
-        last_user_message = None
-        for message in reversed(messages):
-            if message['role'] == 'user':
-                last_user_message = message['content']
-                break
-                
-        if not last_user_message:
+        else:
             print(f"🔍 [WEB SEARCH DEBUG] ❌ No user messages found")
             return False
-            
-        print(f"🔍 [WEB SEARCH DEBUG] Last user message: '{last_user_message[:100]}{'...' if len(last_user_message) > 100 else ''}'")
-        
-        message_lower = last_user_message.lower()
-        
-        # Apply business evaluation filters only if not disabled
-        if not self.disable_business_filters:
-            business_evaluation_indicators = [
-                'business evaluator', 'risk assessment', 'business acquisitions', 'investment',
-                'risk scores', 'risk factors', 'evaluate the provided answer',
-                'score from 0-100', 'extremely high risk', 'extremely low risk',
-                'return only a single json object', 'score.*explanation',
-                'strategic positioning', 'financial health', 'operational efficiency',
-                'regulatory compliance', 'customer concentration'
-            ]
-            
-            for indicator in business_evaluation_indicators:
-                if indicator.lower() in message_lower:
-                    print(f"🔍 [WEB SEARCH DEBUG] ❌ Skipping search for business evaluation prompt containing: '{indicator}'")
-                    return False
-        else:
-            print(f"🔍 [WEB SEARCH DEBUG] 🔓 Business filters disabled - business evaluation questions will use search")
-        
-        # Check for explicit search triggers
-        print(f"🔍 [WEB SEARCH DEBUG] Auto search triggers: {self.auto_search_triggers}")
-        for trigger in self.auto_search_triggers:
-            if trigger.lower() in message_lower:
-                print(f"🔍 [WEB SEARCH DEBUG] ✅ EXPLICIT TRIGGER FOUND: '{trigger}'")
-                return True
-                
-        print(f"🔍 [WEB SEARCH DEBUG] No explicit triggers found, checking patterns...")
-                
-        # Check for questions about current events, news, or recent information
-        current_event_patterns = [
-            r'\b(сегодня|вчера|на этой неделе|в этом месяце|недавно|последн[ие]е|актуальн|новост|событи[яе])\b',
-            r'\b(today|yesterday|this week|this month|recently|latest|current|news|events?)\b',
-            r'\b20\d{2}\b',  # Years like 2024, 2025
-            r'\b(что происходит|что случилось|какие новости)\b',
-            r'\b(what\'s happening|what happened|what\'s new)\b'
-        ]
-        
-        for pattern in current_event_patterns:
-            if re.search(pattern, message_lower, re.IGNORECASE):
-                print(f"🔍 [WEB SEARCH DEBUG] ✅ CURRENT EVENT PATTERN MATCHED: '{pattern}'")
-                return True
-                
-        # Check for factual questions that might need current information
-        factual_patterns = [
-            r'\b(кто|что|где|когда|почему|как|сколько)\b.*\?',
-            r'\b(who|what|where|when|why|how|how much|how many)\b.*\?',
-            r'\b(цена|стоимость|курс|погода|температура)\b',
-            r'\b(price|cost|rate|weather|temperature)\b'
-        ]
-        
-        for pattern in factual_patterns:
-            if re.search(pattern, message_lower, re.IGNORECASE):
-                print(f"🔍 [WEB SEARCH DEBUG] FACTUAL PATTERN MATCHED: '{pattern}'")
-                # For factual questions, we might want to search if it seems to be about current data
-                if any(word in message_lower for word in ['сейчас', 'now', 'текущ', 'current', 'сегодня', 'today']):
-                    print(f"🔍 [WEB SEARCH DEBUG] ✅ FACTUAL + CURRENT CONTEXT FOUND")
-                    return True
-                else:
-                    print(f"🔍 [WEB SEARCH DEBUG] ❌ Factual pattern but no current context")
-                    
-        print(f"🔍 [WEB SEARCH DEBUG] ❌ No search triggers matched")
-        return False
         
     def _extract_search_query(self, messages: list) -> str:
         """Extract the search query from the conversation"""
@@ -130,16 +56,8 @@ class WebSearchEnabledAIProvider(AIProvider):
         for message in reversed(messages):
             if message['role'] == 'user':
                 user_query = message['content']
-                print(f"🔍 [WEB SEARCH DEBUG] Original user query: '{user_query}'")
-                
-                # Remove trigger phrases to clean up the query
-                cleaned_query = user_query
-                for trigger in self.auto_search_triggers:
-                    cleaned_query = re.sub(rf'\b{re.escape(trigger)}\b', '', cleaned_query, flags=re.IGNORECASE)
-                
-                cleaned_query = cleaned_query.strip()
-                print(f"🔍 [WEB SEARCH DEBUG] Cleaned search query: '{cleaned_query}'")
-                return cleaned_query
+                print(f"🔍 [WEB SEARCH DEBUG] Using user query as search query: '{user_query}'")
+                return user_query.strip()
                 
         print(f"🔍 [WEB SEARCH DEBUG] No user message found for query extraction")
         return ""
@@ -153,24 +71,24 @@ class WebSearchEnabledAIProvider(AIProvider):
             return ""
             
         if self.search_result_format == 'markdown':
-            formatted = "## Результаты веб-поиска\n\n"
+            formatted = "## Web Search Results\n\n"
             for i, result in enumerate(results[:self.max_search_results_in_context], 1):
                 formatted += f"### {i}. {result.title}\n"
-                formatted += f"**Источник:** {result.source} ({result.metadata.get('provider', 'unknown')})\n"
+                formatted += f"**Source:** {result.source} ({result.metadata.get('provider', 'unknown')})\n"
                 formatted += f"**URL:** {result.url}\n"
-                formatted += f"**Содержание:** {result.content}\n"
+                formatted += f"**Content:** {result.content}\n"
                 if result.timestamp:
-                    formatted += f"**Дата:** {result.timestamp.strftime('%Y-%m-%d %H:%M')}\n"
+                    formatted += f"**Date:** {result.timestamp.strftime('%Y-%m-%d %H:%M')}\n"
                 formatted += "\n---\n\n"
             
             print(f"🔍 [WEB SEARCH DEBUG] Formatted {self.max_search_results_in_context} results in markdown format")
             return formatted
         else:
             # Plain text format
-            formatted = "Результаты веб-поиска:\n\n"
+            formatted = "Web Search Results:\n\n"
             for i, result in enumerate(results[:self.max_search_results_in_context], 1):
                 formatted += f"{i}. {result.title}\n"
-                formatted += f"   Источник: {result.source}\n"
+                formatted += f"   Source: {result.source}\n"
                 formatted += f"   {result.content}\n\n"
             
             print(f"🔍 [WEB SEARCH DEBUG] Formatted {self.max_search_results_in_context} results in plain text format")
@@ -240,7 +158,7 @@ class WebSearchEnabledAIProvider(AIProvider):
                             # Insert search results as a system message after the user message
                             enhanced_messages.insert(i + 1, {
                                 'role': 'system',
-                                'content': f"Используй следующие результаты поиска для формирования ответа:\n\n{search_context}"
+                                'content': f"Use the following search results to form your response:\n\n{search_context}"
                             })
                             break
                     
@@ -313,7 +231,7 @@ class WebSearchEnabledAIProvider(AIProvider):
                             # Insert search results as a system message after the user message
                             enhanced_messages.insert(i + 1, {
                                 'role': 'system',
-                                'content': f"Используй следующие результаты поиска для формирования ответа:\n\n{search_context}"
+                                'content': f"Use the following search results to form your response:\n\n{search_context}"
                             })
                             break
                             

@@ -1,5 +1,5 @@
 """
-Базовые классы и интерфейсы для поисковых провайдеров
+Base classes and interfaces for search providers
 """
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Any
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class SearchProvider(ABC):
-    """Абстрактный базовый класс для всех поисковых провайдеров"""
+    """Abstract base class for all search providers"""
     
     def __init__(self, config: Dict[str, Any]):
         self.config = config
@@ -22,42 +22,42 @@ class SearchProvider(ABC):
     @abstractmethod
     async def search(self, query: SearchQuery) -> List[SearchResult]:
         """
-        Выполнить поиск по запросу
+        Execute search for query
         
         Args:
-            query: Поисковый запрос
+            query: Search query
             
         Returns:
-            Список результатов поиска
+            List of search results
         """
         pass
         
     @abstractmethod
     async def is_available(self) -> bool:
         """
-        Проверить доступность провайдера
+        Check provider availability
         
         Returns:
-            True если провайдер доступен, False иначе
+            True if provider is available, False otherwise
         """
         pass
         
     @abstractmethod
     def get_supported_query_types(self) -> List[str]:
         """
-        Получить список поддерживаемых типов запросов
+        Get list of supported query types
         
         Returns:
-            Список типов запросов (например: ["factual", "general"])
+            List of query types (e.g.: ["factual", "general"])
         """
         pass
         
     async def get_provider_info(self) -> Dict[str, Any]:
         """
-        Получить информацию о провайдере
+        Get provider information
         
         Returns:
-            Словарь с информацией о провайдере
+            Dictionary with provider information
         """
         supported_types = self.get_supported_query_types()
         return {
@@ -73,13 +73,13 @@ class SearchProvider(ABC):
         
     def validate_query(self, query: SearchQuery) -> bool:
         """
-        Валидировать запрос перед выполнением
+        Validate query before execution
         
         Args:
-            query: Поисковый запрос
+            query: Search query
             
         Returns:
-            True если запрос валиден, False иначе
+            True if query is valid, False otherwise
         """
         if not query.text or not query.text.strip():
             logger.warning(f"{self.name}: Empty query text")
@@ -93,13 +93,13 @@ class SearchProvider(ABC):
         
     async def safe_search(self, query: SearchQuery) -> List[SearchResult]:
         """
-        Безопасное выполнение поиска с обработкой ошибок
+        Safe search execution with error handling
         
         Args:
-            query: Поисковый запрос
+            query: Search query
             
         Returns:
-            Список результатов или пустой список в случае ошибки
+            List of results or empty list in case of error
         """
         try:
             if not self.enabled:
@@ -115,7 +115,7 @@ class SearchProvider(ABC):
                 
             results = await self.search(query)
             
-            # Добавляем вес провайдера к оценке результатов
+            # Add provider weight to result scores
             for result in results:
                 result.score *= self.weight
                 

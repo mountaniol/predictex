@@ -124,7 +124,7 @@ def test_search_configuration():
         print("\n📋 Configuration Status:")
         print(f"   AI Search Enabled: {ai_search_config.get('enabled', False)}")
         print(f"   AI-Powered Queries: {ai_search_config.get('ai_powered_queries', False)}")
-        print(f"   Force Search All: {ai_search_config.get('force_search_all', False)}")
+        print(f"   Search Result Format: {ai_search_config.get('search_result_format', 'text')}")
         print(f"   Max Results in Context: {ai_search_config.get('max_search_results_in_context', 0)}")
         
         web_search_config = config.get('Backend', {}).get('web_search', {})

@@ -16,18 +16,13 @@ def test_config_changes():
     backend_config = config.get('Backend', {})
     search_integration = backend_config.get('ai_web_search_integration', {})
     
-    # Check new configuration options
-    force_search_all = search_integration.get('force_search_all', False)
-    disable_business_filters = search_integration.get('disable_business_filters', False)
+    # Check configuration options
     enabled = search_integration.get('enabled', False)
     
     print(f"  ✅ enabled: {enabled}")
-    print(f"  ✅ force_search_all: {force_search_all}")
-    print(f"  ✅ disable_business_filters: {disable_business_filters}")
+    print(f"  ✅ No filters applied - search works for all questions")
     
     assert enabled == True, "Search should be enabled"
-    assert force_search_all == True, "force_search_all should be True"
-    assert disable_business_filters == True, "disable_business_filters should be True"
     
     print("✅ Configuration changes verified!")
     return search_integration
@@ -39,12 +34,9 @@ def test_search_logic_simulation():
     # Load config to get the actual settings
     config = test_config_changes()
     
-    # Simulate the _should_perform_search logic
+    # Simulate the simplified _should_perform_search logic
     def simulate_should_perform_search(messages, search_config):
         enabled = search_config.get('enabled', True)
-        force_search_all = search_config.get('force_search_all', False)
-        disable_business_filters = search_config.get('disable_business_filters', False)
-        auto_search_triggers = search_config.get('auto_search_triggers', [])
         
         if not enabled:
             return False
@@ -52,69 +44,11 @@ def test_search_logic_simulation():
         if not messages:
             return False
             
-        # If force_search_all is enabled, always perform search (after message check)
-        if force_search_all:
-            return True
-            
-        last_user_message = None
-        for message in reversed(messages):
-            if message.get('role') == 'user':
-                last_user_message = message.get('content', '')
-                break
-                
-        if not last_user_message:
-            return False
-        
-        message_lower = last_user_message.lower()
-        
-        # Apply business evaluation filters only if not disabled
-        if not disable_business_filters:
-            business_evaluation_indicators = [
-                'business evaluator', 'risk assessment', 'business acquisitions', 'investment',
-                'risk scores', 'risk factors', 'evaluate the provided answer',
-                'score from 0-100', 'extremely high risk', 'extremely low risk',
-                'return only a single json object', 'score.*explanation',
-                'strategic positioning', 'financial health', 'operational efficiency',
-                'regulatory compliance', 'customer concentration'
-            ]
-            
-            for indicator in business_evaluation_indicators:
-                if indicator.lower() in message_lower:
-                    return False
-        
-        # Check for explicit search triggers
-        for trigger in auto_search_triggers:
-            if trigger.lower() in message_lower:
-                return True
-        
-        # Check for current events, factual patterns, etc.
-        current_event_patterns = [
-            r'\b(сегодня|вчера|на этой неделе|в этом месяце|недавно|последн[ие]е|актуальн|новост|событи[яе])\b',
-            r'\b(today|yesterday|this week|this month|recently|latest|current|news|events?)\b',
-            r'\b20\d{2}\b',
-            r'\b(что происходит|что случилось|какие новости)\b',
-            r'\b(what\'s happening|what happened|what\'s new)\b'
-        ]
-        
-        for pattern in current_event_patterns:
-            if re.search(pattern, message_lower, re.IGNORECASE):
-                return True
-        
-        factual_patterns = [
-            r'\b(кто|что|где|когда|почему|как|сколько)\b.*\?',
-            r'\b(who|what|where|when|why|how|how much|how many)\b.*\?',
-            r'\b(цена|стоимость|курс|погода|температура)\b',
-            r'\b(price|cost|rate|weather|temperature)\b'
-        ]
-        
-        for pattern in factual_patterns:
-            if re.search(pattern, message_lower, re.IGNORECASE):
-                if any(word in message_lower for word in ['сейчас', 'now', 'текущ', 'current', 'сегодня', 'today']):
-                    return True
-        
-        return False
+        # Check if we have user messages - if yes, search is enabled for ALL questions
+        has_user_message = any(msg.get('role') == 'user' for msg in messages)
+        return has_user_message
     
-    # Test cases that should ALL return True with force_search_all=True
+    # Test cases that should ALL return True (no filtering applied)
     test_cases = [
         {
             "name": "Business Risk Assessment",
@@ -167,76 +101,50 @@ def test_search_logic_simulation():
     print("✅ Search decision logic simulation passed!")
     return True
 
-def test_backwards_compatibility():
-    """Test that the fix maintains backwards compatibility"""
-    print("\n🧪 Testing Backwards Compatibility...")
+def test_search_simplification():
+    """Test that search works for all question types without filters"""
+    print("\n🧪 Testing Search Simplification...")
     
-    # Simulate config with force_search_all disabled
-    config_disabled = {
+    config_simple = {
         'enabled': True,
-        'force_search_all': False,
-        'disable_business_filters': False,
         'auto_search_triggers': ["найди", "поищи"],
         'max_search_results_in_context': 5,
         'search_result_format': 'markdown'
     }
     
-    def simulate_should_perform_search_disabled(messages, search_config):
+    def simulate_simplified_search(messages, search_config):
         enabled = search_config.get('enabled', True)
-        force_search_all = search_config.get('force_search_all', False)
-        disable_business_filters = search_config.get('disable_business_filters', False)
-        auto_search_triggers = search_config.get('auto_search_triggers', [])
         
         if not enabled:
             return False
         
-        if force_search_all:
-            return True
-            
         if not messages:
             return False
             
-        last_user_message = None
-        for message in reversed(messages):
-            if message.get('role') == 'user':
-                last_user_message = message.get('content', '')
-                break
-                
-        if not last_user_message:
-            return False
-        
-        message_lower = last_user_message.lower()
-        
-        # Business filters should still work when not disabled
-        if not disable_business_filters:
-            business_evaluation_indicators = [
-                'business evaluator', 'risk assessment', 'score from 0-100'
-            ]
-            
-            for indicator in business_evaluation_indicators:
-                if indicator.lower() in message_lower:
-                    return False
-        
-        # Check explicit triggers
-        for trigger in auto_search_triggers:
-            if trigger.lower() in message_lower:
-                return True
-        
-        return False
+        # Search enabled for all questions with user messages
+        has_user_message = any(msg.get('role') == 'user' for msg in messages)
+        return has_user_message
     
-    # Test that business questions are blocked when force_search_all=False
-    business_message = [{"role": "user", "content": "Score from 0-100 this business evaluation"}]
-    result = simulate_should_perform_search_disabled(business_message, config_disabled)
-    print(f"  Business question with force_search_all=False: {result}")
-    assert result == False, "Business questions should be blocked when force_search_all=False"
+    # Test that ALL question types now trigger search
+    test_questions = [
+        {"role": "user", "content": "Score from 0-100 this business evaluation"},
+        {"role": "user", "content": "What is the weather today?"},
+        {"role": "user", "content": "Business evaluator assessment needed"},
+        {"role": "user", "content": "Risk assessment for investment"},
+        {"role": "user", "content": "Random question about anything"}
+    ]
     
-    # Test that trigger questions still work
-    trigger_message = [{"role": "user", "content": "Найди информацию о компании"}]
-    result = simulate_should_perform_search_disabled(trigger_message, config_disabled)
-    print(f"  Trigger question with force_search_all=False: {result}")
-    assert result == True, "Trigger questions should work when force_search_all=False"
+    for question in test_questions:
+        result = simulate_simplified_search([question], config_simple)
+        print(f"  Question: '{question['content'][:50]}...' -> Search: {result}")
+        assert result == True, f"All questions should trigger search, but got {result}"
     
-    print("✅ Backwards compatibility verified!")
+    # Test empty messages
+    result = simulate_simplified_search([], config_simple)
+    print(f"  Empty messages -> Search: {result}")
+    assert result == False, "Empty messages should not trigger search"
+    
+    print("✅ Search simplification verified - all questions trigger search!")
 
 def verify_code_changes():
     """Verify that the actual code has been updated"""
@@ -246,20 +154,36 @@ def verify_code_changes():
     with open('src/backend/ai_providers_with_search.py', 'r') as f:
         code_content = f.read()
     
-    # Check for key changes
-    checks = [
-        ('force_search_all configuration', 'self.force_search_all'),
-        ('disable_business_filters configuration', 'self.disable_business_filters'),
-        ('force_search_all logic', 'if self.force_search_all:'),
-        ('business filters check', 'if not self.disable_business_filters:'),
-        ('force search debug message', 'FORCE SEARCH ALL enabled')
+    # Check that old filter logic has been removed
+    removed_checks = [
+        ('business evaluation filters', 'business_evaluation_indicators'),
+        ('pattern matching logic', 'current_event_patterns'),
+        ('factual patterns', 'factual_patterns'),
+        ('trigger word filtering', 'auto_search_trigger_check'),
+        ('complex filter logic', 'business_evaluation_detected')
     ]
     
-    for check_name, check_pattern in checks:
+    # Check for new simplified logic
+    new_checks = [
+        ('simplified search logic', 'Search enabled for ALL questions'),
+        ('no filtering message', 'no filtering logic'),
+        ('user message validation', 'has_user_message')
+    ]
+    
+    print("  Checking removed filter logic:")
+    for check_name, check_pattern in removed_checks:
         if check_pattern in code_content:
-            print(f"  ✅ {check_name}: Found")
+            print(f"    ❌ {check_name}: STILL FOUND (should be removed)")
+            return False
         else:
-            print(f"  ❌ {check_name}: NOT found")
+            print(f"    ✅ {check_name}: Correctly removed")
+    
+    print("  Checking new simplified logic:")
+    for check_name, check_pattern in new_checks:
+        if check_pattern in code_content:
+            print(f"    ✅ {check_name}: Found")
+        else:
+            print(f"    ❌ {check_name}: NOT found")
             return False
     
     print("✅ Code changes verified!")
@@ -277,8 +201,8 @@ def main():
         # Test 2: Search decision logic simulation
         test_search_logic_simulation()
         
-        # Test 3: Backwards compatibility
-        test_backwards_compatibility()
+        # Test 3: Search simplification
+        test_search_simplification()
         
         # Test 4: Code changes verification
         verify_code_changes()
@@ -287,23 +211,23 @@ def main():
         print("🎉 ALL TESTS PASSED!")
         print()
         print("✅ WebSearch Configuration:")
-        print("  - force_search_all: True (search executes for ALL questions)")
-        print("  - disable_business_filters: True (no business question blocking)")
         print("  - enabled: True (web search is active)")
+        print("  - NO filters applied (search works for all questions)")
+        print("  - Search triggers for ALL question types")
         print()
         print("✅ Functionality Verified:")
-        print("  - Business evaluation questions now trigger web search")
-        print("  - General questions continue to trigger web search")
-        print("  - force_search_all=True overrides all filtering")
-        print("  - Backwards compatibility maintained when force_search_all=False")
+        print("  - ALL questions trigger web search (no filtering)")
+        print("  - Business evaluation questions trigger web search")
+        print("  - General questions trigger web search") 
+        print("  - No pattern matching or filter logic")
         print()
         print("✅ Implementation:")
-        print("  - Configuration options added to app.config.json")
-        print("  - Logic updated in ai_providers_with_search.py")
-        print("  - Business evaluation filters can be bypassed")
-        print("  - Debug messages show new behavior")
+        print("  - Removed all filter logic from ai_providers_with_search.py")
+        print("  - Removed all filtering logic and configuration flags")
+        print("  - Simplified _should_perform_search method")
+        print("  - Simplified _extract_search_query method")
         print()
-        print("🔍 RESULT: Web search now executes for EVERY question when force_search_all=True")
+        print("🔍 RESULT: Web search now executes for EVERY question with user messages - NO FILTERS!")
         
     except Exception as e:
         print(f"\n❌ TEST FAILED: {e}")

@@ -1,5 +1,5 @@
 """
-Модели данных для системы веб-поиска
+Data models for web search system
 """
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
@@ -8,7 +8,7 @@ from datetime import datetime
 
 @dataclass
 class SearchQuery:
-    """Структура поискового запроса"""
+    """Search query structure"""
     text: str
     query_type: Optional[str] = None
     max_results: int = 10
@@ -19,7 +19,7 @@ class SearchQuery:
 
 @dataclass
 class SearchResult:
-    """Результат поиска"""
+    """Search result"""
     title: str
     content: str
     url: str
@@ -29,7 +29,7 @@ class SearchResult:
     metadata: Dict[str, Any] = field(default_factory=dict)
     
     def to_dict(self) -> Dict[str, Any]:
-        """Конвертация в словарь для JSON сериализации"""
+        """Convert to dictionary for JSON serialization"""
         return {
             "title": self.title,
             "content": self.content,
@@ -42,7 +42,7 @@ class SearchResult:
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'SearchResult':
-        """Создание из словаря"""
+        """Create from dictionary"""
         if data.get("timestamp"):
             data["timestamp"] = datetime.fromisoformat(data["timestamp"])
         return cls(**data)
@@ -50,7 +50,7 @@ class SearchResult:
 
 @dataclass
 class SearchResponse:
-    """Ответ системы поиска"""
+    """Search system response"""
     query: SearchQuery
     results: List[SearchResult]
     total_results: int
@@ -60,7 +60,7 @@ class SearchResponse:
     classification: Optional[Dict[str, Any]] = None
     
     def to_dict(self) -> Dict[str, Any]:
-        """Конвертация в словарь для JSON сериализации"""
+        """Convert to dictionary for JSON serialization"""
         return {
             "query": {
                 "text": self.query.text,

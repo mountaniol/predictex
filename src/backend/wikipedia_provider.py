@@ -1,5 +1,5 @@
 """
-Провайдер Wikipedia с полным управлением ресурсами
+Wikipedia provider with full resource management
 """
 import aiohttp
 import asyncio
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class WikipediaProvider(SearchProvider):
-    """Провайдер для поиска в Wikipedia с полным управлением ресурсами"""
+    """Provider for Wikipedia search with full resource management"""
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
@@ -26,7 +26,7 @@ class WikipediaProvider(SearchProvider):
         self.include_images = config.get("include_images", False)
         
     async def search(self, query: SearchQuery) -> List[SearchResult]:
-        """Поиск в Wikipedia с правильным управлением ресурсами"""
+        """Search in Wikipedia with proper resource management"""
         # Create connector with proper SSL and connection settings
         connector = aiohttp.TCPConnector(
             ssl=ssl.create_default_context(),
@@ -52,11 +52,11 @@ class WikipediaProvider(SearchProvider):
                 timeout=timeout,
                 connector_owner=True  # Session owns the connector
             ) as session:
-                # Сначала ищем статьи
+                # First search for articles
                 search_results = await self._search_articles(session, query.text, query.max_results * 2)
                 
                 if not search_results:
-                    # Пробуем fallback языки
+                    # Try fallback languages
                     for lang in self.fallback_languages:
                         self.language = lang
                         self.base_url = f"https://{lang}.wikipedia.org/api/rest_v1/"
@@ -67,7 +67,7 @@ class WikipediaProvider(SearchProvider):
                 
                 results = []
                 for article in search_results[:query.max_results]:
-                    # Получаем детальную информацию о статье
+                    # Get detailed article information
                     article_data = await self._get_article_data(session, article["title"])
                     if article_data:
                         results.append(self._article_to_result(article_data, article))
@@ -87,7 +87,7 @@ class WikipediaProvider(SearchProvider):
             
     async def _search_articles(self, session: aiohttp.ClientSession, 
                               query_text: str, limit: int = 10) -> List[Dict]:
-        """Поиск статей по запросу"""
+        """Search articles by query"""
         params = {
             "action": "query",
             "format": "json",
@@ -118,11 +118,11 @@ class WikipediaProvider(SearchProvider):
             
     async def _get_article_data(self, session: aiohttp.ClientSession, 
                                title: str) -> Optional[Dict]:
-        """Получить данные о статье включая summary"""
+        """Get article data including summary"""
         # URL encode title
         encoded_title = quote(title)
         
-        # Получаем summary
+        # Get summary
         summary_url = f"{self.base_url}page/summary/{encoded_title}"
         
         try:
@@ -131,7 +131,7 @@ class WikipediaProvider(SearchProvider):
                     summary_data = await response.json()
                     await response.release()  # Explicitly release
                     
-                    # Получаем дополнительные данные через основной API
+                    # Get additional data through main API
                     extra_data = await self._get_extra_article_data(session, title)
                     
                     return {
@@ -154,7 +154,7 @@ class WikipediaProvider(SearchProvider):
             
     async def _get_extra_article_data(self, session: aiohttp.ClientSession, 
                                      title: str) -> Dict:
-        """Получить дополнительные данные о статье"""
+        """Get additional article data"""
         params = {
             "action": "query",
             "format": "json",
@@ -188,27 +188,27 @@ class WikipediaProvider(SearchProvider):
         return {}
         
     def _article_to_result(self, article_data: Dict, search_data: Dict) -> SearchResult:
-        """Преобразовать данные статьи в SearchResult"""
+        """Convert article data to SearchResult"""
         title = article_data.get("title", "")
         
-        # Формируем контент
+        # Format content
         extract = article_data.get("extract", "")
         if len(extract) > self.max_summary_length:
             extract = extract[:self.max_summary_length] + "..."
             
-        # Добавляем snippet из поиска если есть
+        # Add snippet from search if available
         snippet = search_data.get("snippet", "")
         if snippet:
             snippet = self._clean_snippet(snippet)
             if snippet not in extract:
                 extract = f"{snippet}\n\n{extract}"
                 
-        # URL статьи
+        # Article URL
         url = article_data.get("content_urls", {}).get("desktop", {}).get("page", "")
         if not url and article_data.get("extra", {}).get("fullurl"):
             url = article_data["extra"]["fullurl"]
             
-        # Метаданные
+        # Metadata
         metadata = {
             "description": article_data.get("description", ""),
             "timestamp": article_data.get("timestamp"),
@@ -218,15 +218,15 @@ class WikipediaProvider(SearchProvider):
             "links_count": article_data.get("extra", {}).get("links_count", 0)
         }
         
-        # Добавляем изображение если включено
+        # Add image if enabled
         if self.include_images and article_data.get("thumbnail"):
             metadata["thumbnail"] = article_data["thumbnail"]
             
-        # Рассчитываем score на основе размера и соответствия
+        # Calculate score based on size and relevance
         base_score = 0.8
         if search_data.get("wordcount", 0) > 1000:
             base_score += 0.1
-        if "titlesnippet" in search_data:  # Заголовок содержит искомые слова
+        if "titlesnippet" in search_data:  # Title contains search words
             base_score += 0.1
             
         return SearchResult(
@@ -239,17 +239,17 @@ class WikipediaProvider(SearchProvider):
         )
         
     def _clean_snippet(self, snippet: str) -> str:
-        """Очистка snippet от HTML тегов"""
+        """Clean snippet from HTML tags"""
         import re
-        # Удаляем HTML теги
+        # Remove HTML tags
         clean = re.sub(r'<[^>]+>', '', snippet)
-        # Заменяем HTML entities
+        # Replace HTML entities
         clean = clean.replace('&quot;', '"').replace('&amp;', '&')
         clean = clean.replace('&lt;', '<').replace('&gt;', '>')
         return clean.strip()
         
     async def is_available(self) -> bool:
-        """Проверить доступность Wikipedia API"""
+        """Check Wikipedia API availability"""
         connector = aiohttp.TCPConnector(
             ssl=ssl.create_default_context(),
             force_close=True
@@ -275,5 +275,5 @@ class WikipediaProvider(SearchProvider):
                 await connector.close()
             
     def get_supported_query_types(self) -> List[str]:
-        """Wikipedia лучше всего подходит для фактических запросов"""
+        """Wikipedia is best suited for factual queries"""
         return ["factual", "general"]

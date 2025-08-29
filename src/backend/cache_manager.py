@@ -1,5 +1,5 @@
 """
-Менеджер кэширования для результатов поиска
+Cache manager for search results
 """
 import sqlite3
 import json
@@ -14,13 +14,13 @@ logger = logging.getLogger(__name__)
 
 
 class CacheManager:
-    """Менеджер кэширования результатов поиска"""
+    """Search results cache manager"""
     
     def __init__(self, config: Dict[str, Any]):
         self.config = config
         self.enabled = config.get("enabled", True)
         self.db_path = config.get("db_path", "data/search_cache.db")
-        self.default_ttl = config.get("default_ttl", 3600)  # 1 час
+        self.default_ttl = config.get("default_ttl", 3600)  # 1 hour
         self.max_entries = config.get("max_entries", 10000)
         self.cleanup_interval = config.get("cleanup_interval", 3600)
         
@@ -28,8 +28,8 @@ class CacheManager:
             self._init_database()
             
     def _init_database(self):
-        """Инициализация базы данных SQLite"""
-        # Создаем директорию если нужно
+        """Initialize SQLite database"""
+        # Create directory if needed
         db_dir = Path(self.db_path).parent
         db_dir.mkdir(parents=True, exist_ok=True)
         
@@ -48,7 +48,7 @@ class CacheManager:
             )
         """)
         
-        # Создаем индексы для быстрого поиска
+        # Create indexes for fast lookup
         conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_expires_at 
             ON search_cache(expires_at)
@@ -62,15 +62,15 @@ class CacheManager:
         conn.close()
         
     def _hash_query(self, query: SearchQuery) -> str:
-        """Создание хэша для запроса"""
-        # Создаем уникальный ключ на основе параметров запроса
+        """Create hash for query"""
+        # Create unique key based on query parameters
         query_str = f"{query.text}:{query.language}:{query.max_results}"
         if query.query_type:
             query_str += f":{query.query_type}"
         return hashlib.md5(query_str.encode()).hexdigest()
         
     async def get(self, query: SearchQuery) -> Optional[Dict[str, Any]]:
-        """Получить результат из кэша"""
+        """Get result from cache"""
         if not self.enabled:
             return None
             
@@ -90,7 +90,7 @@ class CacheManager:
             row = cursor.fetchone()
             
             if row:
-                # Обновляем счетчик доступа и время последнего доступа
+                # Update access counter and last access time
                 cursor.execute("""
                     UPDATE search_cache 
                     SET access_count = access_count + 1,
@@ -99,7 +99,7 @@ class CacheManager:
                 """, (query_hash,))
                 conn.commit()
                 
-                # Десериализуем результаты
+                # Deserialize results
                 results_data = json.loads(row["results"])
                 results = [SearchResult.from_dict(r) for r in results_data]
                 sources = json.loads(row["sources"])
@@ -121,20 +121,20 @@ class CacheManager:
         
     async def store(self, query: SearchQuery, results: List[SearchResult], 
                    sources: List[str]):
-        """Сохранить результат в кэш"""
+        """Save result to cache"""
         if not self.enabled or not results:
             return
             
         query_hash = self._hash_query(query)
         
-        # Определяем TTL на основе типа запроса
+        # Determine TTL based on query type
         ttl = self._get_ttl_for_query_type(query.query_type)
         
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
-            # Сериализуем результаты
+            # Serialize results
             results_json = json.dumps([r.to_dict() for r in results])
             sources_json = json.dumps(sources)
             expires_at = datetime.now() + timedelta(seconds=ttl)
@@ -151,7 +151,7 @@ class CacheManager:
             
             logger.debug(f"Cached results for query: {query.text[:50]}...")
             
-            # Проверяем не превысили ли лимит записей
+            # Check if we exceeded the entry limit
             await self._check_cache_size(conn)
             
             conn.close()
@@ -160,25 +160,25 @@ class CacheManager:
             logger.error(f"Cache store error: {e}")
             
     def _get_ttl_for_query_type(self, query_type: Optional[str]) -> int:
-        """Получить TTL для типа запроса"""
+        """Get TTL for query type"""
         ttl_map = {
-            "factual": 86400,   # 24 часа для фактических данных
-            "current": 3600,    # 1 час для текущих новостей
-            "general": 21600    # 6 часов для общих запросов
+            "factual": 86400,   # 24 hours for factual data
+            "current": 3600,    # 1 hour for current news
+            "general": 21600    # 6 hours for general queries
         }
         return ttl_map.get(query_type, self.default_ttl)
         
     async def _check_cache_size(self, conn: sqlite3.Connection):
-        """Проверка и очистка кэша при превышении лимита"""
+        """Check and clean cache when limit is exceeded"""
         cursor = conn.cursor()
         
-        # Проверяем количество записей
+        # Check number of entries
         cursor.execute("SELECT COUNT(*) FROM search_cache")
         count = cursor.fetchone()[0]
         
         if count > self.max_entries:
-            # Удаляем старые и редко используемые записи
-            # Оставляем 80% от максимального размера
+            # Delete old and rarely used entries
+            # Keep 80% of maximum size
             keep_count = int(self.max_entries * 0.8)
             
             cursor.execute("""
@@ -196,7 +196,7 @@ class CacheManager:
             logger.info(f"Cache cleanup: removed {deleted} old entries")
             
     async def cleanup_expired(self):
-        """Очистка устаревших записей"""
+        """Clean up expired entries"""
         if not self.enabled:
             return
             
@@ -220,7 +220,7 @@ class CacheManager:
             logger.error(f"Cache cleanup error: {e}")
             
     async def get_stats(self) -> Dict[str, Any]:
-        """Получить статистику кэша"""
+        """Get cache statistics"""
         if not self.enabled:
             return {"enabled": False}
             
@@ -229,7 +229,7 @@ class CacheManager:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             
-            # Общая статистика
+            # General statistics
             cursor.execute("""
                 SELECT 
                     COUNT(*) as total_entries,
@@ -242,7 +242,7 @@ class CacheManager:
             
             stats = dict(cursor.fetchone())
             
-            # Статистика по типам запросов
+            # Statistics by query types
             cursor.execute("""
                 SELECT query_type, COUNT(*) as count
                 FROM search_cache
@@ -257,7 +257,7 @@ class CacheManager:
                 
             stats["by_type"] = type_stats
             
-            # Размер базы данных
+            # Database size
             cursor.execute("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()")
             stats["db_size_bytes"] = cursor.fetchone()[0]
             
@@ -277,7 +277,7 @@ class CacheManager:
             return {"enabled": True, "error": str(e)}
             
     async def clear_cache(self):
-        """Полная очистка кэша"""
+        """Complete cache cleanup"""
         if not self.enabled:
             return
             
@@ -288,7 +288,7 @@ class CacheManager:
             cursor.execute("DELETE FROM search_cache")
             deleted_count = cursor.rowcount
             
-            # Оптимизация базы данных после удаления
+            # Database optimization after deletion
             cursor.execute("VACUUM")
             
             conn.commit()
@@ -300,7 +300,7 @@ class CacheManager:
             logger.error(f"Error clearing cache: {e}")
             
     async def invalidate_by_type(self, query_type: str):
-        """Инвалидация кэша по типу запроса"""
+        """Cache invalidation by query type"""
         if not self.enabled:
             return
             

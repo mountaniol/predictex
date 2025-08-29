@@ -1,5 +1,5 @@
 """
-Центральный маршрутизатор для системы веб-поиска
+Central router for web search system
 """
 import asyncio
 import time
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class SearchRouter:
-    """Центральный компонент для маршрутизации поисковых запросов"""
+    """Central component for routing search queries"""
     
     def __init__(self, config: Dict[str, Any]):
         self.config = config
@@ -27,7 +27,7 @@ class SearchRouter:
         self.max_results = config.get("max_results", 10)
         self.timeout = config.get("timeout", 30)
         
-        # Инициализация компонентов
+        # Initialize components
         self.classifier = QueryClassifier(config.get("classification", {}))
         self.cache_manager = CacheManager(config.get("cache", {}))
         self.providers = self._initialize_providers()
@@ -37,7 +37,7 @@ class SearchRouter:
         self._request_times = []
         
     def _initialize_providers(self) -> Dict[str, SearchProvider]:
-        """Инициализация провайдеров"""
+        """Initialize providers"""
         providers = {}
         
         # DuckDuckGo
@@ -84,16 +84,16 @@ class SearchRouter:
                     max_results: Optional[int] = None,
                     language: Optional[str] = None) -> SearchResponse:
         """
-        Основной метод поиска
+        Main search method
         
         Args:
-            query_input: Текст запроса или объект SearchQuery
-            query_type: Тип запроса (опционально, будет определен автоматически)
-            max_results: Максимальное количество результатов
-            language: Язык поиска
+            query_input: Query text or SearchQuery object
+            query_type: Query type (optional, will be determined automatically)
+            max_results: Maximum number of results
+            language: Search language
             
         Returns:
-            SearchResponse с результатами поиска
+            SearchResponse with search results
         """
         if not self.enabled:
             if isinstance(query_input, SearchQuery):
@@ -109,16 +109,16 @@ class SearchRouter:
                 sources_used=[]
             )
             
-        # Проверка rate limiting
+        # Check rate limiting
         if not await self._check_rate_limit():
             raise Exception("Rate limit exceeded")
             
         start_time = time.time()
         
-        # Создаем объект запроса, если передана строка
+        # Create query object if string was passed
         if isinstance(query_input, SearchQuery):
             query = query_input
-            # Обновляем параметры, если они переданы явно
+            # Update parameters if explicitly passed
             if query_type is not None:
                 query.query_type = query_type
             if max_results is not None:
@@ -133,7 +133,7 @@ class SearchRouter:
                 language=language or self.default_language
             )
         
-        # Проверяем кэш
+        # Check cache
         cached_result = await self.cache_manager.get(query)
         if cached_result:
             search_time = time.time() - start_time
@@ -146,11 +146,11 @@ class SearchRouter:
                 sources_used=cached_result["sources"]
             )
             
-        # Классифицируем запрос
+        # Classify query
         classification = self.classifier.classify(query)
         query.query_type = classification["primary_type"]
         
-        # Выбираем провайдеров
+        # Select providers
         selected_providers = await self._select_providers(classification)
         
         if not selected_providers:
@@ -165,13 +165,13 @@ class SearchRouter:
                 classification=classification
             )
             
-        # Выполняем поиск
+        # Execute search
         provider_results = await self._execute_search(query, selected_providers)
         
-        # Агрегируем и ранжируем результаты
+        # Aggregate and rank results
         final_results = self._aggregate_results(provider_results, query)
         
-        # Сохраняем в кэш
+        # Save to cache
         if final_results:
             await self.cache_manager.store(
                 query, 
@@ -192,33 +192,33 @@ class SearchRouter:
         )
         
     async def _select_providers(self, classification: Dict[str, Any]) -> List[SearchProvider]:
-        """Выбор провайдеров на основе классификации"""
+        """Select providers based on classification"""
         query_type = classification["primary_type"]
         confidence = classification["confidence"]
         suggested_providers = classification["suggested_providers"]
         
         selected = []
         
-        # Если стратегия - использовать все провайдеры
+        # If strategy is to use all providers
         if self.strategy == "all_providers":
             return list(self.providers.values())
             
-        # Smart routing стратегия
+        # Smart routing strategy
         if confidence > self.config.get("classification", {}).get("confidence_threshold", 0.7):
-            # Используем рекомендованных провайдеров
+            # Use recommended providers
             for provider_name in suggested_providers:
                 if provider_name in self.providers:
                     provider = self.providers[provider_name]
                     if await provider.is_available():
                         selected.append(provider)
         else:
-            # Низкая уверенность - используем больше провайдеров
+            # Low confidence - use more providers
             for provider in self.providers.values():
                 supported_types = provider.get_supported_query_types()
                 if await provider.is_available() and query_type in supported_types:
                     selected.append(provider)
                     
-        # Если ничего не выбрано, используем DuckDuckGo как fallback
+        # If nothing selected, use DuckDuckGo as fallback
         if not selected and "duckduckgo" in self.providers:
             selected.append(self.providers["duckduckgo"])
             
@@ -227,7 +227,7 @@ class SearchRouter:
     async def _execute_search(self, 
                             query: SearchQuery,
                             providers: List[SearchProvider]) -> Dict[str, List[SearchResult]]:
-        """Выполнение поиска через выбранных провайдеров"""
+        """Execute search through selected providers"""
         tasks = []
         provider_names = []
         
@@ -235,7 +235,7 @@ class SearchRouter:
             tasks.append(provider.safe_search(query))
             provider_names.append(provider.name)
             
-        # Выполняем поиск параллельно с таймаутом
+        # Execute search in parallel with timeout
         try:
             results = await asyncio.wait_for(
                 asyncio.gather(*tasks, return_exceptions=True),
@@ -245,7 +245,7 @@ class SearchRouter:
             logger.error(f"Search timeout after {self.timeout} seconds")
             results = []
             
-        # Собираем результаты
+        # Collect results
         provider_results = {}
         for i, result in enumerate(results):
             if i < len(provider_names):
@@ -262,12 +262,12 @@ class SearchRouter:
     def _aggregate_results(self, 
                           provider_results: Dict[str, List[SearchResult]],
                           query: SearchQuery) -> List[SearchResult]:
-        """Агрегация и ранжирование результатов"""
+        """Aggregation and ranking of results"""
         all_results = []
         
-        # Собираем все результаты
+        # Collect all results
         for provider_name, results in provider_results.items():
-            # Добавляем информацию о провайдере в метаданные
+            # Add provider information to metadata
             for result in results:
                 result.metadata["provider"] = provider_name
                 all_results.append(result)
@@ -275,77 +275,77 @@ class SearchRouter:
         if not all_results:
             return []
             
-        # Удаляем дубликаты по URL
+        # Remove duplicates by URL
         seen_urls = set()
         unique_results = []
         
         for result in all_results:
-            # Нормализуем URL для сравнения
+            # Normalize URL for comparison
             normalized_url = result.url.lower().rstrip('/')
             
             if normalized_url and normalized_url not in seen_urls:
                 seen_urls.add(normalized_url)
                 unique_results.append(result)
-            elif not result.url:  # Результаты без URL (например, прямые ответы)
+            elif not result.url:  # Results without URL (e.g., direct answers)
                 unique_results.append(result)
                 
-        # Применяем дополнительное ранжирование
+        # Apply additional ranking
         ranked_results = self._rank_results(unique_results, query)
         
-        # Ограничиваем количество результатов
+        # Limit number of results
         return ranked_results[:query.max_results]
         
     def _rank_results(self, 
                      results: List[SearchResult],
                      query: SearchQuery) -> List[SearchResult]:
-        """Дополнительное ранжирование результатов"""
-        # Простое ранжирование по score
-        # В будущем здесь можно добавить более сложную логику
+        """Additional ranking of results"""
+        # Simple ranking by score
+        # More complex logic can be added here in the future
         
-        # Бонусы за соответствие типу запроса
+        # Bonuses for matching query type
         for result in results:
             provider = result.metadata.get("provider", "")
             
-            # Бонус за Wikipedia для фактических запросов
+            # Bonus for Wikipedia for factual queries
             if query.query_type == "factual" and provider == "wikipedia":
                 result.score *= 1.2
                 
-            # Бонус за RSS для актуальных запросов
+            # Bonus for RSS for current queries
             elif query.query_type == "current" and provider == "rss":
                 result.score *= 1.15
                 
-            # Нормализуем score
+            # Normalize score
             result.score = min(result.score, 1.0)
             
-        # Сортируем по score
+        # Sort by score
         results.sort(key=lambda x: x.score, reverse=True)
         
         return results
         
     async def _check_rate_limit(self) -> bool:
-        """Проверка rate limiting"""
+        """Check rate limiting"""
         if not self.rate_limiting.get("enabled", False):
             return True
             
         current_time = time.time()
         requests_per_minute = self.rate_limiting.get("requests_per_minute", 60)
         
-        # Удаляем старые записи (старше минуты)
+        # Remove old records (older than a minute)
         self._request_times = [
             t for t in self._request_times 
             if current_time - t < 60
         ]
         
-        # Проверяем лимит
+        # Check limit
         if len(self._request_times) >= requests_per_minute:
             return False
             
-        # Добавляем текущий запрос
+        # Add current request
         self._request_times.append(current_time)
         return True
         
     async def get_provider_status(self) -> Dict[str, Any]:
-        """Получить статус всех провайдеров"""
+        """Get status of all providers"""
         status = {}
         
         for name, provider in self.providers.items():
@@ -357,7 +357,7 @@ class SearchRouter:
         return status
         
     async def health_check(self) -> Dict[str, Any]:
-        """Проверка состояния системы поиска"""
+        """Check search system health"""
         health = {
             "enabled": self.enabled,
             "strategy": self.strategy,
@@ -366,7 +366,7 @@ class SearchRouter:
             "cache": await self.cache_manager.get_stats()
         }
         
-        # Определяем общий статус
+        # Determine overall status
         providers_available = any(
             p["available"] for p in health["providers"].values()
         )
@@ -376,11 +376,11 @@ class SearchRouter:
         return health
         
     async def cleanup(self):
-        """Очистка ресурсов"""
-        # Закрываем сессии провайдеров
+        """Clean up resources"""
+        # Close provider sessions
         for provider in self.providers.values():
             if hasattr(provider, '__aexit__'):
                 await provider.__aexit__(None, None, None)
                 
-        # Очистка кэша
+        # Clean up cache
         await self.cache_manager.cleanup_expired()

@@ -335,25 +335,25 @@ async def perform_web_search_for_question(question, answer, all_answers, config)
 
 def generate_search_query_from_answer(question, answer, all_answers):
     """
-    Генерирует поисковый запрос на основе ОТВЕТА пользователя
+    Generates a search query based on the user's ANSWER
     """
     import re
     from typing import List
     
     def extract_keywords(text: str, max_words: int = 5) -> List[str]:
-        """Извлекает ключевые слова из текста"""
-        # Удаляем стоп-слова
+        """Extracts keywords from text"""
+        # Remove stop words
         stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 
                      'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 
                      'was', 'were', 'been', 'have', 'has', 'had'}
         
-        # Извлекаем слова длиннее 3 символов
+        # Extract words longer than 3 characters
         words = re.findall(r'\b[a-zA-Z]{4,}\b', text.lower())
         
-        # Фильтруем стоп-слова
+        # Filter stop words
         keywords = [w for w in words if w not in stop_words]
         
-        # Возвращаем уникальные слова
+        # Return unique words
         seen = set()
         result = []
         for word in keywords:
@@ -367,46 +367,46 @@ def generate_search_query_from_answer(question, answer, all_answers):
     
     search_terms = []
     
-    # 1. Обработка ответа в зависимости от типа
+    # 1. Process answer based on type
     if isinstance(answer, list):
-        # Для множественного выбора - используем выбранные опции
+        # For multiple choice - use selected options
         for option_code in answer:
             if option_code != 'other':
-                # Получаем label опции
+                # Get option label
                 for opt in question.get('options', []):
                     if opt['code'] == option_code:
                         search_terms.extend(extract_keywords(opt['label']))
                         break
             else:
-                # Для "Other" используем текст из other_text_id
+                # For "Other" use text from other_text_id
                 other_text_id = question.get('other_text_id')
                 if other_text_id and all_answers.get(other_text_id):
                     search_terms.extend(extract_keywords(all_answers[other_text_id]))
     
     elif isinstance(answer, str):
-        # Для текстовых ответов
-        if len(answer) > 20:  # Достаточно длинный ответ
+        # For text answers
+        if len(answer) > 20:  # Long enough answer
             search_terms.extend(extract_keywords(answer))
         else:
-            # Короткий ответ - используем полностью
+            # Short answer - use completely
             search_terms.append(answer.lower())
     
-    # 2. Добавляем контекст из зависимых ответов
+    # 2. Add context from dependent answers
     context_terms = []
     
-    # Локация компании (важный контекст)
+    # Company location (important context)
     if 'MET.LOC' in all_answers and all_answers['MET.LOC']:
         location = all_answers['MET.LOC']
-        # Извлекаем город/страну
+        # Extract city/country
         location_parts = location.split(',')
         if location_parts:
             context_terms.append(location_parts[0].strip())
     
-    # Индустрия/сектор
+    # Industry/sector
     if 'MET.INDUSTRY' in all_answers and all_answers['MET.INDUSTRY']:
         context_terms.extend(extract_keywords(all_answers['MET.INDUSTRY'], 2))
     
-    # Размер компании
+    # Company size
     if 'MET.SIZE' in all_answers and all_answers['MET.SIZE']:
         size = all_answers['MET.SIZE']
         if 'small' in size.lower():
@@ -414,24 +414,24 @@ def generate_search_query_from_answer(question, answer, all_answers):
         elif 'large' in size.lower():
             context_terms.append('enterprise')
     
-    # 3. Формируем финальный запрос
+    # 3. Form final query
     if not search_terms and not context_terms:
-        # Если нет ключевых слов, используем тип вопроса
+        # If no keywords, use question type
         question_type = question.get('cluster_name', '')
         if question_type:
             search_terms.append(question_type.lower())
     
-    # Объединяем термины
-    all_terms = search_terms[:3]  # Максимум 3 основных термина
+    # Combine terms
+    all_terms = search_terms[:3]  # Maximum 3 main terms
     if context_terms:
-        all_terms.extend(context_terms[:2])  # Максимум 2 контекстных термина
+        all_terms.extend(context_terms[:2])  # Maximum 2 context terms
     
-    # Добавляем модификаторы для улучшения результатов
+    # Add modifiers to improve results
     query = ' '.join(all_terms)
     
-    # Добавляем временной контекст если нужны актуальные данные
+    # Add temporal context if current data is needed
     if any(word in question.get('text', '').lower() 
-           for word in ['current', 'latest', 'recent', 'текущий', 'последний']):
+           for word in ['current', 'latest', 'recent', 'today', 'now']):
         query += ' 2024 2025 latest trends'
     else:
         query += ' best practices industry analysis'
@@ -441,7 +441,7 @@ def generate_search_query_from_answer(question, answer, all_answers):
 
 def generate_search_query_from_question(question):
     """
-    Генерирует поисковый запрос на английском языке на основе вопроса
+    Generates a search query in English based on the question
     """
     question_text = question.get('text', '')
     question_type = question.get('question_type', '')
@@ -454,16 +454,16 @@ def generate_search_query_from_question(question):
     
     # NOTE: Business evaluation keyword filtering has been removed to allow web search for all questions
     
-    # Базовые ключевые слова для извлечения темы
+    # Basic keywords for topic extraction
     import re
     
-    # Удаляем общие фразы и фокусируемся на ключевых концепциях
+    # Remove generic phrases and focus on key concepts
     cleaned_text = question_text
     
-    # Паттерны для извлечения ключевых концепций
+    # Patterns for extracting key concepts
     key_concepts = []
     
-    # Извлекаем технические термины, бренды, концепции
+    # Extract technical terms, brands, concepts
     tech_patterns = [
         r'\b(AI|artificial intelligence|machine learning|ML|deep learning|neural networks?|python|javascript|react|vue|angular|nodejs?|database|sql|nosql|cloud|aws|azure|gcp|docker|kubernetes|blockchain|cryptocurrency|bitcoin|ethereum)\b',
         r'\b(digital transformation|cybersecurity|data science|big data|analytics|business intelligence|automation|robotics|IoT|internet of things)\b',
@@ -475,12 +475,12 @@ def generate_search_query_from_question(question):
         matches = re.findall(pattern, question_text, re.IGNORECASE)
         key_concepts.extend(matches)
     
-    # Если нашли технические термины, используем их
+    # If found technical terms, use them
     if key_concepts:
         search_query = f"latest trends {' '.join(key_concepts[:3])} industry best practices"
         return search_query
     
-    # Иначе, создаем общий запрос на основе типа вопроса
+    # Otherwise, create a general query based on question type
     if 'technology' in question_text.lower() or 'tech' in question_text.lower():
         return "latest technology trends industry best practices"
     elif 'market' in question_text.lower() or 'industry' in question_text.lower():
@@ -488,7 +488,7 @@ def generate_search_query_from_question(question):
     elif 'experience' in question_text.lower() or 'skill' in question_text.lower():
         return "professional development skills industry standards"
     else:
-        # Для общих вопросов
+        # For general questions
         words = re.findall(r'\b[a-zA-Z]{4,}\b', question_text)
         if len(words) >= 2:
             return f"{' '.join(words[:3])} industry trends best practices"
@@ -498,7 +498,7 @@ def generate_search_query_from_question(question):
 
 def format_search_results_for_evaluation(results):
     """
-    Форматирует результаты поиска для включения в контекст оценки
+    Formats search results for inclusion in evaluation context
     """
     if not results:
         return ""
@@ -574,12 +574,12 @@ def evaluate_answer_logic(question_id, all_answers, config, question_file, promp
             if ctx_question and all_answers.get(answer_id):
                 payload['answers_ctx'][ctx_question['text']] = get_readable_answer(ctx_question, all_answers[answer_id], all_answers)
 
-    # Perform web search for additional context (автоматический поиск для улучшения оценки)
+    # Perform web search for additional context (automatic search to improve evaluation)
     web_search_context = ""
     try:
         import asyncio
         
-        # Передаем answer в функцию поиска
+        # Pass answer to search function
         answer_value = all_answers.get(question_id)
         
         try:
@@ -590,8 +590,8 @@ def evaluate_answer_logic(question_id, all_answers, config, question_file, promp
                     asyncio.run, 
                     perform_web_search_for_question(
                         question, 
-                        answer_value,  # Передаем ответ
-                        all_answers,   # И все ответы для контекста
+                        answer_value,  # Pass the answer
+                        all_answers,   # And all answers for context
                         config
                     )
                 )

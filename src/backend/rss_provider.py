@@ -1,5 +1,5 @@
 """
-Провайдер RSS для новостей и актуальной информации
+RSS provider for news and current information
 """
 import aiohttp
 import asyncio
@@ -15,18 +15,18 @@ logger = logging.getLogger(__name__)
 
 
 class RSSProvider(SearchProvider):
-    """Провайдер для поиска в RSS лентах новостей"""
+    """Provider for searching in RSS news feeds"""
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         self.feeds = config.get("feeds", self._get_default_feeds())
-        self.cache_duration = config.get("cache_duration", 3600)  # 1 час
+        self.cache_duration = config.get("cache_duration", 3600)  # 1 hour
         self.session = None
-        self._cache = {}  # Простой in-memory кэш для RSS лент
+        self._cache = {}  # Simple in-memory cache for RSS feeds
         self._resource_manager: Optional[Any] = None
         
     def _get_default_feeds(self) -> Dict[str, List[str]]:
-        """Получить стандартные RSS ленты"""
+        """Get default RSS feeds"""
         return {
             "news": [
                 "https://rss.rbc.ru/rbcnews/news.rss",
@@ -48,15 +48,15 @@ class RSSProvider(SearchProvider):
         }
         
     async def search(self, query: SearchQuery) -> List[SearchResult]:
-        """Поиск в RSS лентах"""
+        """Search in RSS feeds"""
         try:
-            # Получаем все статьи из RSS лент
+            # Get all articles from RSS feeds
             all_articles = await self._fetch_all_feeds()
             
-            # Фильтруем релевантные статьи
+            # Filter relevant articles
             relevant_articles = self._filter_relevant_articles(all_articles, query)
             
-            # Конвертируем в SearchResult
+            # Convert to SearchResult
             results = [
                 self._article_to_result(article) 
                 for article in relevant_articles[:query.max_results]
@@ -69,7 +69,7 @@ class RSSProvider(SearchProvider):
             return []
             
     async def _fetch_all_feeds(self) -> List[Dict]:
-        """Получить все статьи из RSS лент"""
+        """Get all articles from RSS feeds"""
         if not self._resource_manager:
             self._resource_manager = await get_global_resource_manager(self.config)
         
@@ -79,15 +79,15 @@ class RSSProvider(SearchProvider):
         all_articles = []
         tasks = []
         
-        # Создаем задачи для параллельной загрузки
+        # Create tasks for parallel loading
         for category, feed_urls in self.feeds.items():
             for feed_url in feed_urls:
                 tasks.append(self._fetch_feed(feed_url, category))
                 
-        # Загружаем все ленты параллельно
+        # Load all feeds in parallel
         results = await asyncio.gather(*tasks, return_exceptions=True)
         
-        # Объединяем результаты
+        # Combine results
         for result in results:
             if isinstance(result, list):
                 all_articles.extend(result)
@@ -97,8 +97,8 @@ class RSSProvider(SearchProvider):
         return all_articles
         
     async def _fetch_feed(self, feed_url: str, category: str) -> List[Dict]:
-        """Загрузить и парсить одну RSS ленту"""
-        # Проверяем кэш
+        """Load and parse one RSS feed"""
+        # Check cache
         cache_key = f"{feed_url}:{category}"
         if cache_key in self._cache:
             cached_data, timestamp = self._cache[cache_key]
@@ -117,7 +117,7 @@ class RSSProvider(SearchProvider):
                 content = await response.text()
                 articles = self._parse_feed(content, feed_url, category)
                 
-                # Сохраняем в кэш
+                # Save to cache
                 self._cache[cache_key] = (articles, datetime.now())
                 
                 return articles
@@ -130,14 +130,14 @@ class RSSProvider(SearchProvider):
             return []
             
     def _parse_feed(self, content: str, feed_url: str, category: str) -> List[Dict]:
-        """Парсинг RSS ленты"""
+        """Parse RSS feed"""
         try:
             feed = feedparser.parse(content)
             
             articles = []
-            for entry in feed.entries[:50]:  # Ограничиваем количество статей
+            for entry in feed.entries[:50]:  # Limit number of articles
                 try:
-                    # Извлекаем дату публикации
+                    # Extract publication date
                     published = None
                     if hasattr(entry, 'published_parsed') and entry.published_parsed:
                         published = datetime(*entry.published_parsed[:6])
@@ -146,7 +146,7 @@ class RSSProvider(SearchProvider):
                     else:
                         published = datetime.now()
                         
-                    # Извлекаем контент
+                    # Extract content
                     content = ""
                     if hasattr(entry, 'summary'):
                         content = entry.summary
@@ -174,30 +174,30 @@ class RSSProvider(SearchProvider):
             return []
             
     def _clean_content(self, content: str) -> str:
-        """Очистка контента от HTML и лишних символов"""
+        """Clean content from HTML and extra characters"""
         import re
         from html import unescape
         
         if not content:
             return ""
             
-        # Удаляем HTML теги
+        # Remove HTML tags
         content = re.sub(r'<[^>]+>', '', content)
         
-        # Декодируем HTML entities
+        # Decode HTML entities
         content = unescape(content)
         
-        # Удаляем лишние пробелы
+        # Remove extra spaces
         content = ' '.join(content.split())
         
-        # Ограничиваем длину
+        # Limit length
         if len(content) > 500:
             content = content[:500] + "..."
             
         return content.strip()
         
     def _filter_relevant_articles(self, articles: List[Dict], query: SearchQuery) -> List[Dict]:
-        """Фильтр релевантных статей"""
+        """Filter relevant articles"""
         query_text = query.text
         keywords = query_text.lower().split() if isinstance(query_text, str) else query_text.split()
         relevant = []
@@ -206,33 +206,33 @@ class RSSProvider(SearchProvider):
             title_lower = article["title"].lower()
             content_lower = article["content"].lower()
             
-            # Подсчет релевантности
+            # Calculate relevance
             score = 0
             keyword_matches = 0
             
             for keyword in keywords:
-                # Точное совпадение в заголовке дает больше очков
+                # Exact match in title gives more points
                 if keyword in title_lower:
                     score += 3
                     keyword_matches += 1
                     
-                # Совпадение в контенте
+                # Match in content
                 if keyword in content_lower:
                     score += 1
                     keyword_matches += 1
                     
-                # Проверка тегов
+                # Check tags
                 for tag in article.get("tags", []):
                     if keyword in tag.lower():
                         score += 2
                         keyword_matches += 1
                         
-            # Требуем совпадения хотя бы половины ключевых слов
+            # Require at least half of keywords to match
             if keyword_matches >= len(keywords) / 2 and score > 0:
                 article["relevance_score"] = score
                 relevant.append(article)
                 
-        # Сортируем по релевантности и дате
+        # Sort by relevance and date
         relevant.sort(
             key=lambda x: (
                 x["relevance_score"], 
@@ -244,12 +244,12 @@ class RSSProvider(SearchProvider):
         return relevant
         
     def _article_to_result(self, article: Dict) -> SearchResult:
-        """Конвертация статьи в SearchResult"""
-        # Нормализуем score от 0 до 1
-        max_expected_score = 10  # Примерный максимальный score
+        """Convert article to SearchResult"""
+        # Normalize score from 0 to 1
+        max_expected_score = 10  # Approximate maximum score
         normalized_score = min(article.get("relevance_score", 0) / max_expected_score, 1.0)
         
-        # Добавляем бонус за свежесть новости
+        # Add bonus for news freshness
         if article.get("published"):
             days_old = (datetime.now() - article["published"]).days
             if days_old == 0:
@@ -275,14 +275,14 @@ class RSSProvider(SearchProvider):
         )
         
     async def is_available(self) -> bool:
-        """Проверить доступность хотя бы одной RSS ленты"""
+        """Check availability of at least one RSS feed"""
         if not self._resource_manager:
             self._resource_manager = await get_global_resource_manager(self.config)
         
         if not self.session:
             self.session = await self._resource_manager.get_session("rss")
             
-        # Проверяем первую ленту из каждой категории
+        # Check first feed from each category
         for category, feeds in self.feeds.items():
             if feeds:
                 try:
@@ -299,7 +299,7 @@ class RSSProvider(SearchProvider):
         return False
         
     def get_supported_query_types(self) -> List[str]:
-        """RSS лучше всего подходит для актуальных запросов"""
+        """RSS is best suited for current queries"""
         return ["current", "general"]
         
     async def __aenter__(self):

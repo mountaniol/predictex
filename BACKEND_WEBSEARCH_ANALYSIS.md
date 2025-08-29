@@ -157,7 +157,7 @@ def handle_simple_evaluate():
      - Блокирует поиск для business evaluation вопросов
      - Ключевые слова: "business evaluator", "risk assessment", "score from 0-100"
    - **Auto search triggers**:
-     - "найди", "поищи", "актуальная информация", "последние новости"
+     - "find", "search", "current information", "latest news", "what's happening", "how much", "what price", "current data", "recent", "today", "latest"
    - **Паттерны текущих событий**:
      - Даты (2024, 2025), "сегодня", "вчера", "недавно"
    - **Фактические вопросы**:
@@ -177,7 +177,7 @@ business_evaluation_keywords = [
 **Процесс извлечения запроса:**
 
 1. **_extract_search_query()** берет последнее сообщение пользователя
-2. Удаляет trigger-фразы ("найди", "поищи")
+2. Удаляет trigger-фразы ("find", "search")
 3. Возвращает очищенный запрос
 
 **Проблема**: Запрос формируется из ПОЛНОГО текста вопроса, включая инструкции для оценки!

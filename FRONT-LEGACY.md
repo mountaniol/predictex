@@ -76,9 +76,7 @@ sessionTracker.js         - Session tracking (666 lines)
 ### Category 5: Backup/Duplicate Files (8+ files, ~1,200 lines)
 **Location:** `src/backend/`
 ```
-duckduckgo_provider_backup.py
-duckduckgo_provider_original_backup.py  
-duckduckgo_provider_updated.py
+duckduckgo_provider.py
 wikipedia_provider_final.py
 wikipedia_provider_old.py
 rss_provider_backup.py

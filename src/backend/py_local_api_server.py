@@ -149,7 +149,7 @@ def handle_final_analysis():
 @app.route('/api/test-web-search', methods=['POST'])
 def handle_test_web_search():
     """
-    @brief Тестовый endpoint для проверки веб-поиска
+    @brief Test endpoint for web search verification
     """
     print("\n🔍 === TEST WEB SEARCH ENDPOINT CALLED ===")
     try:
@@ -221,7 +221,7 @@ def handle_test_web_search():
 @app.route('/api/direct-web-search', methods=['POST'])
 def handle_direct_web_search():
     """
-    @brief Прямой endpoint для тестирования веб-поиска без AI
+    @brief Direct endpoint for testing web search without AI
     """
     print("\n🔍 === DIRECT WEB SEARCH ENDPOINT CALLED ===")
     try:

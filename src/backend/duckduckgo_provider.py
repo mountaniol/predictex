@@ -1,5 +1,5 @@
 """
-Провайдер DuckDuckGo для общего веб-поиска с использованием нового пакета ddgs
+DuckDuckGo provider for general web search using the new ddgs package
 """
 import asyncio
 import logging
@@ -17,7 +17,7 @@ warnings.filterwarnings("ignore", category=RuntimeWarning, module="langchain_com
 
 
 class DuckDuckGoProvider(SearchProvider):
-    """Провайдер для поиска через DuckDuckGo"""
+    """Provider for search via DuckDuckGo"""
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
@@ -27,7 +27,7 @@ class DuckDuckGoProvider(SearchProvider):
         self._ddgs_client = None
         
     def _get_ddgs_client(self):
-        """Ленивая инициализация DDGS клиента"""
+        """Lazy initialization of DDGS client"""
         if self._ddgs_client is None:
             try:
                 # Try to use the new ddgs package directly
@@ -74,7 +74,7 @@ class DuckDuckGoProvider(SearchProvider):
             raise
     
     def _convert_safe_search(self, safe_search: str) -> str:
-        """Конвертация safe_search параметра"""
+        """Convert safe_search parameter"""
         mapping = {
             "strict": "strict",
             "moderate": "moderate", 
@@ -83,7 +83,7 @@ class DuckDuckGoProvider(SearchProvider):
         return mapping.get(safe_search, "moderate")
         
     async def search(self, query: SearchQuery) -> List[SearchResult]:
-        """Выполнить поиск через DuckDuckGo"""
+        """Execute search via DuckDuckGo"""
         print(f"🦆 [DUCKDUCKGO] Starting search for: '{query.text}'")
         
         # Validate query
@@ -201,7 +201,7 @@ class DuckDuckGoProvider(SearchProvider):
             return []
             
     async def is_available(self) -> bool:
-        """Проверить доступность DuckDuckGo"""
+        """Check DuckDuckGo availability"""
         try:
             # Try to initialize client
             client = self._get_ddgs_client()
@@ -210,5 +210,5 @@ class DuckDuckGoProvider(SearchProvider):
             return False
             
     def get_supported_query_types(self) -> List[str]:
-        """DuckDuckGo подходит для всех типов запросов"""
+        """DuckDuckGo supports all query types"""
         return ["general", "factual", "current", "news", "technical"]
