@@ -21,7 +21,70 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-*__pycache__*
-.roo
-venv
-data
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+*.egg
+
+# Logs
+*.log
+logs/
+log/
+server.log
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache and temporary files
+data/search_cache.db
+data/client_sessions.json
+data/migration.db
+data/migration.log
+tmp/
+temp/
+*.tmp
+*.bak
+
+# TLA+ Model Checking
+states/
+*.cfg
+*.tla
+*.bin
+*_TTrace_*.tla
+
+# IDE and OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Keys and secrets
+key.txt
+*.key
+*.pem
+.env
+
+# Build artifacts
+build/
+question-creator/build/
+
+# Old configuration backups
+*.json.backup
+*.toml.backup
+
+# Screenshots and temporary images
+Screenshot*.png
+*.screenshot.png
