@@ -67,24 +67,67 @@ function App() {
   const [questionSetId, setQuestionSetId] = useState(null);
 
   useEffect(() => {
-    fetch('/app.config.json')
-      .then((response) => response.json())
-      .then((config) => {
+    // First try to load TOML config
+    fetch('/app.config.toml')
+      .then((response) => {
+        if (!response.ok) throw new Error('TOML config not found');
+        return response.text();
+      })
+      .then((text) => {
+        // Parse TOML to get question_set_file
+        const lines = text.split('\n');
+        let questionSetFile = null;
+        for (const line of lines) {
+          if (line.includes('question_set_file')) {
+            const match = line.match(/question_set_file\s*=\s*"([^"]+)"/);
+            if (match) {
+              questionSetFile = match[1];
+              break;
+            }
+          }
+        }
+        
+        // Create a config object with the backend URL properly set
+        // Use the same hostname as the frontend, but with port 3001
+        const hostname = window.location.hostname;
+        const backendUrl = `http://${hostname}:3001/api`;
+        
+        const config = {
+          Generic: {
+            question_set_file: questionSetFile
+          },
+          Frontend: {
+            api_base_url: backendUrl  // Dynamic backend URL based on hostname
+          }
+        };
+        
+        console.log('Setting appConfig:', config);
+        console.log('Backend URL:', backendUrl);
         setAppConfig(config);
-        // Get the question set ID from the URL param or the config file. No hardcoded fallback.
-        const rawQId = new URLSearchParams(window.location.search).get('q') || config?.Generic?.question_set_file;
+        
+        // Get the question set ID from the URL param or the config file
+        const rawQId = new URLSearchParams(window.location.search).get('q') || questionSetFile;
         if (rawQId) {
-            // The hook expects the ID without any file extension, so we remove all common extensions
             const qId = rawQId.replace(/\.(json|toml)$/, '');
             setQuestionSetId(qId);
         } else {
-            console.error("No question set specified in URL or app.config.json");
-            // Handle error case, e.g., show an error message to the user
+            console.error("No question set specified in URL or config");
         }
       })
       .catch((error) => {
-        console.error("Failed to load app.config.json, falling back to default.", error);
-        setAppConfig({}); // Set empty config on error to allow fallback
+        console.error("Failed to load app.config.toml, using defaults.", error);
+        // Set default config with proper backend URL
+        const hostname = window.location.hostname;
+        const backendUrl = `http://${hostname}:3001/api`;
+        
+        const defaultConfig = {
+          Frontend: {
+            api_base_url: backendUrl
+          }
+        };
+        console.log('Setting default appConfig:', defaultConfig);
+        console.log('Backend URL:', backendUrl);
+        setAppConfig(defaultConfig);
         setQuestionSetId(new URLSearchParams(window.location.search).get('q') || 'q4');
       });
   }, []);

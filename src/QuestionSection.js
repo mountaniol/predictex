@@ -197,7 +197,12 @@ const QuestionSection = () => {
       console.log(JSON.stringify(payload, null, 2));
       console.log('---------------------------------');
 
-      const baseUrl = appConfig?.Frontend?.api_base_url || '';
+      // Fallback to dynamic URL based on current hostname
+      const hostname = window.location.hostname;
+      const fallbackUrl = `http://${hostname}:3001/api`;
+      const baseUrl = appConfig?.Frontend?.api_base_url || fallbackUrl;
+      console.log('Using backend URL:', baseUrl);
+      console.log('Full appConfig:', appConfig);
       const response = await fetch(`${baseUrl}/simple-evaluate.mjs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -354,7 +354,10 @@ const SidebarResults = () => {
           final_analysis_config: finalAnalysisConfig
         };
 
-        const baseUrl = appConfig?.Frontend?.api_base_url || '';
+        // Fallback to dynamic URL based on current hostname
+        const hostname = window.location.hostname;
+        const fallbackUrl = `http://${hostname}:3001/api`;
+        const baseUrl = appConfig?.Frontend?.api_base_url || fallbackUrl;
         const response = await fetch(`${baseUrl}/final-analysis.mjs`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

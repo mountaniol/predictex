@@ -287,4 +287,4 @@ if __name__ == '__main__':
     print('REACT_APP_PROJECT_ID exists:', bool(os.getenv("REACT_APP_PROJECT_ID")))
     print(f'Attempting to start on port: {port}')
     print('===========================================')
-    app.run(port=port, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=True)
