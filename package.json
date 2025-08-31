@@ -22,8 +22,8 @@
     "start": "react-scripts start",
     "start:local": "concurrently \"npm start\" \"bash ./run-backend.sh\"",
     "start:local:with-creator": "concurrently \"npm start\" \"bash ./run-backend.sh\" \"bash ./run-question-creator.sh\"",
-    "start:local:js": "concurrently \"npm start\" \"nodemon --watch src/backend src/backend/local-api-server.mjs\"",
-    "dev:api": "nodemon --watch src/backend src/backend/local-api-server.mjs",
+    "start:python": "python src/backend/py_local_api_server.py",
+    "start:dev": "concurrently \"npm run start:python\" \"npm start\"",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
